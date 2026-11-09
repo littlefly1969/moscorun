@@ -1,6 +1,6 @@
 # MoscoRun Probe per Android
 
-App Kotlin di verifica locale per confrontare i dati leggibili attraverso Health Connect e il Samsung Health Data SDK. Nessun server, PostgreSQL, AI, tracciamento pubblicitario o accesso Internet nell'app. Android 10 o superiore; prove Samsung su telefono reale.
+App Kotlin di verifica locale per confrontare i dati leggibili attraverso Health Connect e il Samsung Health Data SDK. Nessun collegamento a server MoscoRun, PostgreSQL, AI o tracciamento pubblicitario. La variante Health Connect non ha accesso Internet; la variante Samsung include il permesso Internet dichiarato dal suo SDK ufficiale. Il codice MoscoRun non invia rapporti sanitari a un proprio server. Android 10 o superiore; prove Samsung su telefono reale.
 
 ## Cosa verificare
 
@@ -81,7 +81,7 @@ GitHub Actions esegue la compilazione; Codespaces è l'ambiente in cui modificar
 
 Il rapporto contiene un'anteprima dei primi 3 record per categoria, fino a 300 record di allenamento e i dettagli delle sessioni aperte (Samsung include già i log delle sessioni lette). La paginazione si ferma a 200 pagine da 500 record per categoria; nel dettaglio Health Connect si applica anche una soglia di 100.000 campioni. Questi limiti sono dichiarati nel rapporto; per una verifica ridurre l'intervallo. Non è ancora un'esportazione completa dello storico.
 
-I risultati restano in memoria e si perdono alla chiusura o ricreazione dell'app. Non viene eseguita sincronizzazione in background. L'esportazione è esplicita tramite il selettore file Android; scegliendo un fornitore cloud nel selettore, il file sarà gestito da quel fornitore. L'app non invia dati al server MoscoRun.
+I risultati restano in memoria e si perdono alla chiusura o ricreazione dell'app. Non viene eseguita sincronizzazione in background. L'esportazione è esplicita tramite il selettore file Android; scegliendo un fornitore cloud nel selettore, il file sarà gestito da quel fornitore. Il codice MoscoRun non invia rapporti al server MoscoRun. La libreria Samsung conserva il permesso Internet previsto dal proprio manifest: questa variante non è dichiarata priva di comunicazioni di rete dell’SDK.
 
 ## Primo confronto utile
 

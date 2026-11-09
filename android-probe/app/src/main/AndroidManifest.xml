@@ -15,7 +15,7 @@
         <package android:name="com.google.android.apps.healthdata" />
         <package android:name="com.sec.android.app.shealth" />
     </queries>
-    <!-- No INTERNET, location, background, write or storage permissions. -->
+    <!-- No location, background, write or storage permissions. Samsung AAR contributes INTERNET only to withSamsung. -->
     <application android:theme="@style/AppTheme" android:label="@string/app_name"
         android:icon="@drawable/ic_launcher" android:allowBackup="false" android:supportsRtl="true"
         android:usesCleartextTraffic="false">
