@@ -1,0 +1,68 @@
+name: Prepare Samsung SDK and APK
+on:
+  push:
+    paths: [".github/workflows/prepare-samsung-sdk.yml"]
+permissions:
+  contents: read
+concurrency:
+  group: prepare-samsung-sdk
+  cancel-in-progress: false
+jobs:
+  prepare-and-build:
+    if: github.repository == 'littlefly1969/moscorun'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: '13114758'
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Prepara la dipendenza privata fornita dal proprietario
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY" --jq .private)" = true
+          mkdir -p android-probe/app/libs
+          if gh release view samsung-sdk-local --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release download samsung-sdk-local --repo "$GITHUB_REPOSITORY" --pattern samsung-health-data-api.aar --dir android-probe/app/libs --clobber
+          else
+            gh api "repos/$GITHUB_REPOSITORY/git/blobs/cc5663cca21cae8b2acf1f0558b98d3bb574bbb8" --jq .content | base64 --decode > android-probe/app/libs/samsung-health-data-api.aar
+          fi
+          echo 'f5d3d83cf00b97d0bb1b1db4da076e861eb1c3e6e704d89a34e68909d2f38654  android-probe/app/libs/samsung-health-data-api.aar' | sha256sum --check
+          if ! gh release view samsung-sdk-local --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create samsung-sdk-local --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease --title "Samsung Health Data SDK 1.1.0 - dipendenza privata" --notes "SDK fornito dal proprietario per lo sviluppo e le prove private di MoscoRun. Soggetto alla licenza Samsung; non distribuire pubblicamente."
+          fi
+          gh release upload samsung-sdk-local android-probe/app/libs/samsung-health-data-api.aar android-probe/app/src/withSamsung/assets/SAMSUNG-SDK-OPEN-SOURCE.txt --repo "$GITHUB_REPOSITORY" --clobber
+      - name: Installa piattaforma Android
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Verifica entrambe le varianti e compila APK
+        working-directory: android-probe
+        run: bash gradlew testConnectOnlyDebugUnitTest testWithSamsungDebugUnitTest lintConnectOnlyDebug lintWithSamsungDebug assembleConnectOnlyDebug assembleWithSamsungDebug --no-daemon --max-workers=2
+      - name: Pubblica APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: moscorun-probe-both-apk-${{ github.run_number }}
+          path: android-probe/app/build/outputs/apk/**/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
+      - name: Pubblica controlli
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moscorun-probe-both-checks-${{ github.run_number }}
+          path: |
+            android-probe/app/build/reports/tests/
+            android-probe/app/build/reports/lint-results-*.html
+          if-no-files-found: ignore
+          retention-days: 7

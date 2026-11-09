@@ -17,7 +17,7 @@ private class DirectSamsungProbe(activity: Activity): SamsungGateway {
     private val appContext = activity.applicationContext
     private val store by lazy { HealthDataService.getStore(appContext) }
     override val available = true
-    override val setupMessage = "Accesso diretto Samsung: richiede Samsung Health compatibile e abilitazione dell'app per i test SDK o registrazione partner."
+    override val setupMessage = "Accesso diretto Samsung: per questa prova di sviluppo servono Samsung Health compatibile e la modalità sviluppatore Samsung Health Data SDK per la lettura. Poi concedi i permessi a MoscoRun. Per la distribuzione occorre la registrazione partner."
     private data class Spec(val name:String, val type:DataType,
         val builder:()->ReadDataRequest.DualTimeBuilder<HealthDataPoint>)
     private val specs = listOf(
@@ -34,21 +34,6 @@ private class DirectSamsungProbe(activity: Activity): SamsungGateway {
         val granted=store.requestPermissions(permissions,activity)
         return "Permessi Samsung concessi: ${granted.size}/${permissions.size}."
     }
-    @Suppress("UNCHECKED_CAST")
-    private fun snapshot(point:HealthDataPoint, type:DataType):com.google.gson.JsonElement {
-        val values=linkedMapOf<String,Any?>()
-        val owners=mutableListOf<Any?>(null)
-        val classes=mutableListOf(type.javaClass)
-        // Documented @JvmField constants also live on the enclosing class for Kotlin companions.
-        val companion=runCatching { type.javaClass.getField("Companion").get(null) }.getOrNull()
-        if(companion!=null) { owners += companion; classes += companion.javaClass }
-        classes.forEachIndexed { index, klass -> klass.fields.filter { Field::class.java.isAssignableFrom(it.type) }.forEach { field ->
-            val sdkField=field.get(owners[index]) as Field<Any>
-            values[field.name]=point.getValue(sdkField)
-        } }
-        return Json.tree(mapOf("id" to point.uid,"start" to point.startTime,"end" to point.endTime,
-            "source" to point.dataSource,"zoneOffset" to point.zoneOffset,"fields" to values))
-    }
     override suspend fun scan(start:Instant,end:Instant):ProbeReport {
         val allowed=store.getGrantedPermissions(permissions)
         val workouts=mutableListOf<Workout>()
@@ -63,9 +48,10 @@ private class DirectSamsungProbe(activity: Activity): SamsungGateway {
                     val response=store.readData(request)
                     response.dataList.forEach { point ->
                         count++
-                        val source=point.dataSource.toString()
+                        val origin=point.dataSource
+                        val source="${origin?.appId ?: "?"} / dispositivo ${origin?.deviceId ?: "?"}"
                         sources[source]=(sources[source] ?: 0)+1
-                        if(previews.size<3) previews+=snapshot(point,spec.type)
+                        if(previews.size<3) previews+=samsungSnapshot(point,spec.type)
                         if(spec.type==DataTypes.EXERCISE && workouts.size<300) {
                             val sessions=point.getValue(DataType.ExerciseType.SESSIONS).orEmpty()
                             sessions.forEachIndexed { index, session ->
@@ -76,9 +62,13 @@ private class DirectSamsungProbe(activity: Activity): SamsungGateway {
                                     } }
                                     return Series(name,"letto",samples,"Campioni appartenenti al log della sessione Samsung.")
                                 }
-                                val points=session.route.orEmpty().map { TrackPoint(it.timestamp.toString(),it.latitude.toDouble(),it.longitude.toDouble(),it.altitude?.toDouble(),it.accuracy?.toDouble()) }
+                                val points=samsungRoutePoints(session.route.orEmpty())
                                 workouts+=Workout("${point.uid}:$index",session.exerciseType.toString(),
-                                    session.startTime.toString(),session.endTime.toString(),source,Json.tree(session),
+                                    session.startTime.toString(),session.endTime.toString(),source,Json.tree(mapOf(
+                                        "recordId" to point.uid,"clientDataId" to point.clientDataId,
+                                        "clientVersion" to point.clientVersion,"updateTime" to point.updateTime,
+                                        "dataSource" to point.dataSource,"zoneOffset" to point.zoneOffset,
+                                        "sessionIndex" to index,"session" to session)),
                                     if(routePermission !in allowed) "permesso_negato" else if(points.isEmpty()) "assente" else "disponibile",points,
                                     listOf(metric("Frequenza cardiaca","bpm") { it.heartRate },metric("Velocità","m/s") { it.speed },
                                         metric("Cadenza","passi/min") { it.cadence },metric("Potenza","W") { it.power }),true)
@@ -103,3 +93,24 @@ private class DirectSamsungProbe(activity: Activity): SamsungGateway {
             ))
     }
 }
+
+@Suppress("UNCHECKED_CAST")
+internal fun samsungSnapshot(point:HealthDataPoint, type:DataType):com.google.gson.JsonElement {
+        val values=linkedMapOf<String,Any?>()
+        val owners=mutableListOf<Any?>(null)
+        val classes=mutableListOf(type.javaClass)
+        // Documented @JvmField constants also live on the enclosing class for Kotlin companions.
+        val companion=runCatching { type.javaClass.getField("Companion").get(null) }.getOrNull()
+        if(companion!=null) { owners += companion; classes += companion.javaClass }
+        classes.forEachIndexed { index, klass -> klass.fields.filter { Field::class.java.isAssignableFrom(it.type) }.forEach { field ->
+            val sdkField=field.get(owners[index]) as Field<Any>
+            values[field.name]=point.getValue(sdkField)
+        } }
+        return Json.tree(mapOf("id" to point.uid,"start" to point.startTime,"end" to point.endTime,
+            "source" to point.dataSource,"zoneOffset" to point.zoneOffset,
+            "clientDataId" to point.clientDataId,"clientVersion" to point.clientVersion,
+            "updateTime" to point.updateTime,"fields" to values))
+    }
+
+internal fun samsungRoutePoints(points:List<com.samsung.android.sdk.health.data.data.entries.ExerciseLocation>) =
+    points.map { TrackPoint(it.timestamp.toString(),it.latitude.toDouble(),it.longitude.toDouble(),it.altitude?.toDouble(),it.accuracy?.toDouble()) }
