@@ -201,19 +201,26 @@ class MainActivity:ComponentActivity() {
         }
         w.series.forEach { series ->
             val c=card();text("${series.name} · ${series.status}",17f,true,c)
-            stats(series.name,series.samples.map { it.time },c)
+            if(series.samples.isNotEmpty() || series.rawRecords.isEmpty()) stats(series.name,series.samples.map { it.time },c)
+            if(series.rawRecords.isNotEmpty()) text("${series.rawRecords.size} record sorgente disponibili nel JSON",12f,parent=c)
+            if(series.rawRecords.isNotEmpty()) button("Vedi record originali",c) {
+                showJson("Record di ${series.name}",series.rawRecords)
+            }
             series.samples.firstOrNull()?.let { first ->
                 text("Primo: ${first.value} ${first.unit} · ${first.time}\nUltimo: ${series.samples.last().value} ${first.unit} · ${series.samples.last().time}",12f,parent=c)
             }
             series.message?.let { text(it,12f,parent=c) }
         }
         button("Vedi campi originali della sessione") {
-            val view=TextView(this).apply { text=Json.gson.toJson(w.raw).take(60000);setTextIsSelectable(true);setPadding(24,24,24,24);textSize=12f }
-            AlertDialog.Builder(this).setTitle("Anteprima JSON · fino a 60.000 caratteri").setView(ScrollView(this).apply { addView(view) })
-                .setPositiveButton("Chiudi",null).show()
+            showJson("Sessione originale",w.raw)
         }
         text("L'intervallo mediano descrive i timestamp disponibili. Non è una garanzia sulla frequenza del sensore e non dimostra continuità.",12f)
         reports[provider]?.let { report -> button("Esporta rapporto con questo dettaglio") { confirmExport(report) } }
+    }
+    private fun showJson(title:String,value:Any?) {
+        val view=TextView(this).apply { text=Json.gson.toJson(value).take(60000);setTextIsSelectable(true);setPadding(24,24,24,24);textSize=12f }
+        AlertDialog.Builder(this).setTitle("$title · anteprima fino a 60.000 caratteri")
+            .setView(ScrollView(this).apply { addView(view) }).setPositiveButton("Chiudi",null).show()
     }
     private fun stats(name:String,times:List<String>,parent:LinearLayout=root) {
         val s=SamplingStats.calculate(times)

@@ -4,6 +4,8 @@ import org.junit.Assert.*
 import org.junit.Test
 import java.time.Instant
 import java.time.Duration
+import androidx.health.connect.client.records.HeartRateRecord
+import androidx.health.connect.client.records.metadata.Metadata
 
 class JsonTest {
     @Test fun `preserves precision nulls and numeric samples`() {
@@ -13,6 +15,16 @@ class JsonTest {
         assertTrue(result["missing"].isJsonNull)
         assertEquals(137.5,result["value"].asDouble,0.0)
         assertEquals("PT1.234S",result["duration"].asString)
+    }
+    @Test fun `serializes a real Health Connect record with its native samples`() {
+        val start=Instant.parse("2026-01-01T12:00:00Z")
+        val record=HeartRateRecord(startTime=start,startZoneOffset=null,endTime=start.plusSeconds(2),endZoneOffset=null,
+            samples=listOf(HeartRateRecord.Sample(start.plusMillis(250),137)),metadata=Metadata.manualEntry())
+        val raw=Json.tree(record).asJsonObject
+        assertEquals("2026-01-01T12:00:00Z",raw["startTime"].asString)
+        assertEquals("2026-01-01T12:00:00.250Z",raw["samples"].asJsonArray[0].asJsonObject["time"].asString)
+        assertEquals(137,raw["samples"].asJsonArray[0].asJsonObject["beatsPerMinute"].asInt)
+        assertTrue(raw.has("metadata"))
     }
     @Test fun `denied permission remains distinct from an empty successful read`() {
         val denied=Json.tree(CategoryResult("Peso","permesso_negato")).asJsonObject

@@ -123,7 +123,10 @@ class HealthConnectProbe(private val context: Context) {
             series("Frequenza cardiaca",HeartRateRecord::class) { r -> r.samples.map { sample(it.time,it.beatsPerMinute.toDouble(),"bpm",r) } },
             series("Velocità",SpeedRecord::class) { r -> r.samples.map { sample(it.time,it.speed.inMetersPerSecond,"m/s",r) } },
             series("Potenza",PowerRecord::class) { r -> r.samples.map { sample(it.time,it.power.inWatts,"W",r) } },
-            series("Cadenza",StepsCadenceRecord::class) { r -> r.samples.map { sample(it.time,it.rate,"passi/min",r) } }
+            series("Cadenza",StepsCadenceRecord::class) { r -> r.samples.map { sample(it.time,it.rate,"passi/min",r) } },
+            series("Distanza (record per intervallo)",DistanceRecord::class) { emptyList() },
+            series("Calorie totali (record per intervallo)",TotalCaloriesBurnedRecord::class) { emptyList() },
+            series("VO₂max (record originali)",Vo2MaxRecord::class) { emptyList() }
         )
         workout.detailLoaded=true
         return workout

@@ -8,7 +8,7 @@ App Kotlin di verifica locale per confrontare i dati leggibili attraverso Health
 2. In Samsung Health abilitare la condivisione delle categorie necessarie con Health Connect.
 3. Installare l'APK, scegliere Health Connect, concedere i permessi di lettura e premere **Leggi e verifica**.
 4. Scegliere 7 o 30 giorni. Il filtro iniziale considera solo i dati pubblicati da Samsung Health; disattivarlo per individuare eventuali altre origini.
-5. Controllare le categorie e aprire una corsa. Il dettaglio legge campioni cardiaci, velocità, potenza e cadenza, riporta gli intervalli fra timestamp e visualizza una traccia GPS schematica locale, quando disponibile.
+5. Controllare le categorie e aprire una corsa. Il dettaglio legge campioni cardiaci, velocità, potenza e cadenza, riporta gli intervalli fra timestamp e visualizza una traccia GPS schematica locale, quando disponibile. Sono consultabili anche i record di distanza, calorie totali e VO₂max relativi all’intervallo; i valori rimangono nei record originali, senza convertirli in campioni puntuali fittizi.
 6. Se Health Connect richiede un consenso specifico per il percorso, usare il pulsante nella corsa e confermare nell'interfaccia Android. Non viene richiesto il permesso di localizzazione del telefono: l'app legge un percorso già registrato.
 7. Facoltativamente esportare il rapporto JSON nella destinazione scelta. Non caricare il rapporto in GitHub: può contenere dati sanitari e posizioni precise.
 
