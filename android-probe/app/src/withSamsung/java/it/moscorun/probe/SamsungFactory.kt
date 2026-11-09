@@ -67,7 +67,7 @@ private class DirectSamsungProbe(activity: Activity): SamsungGateway {
                                     session.startTime.toString(),session.endTime.toString(),source,Json.tree(mapOf(
                                         "recordId" to point.uid,"clientDataId" to point.clientDataId,
                                         "clientVersion" to point.clientVersion,"updateTime" to point.updateTime,
-                                        "dataSource" to point.dataSource,"zoneOffset" to point.zoneOffset,
+                                        "dataSource" to samsungSource(point.dataSource),"zoneOffset" to point.zoneOffset,
                                         "sessionIndex" to index,"session" to session)),
                                     if(routePermission !in allowed) "permesso_negato" else if(points.isEmpty()) "assente" else "disponibile",points,
                                     listOf(metric("Frequenza cardiaca","bpm") { it.heartRate },metric("Velocità","m/s") { it.speed },
@@ -97,20 +97,21 @@ private class DirectSamsungProbe(activity: Activity): SamsungGateway {
 @Suppress("UNCHECKED_CAST")
 internal fun samsungSnapshot(point:HealthDataPoint, type:DataType):com.google.gson.JsonElement {
         val values=linkedMapOf<String,Any?>()
-        val owners=mutableListOf<Any?>(null)
-        val classes=mutableListOf(type.javaClass)
-        // Documented @JvmField constants also live on the enclosing class for Kotlin companions.
-        val companion=runCatching { type.javaClass.getField("Companion").get(null) }.getOrNull()
-        if(companion!=null) { owners += companion; classes += companion.javaClass }
-        classes.forEachIndexed { index, klass -> klass.fields.filter { Field::class.java.isAssignableFrom(it.type) }.forEach { field ->
-            val sdkField=field.get(owners[index]) as Field<Any>
+        // SDK 1.1.0 exposes its descriptors as public static @JvmField constants.
+        type.javaClass.fields.filter {
+            java.lang.reflect.Modifier.isStatic(it.modifiers) && Field::class.java.isAssignableFrom(it.type)
+        }.forEach { field ->
+            val sdkField=field.get(null) as Field<Any>
             values[field.name]=point.getValue(sdkField)
-        } }
+        }
         return Json.tree(mapOf("id" to point.uid,"start" to point.startTime,"end" to point.endTime,
-            "source" to point.dataSource,"zoneOffset" to point.zoneOffset,
+            "source" to samsungSource(point.dataSource),"zoneOffset" to point.zoneOffset,
             "clientDataId" to point.clientDataId,"clientVersion" to point.clientVersion,
             "updateTime" to point.updateTime,"fields" to values))
     }
 
 internal fun samsungRoutePoints(points:List<com.samsung.android.sdk.health.data.data.entries.ExerciseLocation>) =
     points.map { TrackPoint(it.timestamp.toString(),it.latitude.toDouble(),it.longitude.toDouble(),it.altitude?.toDouble(),it.accuracy?.toDouble()) }
+
+internal fun samsungSource(source:com.samsung.android.sdk.health.data.data.DataSource?) =
+    source?.let { mapOf("appId" to it.appId,"deviceId" to it.deviceId) }

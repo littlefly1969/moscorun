@@ -9,7 +9,7 @@ on:
       with_samsung:
         description: "Compila anche Samsung diretto (richiede AAR nella release privata samsung-sdk-local)"
         type: boolean
-        default: false
+        default: true
 permissions:
   contents: read
 concurrency:
@@ -39,14 +39,15 @@ jobs:
       - name: Test, analisi e APK Health Connect
         run: bash gradlew testConnectOnlyDebugUnitTest lintConnectOnlyDebug assembleConnectOnlyDebug --no-daemon
       - name: Scarica SDK Samsung privato
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.with_samsung }}
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.with_samsung }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p app/libs
           gh release download samsung-sdk-local --repo "$GITHUB_REPOSITORY" --pattern samsung-health-data-api.aar --dir app/libs
+          echo 'f5d3d83cf00b97d0bb1b1db4da076e861eb1c3e6e704d89a34e68909d2f38654  app/libs/samsung-health-data-api.aar' | sha256sum --check
       - name: Compila variante con Samsung
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.with_samsung }}
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.with_samsung }}
         run: bash gradlew testWithSamsungDebugUnitTest lintWithSamsungDebug assembleWithSamsungDebug --no-daemon
       - name: Pubblica APK
         uses: actions/upload-artifact@v4
