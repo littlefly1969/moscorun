@@ -16,8 +16,8 @@ android {
     }
     flavorDimensions += "connector"
     productFlavors {
-        create("connectOnly") { dimension = "connector" }
-        create("withSamsung") { dimension = "connector"; applicationIdSuffix = ".samsung" }
+        create("connectOnly") { dimension = "connector"; resValue("string", "app_name", "MoscoRun Probe HC") }
+        create("withSamsung") { dimension = "connector"; applicationIdSuffix = ".samsung"; resValue("string", "app_name", "MoscoRun Probe Samsung") }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

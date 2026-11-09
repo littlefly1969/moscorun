@@ -21,7 +21,7 @@ L'elenco può contenere attività diverse dalla corsa. I titoli mancanti sono mo
 | `connectOnlyDebug` | Lettura reale tramite Health Connect; scheda Samsung con spiegazione del prerequisito | Nessuna AAR Samsung |
 | `withSamsungDebug` | Health Connect e connettore diretto Samsung | AAR ufficiale Samsung in `app/libs/samsung-health-data-api.aar` |
 
-Le varianti hanno identificativi distinti (`it.moscorun.probe` e `it.moscorun.probe.samsung`), quindi si possono installare entrambe. La scheda Samsung non simula dati se l'SDK è assente.
+Le varianti hanno identificativi distinti (`it.moscorun.probe` e `it.moscorun.probe.samsung`), quindi si possono installare entrambe. Nel launcher sono distinguibili come **MoscoRun Probe HC** e **MoscoRun Probe Samsung**. Per confrontare i due collegamenti basta installare la variante Samsung: contiene anche Health Connect. La scheda Samsung non simula dati se l'SDK è assente.
 
 **SDK Samsung integrato:** il progetto usa l'AAR ufficiale 1.1.0 fornito dal proprietario. La dipendenza viene conservata nella release privata `samsung-sdk-local`, fuori dai sorgenti versionati; il workflow ne verifica SHA-256 prima di usarla. La compilazione automatica produce entrambe le varianti. La lettura dei dati reali richiede la prova sul telefono: i test del codice non certificano i permessi o la presenza dei dati nel proprio Samsung Health.
 
