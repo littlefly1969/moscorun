@@ -20,6 +20,11 @@ captures/
 *.pem
 *.key
 *.keystore
+*.p12
+*.jks
+signing.properties
+MOSCORUN_SIGNING_BUNDLE*
+MoscoRun-signing-backup*
 local.properties
 .gradle/
 build/

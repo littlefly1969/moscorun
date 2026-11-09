@@ -1,4 +1,4 @@
-# MoscoRun Probe per Android
+# MoscoRun per Android
 
 App Kotlin di verifica locale per confrontare i dati leggibili attraverso Health Connect e il Samsung Health Data SDK. Nessun collegamento a server MoscoRun, PostgreSQL, AI o tracciamento pubblicitario. La variante Health Connect non ha accesso Internet; la variante Samsung include il permesso Internet dichiarato dal suo SDK ufficiale. Il codice MoscoRun non invia rapporti sanitari a un proprio server. Android 10 o superiore; prove Samsung su telefono reale.
 
@@ -21,13 +21,17 @@ L'elenco può contenere attività diverse dalla corsa. I titoli mancanti sono mo
 | `connectOnlyDebug` | Lettura reale tramite Health Connect; scheda Samsung con spiegazione del prerequisito | Nessuna AAR Samsung |
 | `withSamsungDebug` | Health Connect e connettore diretto Samsung | AAR ufficiale Samsung in `app/libs/samsung-health-data-api.aar` |
 
-Le varianti hanno identificativi distinti (`it.moscorun.probe` e `it.moscorun.probe.samsung`), quindi si possono installare entrambe. Nel launcher sono distinguibili come **MoscoRun Probe HC** e **MoscoRun Probe Samsung**. Per confrontare i due collegamenti basta installare la variante Samsung: contiene anche Health Connect. La scheda Samsung non simula dati se l'SDK è assente.
+Le varianti hanno identificativi definitivi distinti: **MoscoRun** (`it.littlefly.moscorun`, variante Samsung completa) e **MoscoRun HC** (`it.littlefly.moscorun.hc`, solo Health Connect). Si possono installare entrambe. La variante completa contiene anche Health Connect. La scheda Samsung non simula dati se l'SDK è assente.
+
+Il dominio di riferimento è `littlefly.it`; non occorre configurare DNS per usare questi identificativi. I precedenti pacchetti `it.moscorun.probe` e `it.moscorun.probe.samsung` restano app separate: il primo passaggio richiede una nuova installazione e nuovi consensi. Samsung Health e i suoi dati originali non vengono modificati.
 
 **SDK Samsung integrato:** il progetto usa l'AAR ufficiale 1.1.0 fornito dal proprietario. La dipendenza viene conservata nella release privata `samsung-sdk-local`, fuori dai sorgenti versionati; il workflow ne verifica SHA-256 prima di usarla. La compilazione automatica produce entrambe le varianti. La lettura dei dati reali richiede la prova sul telefono: i test del codice non certificano i permessi o la presenza dei dati nel proprio Samsung Health.
 
 ## Compilazione locale / Android Studio
 
 Aprire la cartella `android-probe` in Android Studio. Servono JDK 17, piattaforma Android API 36 e Build Tools 36.0.0. Il progetto usa Gradle Wrapper 8.13, AGP 8.13.2, Kotlin 2.2.10 e Health Connect 1.1.0.
+
+Prima di produrre un APK, ripristinare la firma come descritto in [Firma e aggiornamenti](../docs/firma-android.md). Senza firma sono disponibili test JVM e Lint, ma la generazione di APK viene bloccata. Il file `signing.properties` contiene credenziali e rimane fuori dal repository.
 
 ```bash
 cd android-probe
@@ -54,7 +58,9 @@ Il workflow **Android Probe APK** si avvia su push o pull request che interessan
 
 Aprire un'esecuzione completata con successo e scaricare `moscorun-probe-apk-<numero>` dalla sezione **Artifacts**, estrarre lo ZIP e installare l'APK sul telefono. Gli artefatti sono conservati per 7 giorni e sono soggetti alle quote GitHub dell'account. Non occorre un PC configurato per compilarli; l'installazione dell'APK sul telefono resta un passaggio esplicito dell'utente.
 
-Le APK sono di debug. Le chiavi dei runner possono cambiare fra esecuzioni: in quel caso Android richiede di disinstallare la precedente APK prima di installare quella nuova, e i permessi vanno concessi di nuovo. Una firma stabile sarà definita per una versione distribuita.
+Gli APK di debug e release usano lo stesso certificato stabile MoscoRun, controllato prima della compilazione e verificato negli APK prima della pubblicazione. La chiave privata viene ripristinata dal secret GitHub Actions `MOSCORUN_SIGNING_BUNDLE`; non viene generata sui runner. Se il secret manca o il certificato è diverso, il workflow esegue i controlli precedenti ma non pubblica APK. Il materiale temporaneo viene rimosso a fine esecuzione.
+
+Il `versionCode` delle compilazioni GitHub corrisponde al numero progressivo del workflow. Per compilazioni locali da installare sopra una versione CI, passare un `-PmoscorunVersionCode=<numero>` coerente con la versione installata. Mantenendo identificativo e certificato, gli aggiornamenti non richiedono ogni volta disinstallazione o nuove restrizioni Maps. I permessi restano comunque sotto il controllo di Android e dell'utente.
 
 ### Dipendenza Samsung nelle compilazioni private GitHub
 

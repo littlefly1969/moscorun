@@ -4,9 +4,9 @@ Prima installazione personale di una piattaforma riutilizzabile per raccogliere 
 
 **Stato:** progettazione iniziale, 9 novembre 2026. Repository privato: [littlefly1969/moscorun](https://github.com/littlefly1969/moscorun). Sono presenti architettura, scelte tecnologiche e il prototipo Android di verifica locale in `android-probe`. Le integrazioni vanno provate sui dispositivi reali; backend, database e acquisizione bilancia non sono ancora implementati.
 
-## Prototipo Android
+## App Android — MoscoRun
 
-[App di verifica e istruzioni](android-probe/README.md): Kotlin, lettura in primo piano di Health Connect e variante con Samsung Health Data SDK opzionale. Nessun invio al server. Il workflow **Android Probe APK** compila su GitHub e pubblica un APK di debug scaricabile dagli artefatti. La configurazione Codespaces consente lo sviluppo dal browser.
+[App di verifica e istruzioni](android-probe/README.md): Kotlin, lettura in primo piano di Health Connect e variante con Samsung Health Data SDK opzionale. Nessun invio al server. Il workflow **Android Probe APK** compila su GitHub e pubblica un APK di debug scaricabile dagli artefatti. La configurazione Codespaces consente lo sviluppo dal browser. Il nome definitivo è **MoscoRun**, dominio di riferimento `littlefly.it`, identificativo Android `it.littlefly.moscorun`; la variante solo Health Connect usa `it.littlefly.moscorun.hc`. [Firma stabile e aggiornamenti](docs/firma-android.md).
 
 ## Collegamenti previsti
 
