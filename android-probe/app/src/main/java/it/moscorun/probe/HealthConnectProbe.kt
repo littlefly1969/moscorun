@@ -86,10 +86,12 @@ class HealthConnectProbe(private val context: Context) {
         return Workout(r.metadata.id, r.title ?: "Attività ${r.exerciseType}", r.startTime.toString(),
             r.endTime.toString(), r.metadata.dataOrigin.packageName, Json.tree(r),
             when(route) { is ExerciseRouteResult.Data -> "disponibile"; is ExerciseRouteResult.ConsentRequired -> "consenso_richiesto"; else -> "assente" },
-            if (route is ExerciseRouteResult.Data) routePoints(route.exerciseRoute) else emptyList())
+            if (route is ExerciseRouteResult.Data) routePoints(route.exerciseRoute) else emptyList()).apply {
+                rawRoute = if(route is ExerciseRouteResult.Data) Json.tree(route.exerciseRoute) else null
+            }
     }
     fun routePoints(route: ExerciseRoute) = route.route.map {
-        TrackPoint(it.time.toString(), it.latitude, it.longitude, it.altitude?.inMeters, it.horizontalAccuracy?.inMeters)
+        TrackPoint(it.time.toString(), it.latitude, it.longitude, it.altitude?.inMeters, it.horizontalAccuracy?.inMeters, it.verticalAccuracy?.inMeters)
     }
     suspend fun details(workout: Workout): Workout {
         val start = Instant.parse(workout.start); val end = Instant.parse(workout.end)

@@ -43,7 +43,7 @@ class MainActivity:ComponentActivity() {
         val workout=pendingRoute;pendingRoute=null
         if(workout!=null) {
             if(route==null) { workout.routeState="consenso_non_concesso_o_dato_assente" }
-            else { workout.route=hc.routePoints(route);workout.routeState="disponibile" }
+            else { workout.route=hc.routePoints(route);workout.rawRoute=Json.tree(route);workout.routeState="disponibile" }
             selected=workout
         }
         render()

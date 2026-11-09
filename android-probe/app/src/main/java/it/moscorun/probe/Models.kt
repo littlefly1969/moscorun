@@ -23,7 +23,8 @@ data class CategoryResult(
     val preview: List<JsonElement> = emptyList(), val message: String? = null
 )
 data class TrackPoint(val time: String, val latitude: Double, val longitude: Double,
-    val altitudeMeters: Double? = null, val accuracyMeters: Double? = null)
+    val altitudeMeters: Double? = null, val accuracyMeters: Double? = null,
+    val verticalAccuracyMeters: Double? = null)
 data class Sample(val time: String, val value: Double, val unit: String,
     val recordId: String, val source: String)
 data class Series(val name: String, val status: String, val samples: List<Sample> = emptyList(),
@@ -31,7 +32,7 @@ data class Series(val name: String, val status: String, val samples: List<Sample
 data class Workout(val id: String, val title: String, val start: String, val end: String,
     val source: String, val raw: JsonElement, var routeState: String = "non_verificato",
     var route: List<TrackPoint> = emptyList(), var series: List<Series> = emptyList(),
-    var detailLoaded: Boolean = false)
+    var detailLoaded: Boolean = false, var rawRoute: JsonElement? = null)
 data class ProbeReport(val schemaVersion: Int = 1, val provider: String, val generatedAt: String,
     val windowStart: String, val windowEnd: String, val categories: List<CategoryResult>,
     val workouts: List<Workout>, val notes: List<String>)

@@ -5,6 +5,8 @@ import org.junit.Test
 import java.time.Instant
 import java.time.Duration
 import androidx.health.connect.client.records.HeartRateRecord
+import androidx.health.connect.client.records.ExerciseRoute
+import androidx.health.connect.client.units.Length
 import androidx.health.connect.client.records.metadata.Metadata
 
 class JsonTest {
@@ -25,6 +27,15 @@ class JsonTest {
         assertEquals("2026-01-01T12:00:00.250Z",raw["samples"].asJsonArray[0].asJsonObject["time"].asString)
         assertEquals(137,raw["samples"].asJsonArray[0].asJsonObject["beatsPerMinute"].asInt)
         assertTrue(raw.has("metadata"))
+    }
+    @Test fun `native route keeps altitude and both accuracy fields`() {
+        val route=ExerciseRoute(listOf(ExerciseRoute.Location(time=Instant.parse("2026-01-01T12:00:00.125Z"),
+            latitude=41.9,longitude=12.5,altitude=Length.meters(30.0),horizontalAccuracy=Length.meters(2.0),verticalAccuracy=Length.meters(4.0))))
+        val raw=Json.tree(route).asJsonObject["route"].asJsonArray[0].asJsonObject
+        assertEquals("2026-01-01T12:00:00.125Z",raw["time"].asString)
+        assertFalse(raw["verticalAccuracy"].isJsonNull)
+        assertFalse(raw["horizontalAccuracy"].isJsonNull)
+        assertFalse(raw["altitude"].isJsonNull)
     }
     @Test fun `denied permission remains distinct from an empty successful read`() {
         val denied=Json.tree(CategoryResult("Peso","permesso_negato")).asJsonObject
