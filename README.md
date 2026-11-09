@@ -2,7 +2,11 @@
 
 Prima installazione personale di una piattaforma riutilizzabile per raccogliere peso e allenamenti e confrontare il lavoro svolto con quello programmato. La prima applicazione è il percorso Roma–Ostia e Berlino; le entità del prodotto restano indipendenti dalle gare.
 
-**Stato:** progettazione iniziale, 9 novembre 2026. Repository privato: [littlefly1969/moscorun](https://github.com/littlefly1969/moscorun). Sono presenti architettura, scelte tecnologiche e piano di sviluppo; le integrazioni devono ancora essere implementate e provate sui dispositivi reali.
+**Stato:** progettazione iniziale, 9 novembre 2026. Repository privato: [littlefly1969/moscorun](https://github.com/littlefly1969/moscorun). Sono presenti architettura, scelte tecnologiche e il prototipo Android di verifica locale in `android-probe`. Le integrazioni vanno provate sui dispositivi reali; backend, database e acquisizione bilancia non sono ancora implementati.
+
+## Prototipo Android
+
+[App di verifica e istruzioni](android-probe/README.md): Kotlin, lettura in primo piano di Health Connect e variante con Samsung Health Data SDK opzionale. Nessun invio al server. Il workflow **Android Probe APK** compila su GitHub e pubblica un APK di debug scaricabile dagli artefatti. La configurazione Codespaces consente lo sviluppo dal browser.
 
 ## Collegamenti previsti
 

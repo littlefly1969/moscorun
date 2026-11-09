@@ -23,3 +23,12 @@ captures/
 local.properties
 .gradle/
 build/
+*.aar
+*.apk
+*.aab
+captures/
+.idea/
+.kotlin/
+android-probe/.gradle/
+
+moscorun-probe-*.json

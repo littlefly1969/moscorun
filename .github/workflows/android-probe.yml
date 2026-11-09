@@ -1,0 +1,63 @@
+name: Android Probe APK
+on:
+  push:
+    paths: ["android-probe/**", ".github/workflows/android-probe.yml"]
+  pull_request:
+    paths: ["android-probe/**", ".github/workflows/android-probe.yml"]
+  workflow_dispatch:
+    inputs:
+      with_samsung:
+        description: "Compila anche Samsung diretto (richiede AAR nella release privata samsung-sdk-local)"
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: android-probe-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: android-probe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Installa piattaforma Android
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Test, analisi e APK Health Connect
+        run: bash gradlew testConnectOnlyDebugUnitTest lintConnectOnlyDebug assembleConnectOnlyDebug --no-daemon
+      - name: Scarica SDK Samsung privato
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.with_samsung }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p app/libs
+          gh release download samsung-sdk-local --repo "$GITHUB_REPOSITORY" --pattern samsung-health-data-api.aar --dir app/libs
+      - name: Compila variante con Samsung
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.with_samsung }}
+        run: bash gradlew testWithSamsungDebugUnitTest lintWithSamsungDebug assembleWithSamsungDebug --no-daemon
+      - name: Pubblica APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: moscorun-probe-apk-${{ github.run_number }}
+          path: android-probe/app/build/outputs/apk/**/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
+      - name: Pubblica risultati dei controlli
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moscorun-probe-checks-${{ github.run_number }}
+          path: |
+            android-probe/app/build/reports/tests/
+            android-probe/app/build/reports/lint-results-*.html
+          if-no-files-found: ignore
+          retention-days: 7
