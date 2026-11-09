@@ -23,6 +23,7 @@ captures/
 *.p12
 *.jks
 signing.properties
+maps.properties
 MOSCORUN_SIGNING_BUNDLE*
 MoscoRun-signing-backup*
 local.properties

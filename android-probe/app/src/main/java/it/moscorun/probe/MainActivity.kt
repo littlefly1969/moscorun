@@ -117,6 +117,7 @@ class MainActivity:ComponentActivity() {
         if(busy) root.addView(ProgressBar(this))
         val detail=selected
         if(detail!=null) { renderDetail(detail);return }
+        if(canOpenGoogleRouteMap()) button("Prova Google Maps") { openGoogleMapPreview(this) }
         val tabs=LinearLayout(this).apply { orientation=LinearLayout.HORIZONTAL;root.addView(this) }
         button(if(provider=="Health Connect") "✓ Health Connect" else "Health Connect",tabs) { provider="Health Connect";message="Health Connect selezionato.";render() }
         button(if(provider=="Samsung") "✓ Samsung" else "Samsung diretto",tabs) { provider="Samsung";message=samsung.setupMessage;render() }
@@ -194,6 +195,12 @@ class MainActivity:ComponentActivity() {
         if(w.route.isNotEmpty()) {
             root.addView(RouteView(this,w.route),LinearLayout.LayoutParams(-1,dp(220)))
             text("Traccia locale schematica, senza cartografia. Verde: partenza; arancio: arrivo.",11f)
+            if(canOpenGoogleRouteMap()) button("Apri mappa Google") {
+                AlertDialog.Builder(this).setTitle("Mappa della corsa")
+                    .setMessage("Per mostrare la cartografia, MoscoRun si collega a Google e richiede la mappa dell'area della corsa. Il tracciato verrà sovrapposto alla mappa. Puoi anche continuare a usare la traccia locale senza aprire Google Maps.")
+                    .setNegativeButton("Resta qui",null)
+                    .setPositiveButton("Apri mappa") { _,_ -> openGoogleRouteMap(this,w) }.show()
+            }
             stats("GPS",w.route.map { it.time })
         }
         if(provider=="Health Connect" && w.routeState=="consenso_richiesto") button("Richiedi accesso a questo percorso") {

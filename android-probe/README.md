@@ -1,6 +1,6 @@
 # MoscoRun per Android
 
-App Kotlin di verifica locale per confrontare i dati leggibili attraverso Health Connect e il Samsung Health Data SDK. Nessun collegamento a server MoscoRun, PostgreSQL, AI o tracciamento pubblicitario. La variante Health Connect non ha accesso Internet; la variante Samsung include il permesso Internet dichiarato dal suo SDK ufficiale. Il codice MoscoRun non invia rapporti sanitari a un proprio server. Android 10 o superiore; prove Samsung su telefono reale.
+App Kotlin di verifica locale per confrontare i dati leggibili attraverso Health Connect e il Samsung Health Data SDK. Nessun collegamento a server MoscoRun, PostgreSQL, AI o tracciamento pubblicitario. La variante Health Connect non ha accesso Internet; la variante completa include Samsung Health Data SDK e Google Maps, che usano Internet. Le mappe si aprono con un comando esplicito. Il codice MoscoRun non invia rapporti sanitari a un proprio server. Android 10 o superiore; prove Samsung su telefono reale.
 
 ## Cosa verificare
 
@@ -9,8 +9,9 @@ App Kotlin di verifica locale per confrontare i dati leggibili attraverso Health
 3. Installare l'APK, scegliere Health Connect, concedere i permessi di lettura e premere **Leggi e verifica**.
 4. Scegliere 7 o 30 giorni. Il filtro iniziale considera solo i dati pubblicati da Samsung Health; disattivarlo per individuare eventuali altre origini.
 5. Controllare le categorie e aprire una corsa. Il dettaglio legge campioni cardiaci, velocità, potenza e cadenza, riporta gli intervalli fra timestamp e visualizza una traccia GPS schematica locale, quando disponibile. Sono consultabili anche i record di distanza, calorie totali e VO₂max relativi all’intervallo; i valori rimangono nei record originali, senza convertirli in campioni puntuali fittizi.
-6. Se Health Connect richiede un consenso specifico per il percorso, usare il pulsante nella corsa e confermare nell'interfaccia Android. Non viene richiesto il permesso di localizzazione del telefono: l'app legge un percorso già registrato.
-7. Facoltativamente esportare il rapporto JSON nella destinazione scelta. Non caricare il rapporto in GitHub: può contenere dati sanitari e posizioni precise.
+6. Nella variante completa, **Prova Google Maps** apre una vista su Roma senza usare dati sanitari. Nel dettaglio di una corsa con GPS, **Apri mappa Google** mostra il tracciato con partenza/arrivo, zoom, ricentratura e viste stradale, satellitare e rilievo. La traccia locale resta consultabile senza aprire la cartografia online.
+7. Se Health Connect richiede un consenso specifico per il percorso, usare il pulsante nella corsa e confermare nell'interfaccia Android. Non viene richiesto il permesso di localizzazione del telefono: l'app legge un percorso già registrato.
+8. Facoltativamente esportare il rapporto JSON nella destinazione scelta. Non caricare il rapporto in GitHub: può contenere dati sanitari e posizioni precise.
 
 L'elenco può contenere attività diverse dalla corsa. I titoli mancanti sono mostrati con il codice tipo originale; il JSON conserva il tipo originale.
 
@@ -19,7 +20,7 @@ L'elenco può contenere attività diverse dalla corsa. I titoli mancanti sono mo
 | Variante | Cosa contiene | Dipendenze aggiuntive |
 | --- | --- | --- |
 | `connectOnlyDebug` | Lettura reale tramite Health Connect; scheda Samsung con spiegazione del prerequisito | Nessuna AAR Samsung |
-| `withSamsungDebug` | Health Connect e connettore diretto Samsung | AAR ufficiale Samsung in `app/libs/samsung-health-data-api.aar` |
+| `withSamsungDebug` | Health Connect, connettore diretto Samsung e Google Maps | AAR ufficiale Samsung e chiave Maps SDK for Android |
 
 Le varianti hanno identificativi definitivi distinti: **MoscoRun** (`it.littlefly.moscorun`, variante Samsung completa) e **MoscoRun HC** (`it.littlefly.moscorun.hc`, solo Health Connect). Si possono installare entrambe. La variante completa contiene anche Health Connect. La scheda Samsung non simula dati se l'SDK è assente.
 
@@ -30,6 +31,8 @@ Il dominio di riferimento è `littlefly.it`; non occorre configurare DNS per usa
 ## Compilazione locale / Android Studio
 
 Aprire la cartella `android-probe` in Android Studio. Servono JDK 17, piattaforma Android API 36 e Build Tools 36.0.0. Il progetto usa Gradle Wrapper 8.13, AGP 8.13.2, Kotlin 2.2.10 e Health Connect 1.1.0.
+
+La versione completa richiede il secret GitHub Actions `GOOGLE_MAPS_ANDROID_API_KEY`, contenente la chiave Maps SDK for Android autorizzata per `it.littlefly.moscorun` e la SHA-1 stabile del progetto. Per compilare localmente, usare la variabile di ambiente omonima oppure un file `android-probe/maps.properties` con `apiKey=...`, escluso da Git. Il valore non va inserito nei sorgenti. Nell’APK Android la chiave è recuperabile: le restrizioni Google su API, pacchetto e certificato sono il controllo di accesso. Senza una chiave valida la compilazione dell’APK completo viene bloccata. I test e Lint restano eseguibili.
 
 Prima di produrre un APK, ripristinare la firma come descritto in [Firma e aggiornamenti](../docs/firma-android.md). Senza firma sono disponibili test JVM e Lint, ma la generazione di APK viene bloccata. Il file `signing.properties` contiene credenziali e rimane fuori dal repository.
 
@@ -87,7 +90,7 @@ GitHub Actions esegue la compilazione; Codespaces è l'ambiente in cui modificar
 
 Il rapporto contiene un'anteprima dei primi 3 record per categoria, fino a 300 record di allenamento e i dettagli delle sessioni aperte (Samsung include già i log delle sessioni lette). La paginazione si ferma a 200 pagine da 500 record per categoria; nel dettaglio Health Connect si applica anche una soglia di 100.000 campioni. Questi limiti sono dichiarati nel rapporto; per una verifica ridurre l'intervallo. Non è ancora un'esportazione completa dello storico.
 
-I risultati restano in memoria e si perdono alla chiusura o ricreazione dell'app. Non viene eseguita sincronizzazione in background. L'esportazione è esplicita tramite il selettore file Android; scegliendo un fornitore cloud nel selettore, il file sarà gestito da quel fornitore. Il codice MoscoRun non invia rapporti al server MoscoRun. La libreria Samsung conserva il permesso Internet previsto dal proprio manifest: questa variante non è dichiarata priva di comunicazioni di rete dell’SDK.
+I risultati restano in memoria e si perdono alla chiusura o ricreazione dell'app. Non viene eseguita sincronizzazione in background. L'esportazione è esplicita tramite il selettore file Android; scegliendo un fornitore cloud nel selettore, il file sarà gestito da quel fornitore. Il codice MoscoRun non invia rapporti al server MoscoRun. La versione completa usa Internet per l’SDK Samsung e per Google Maps. Prima di aprire la mappa di una corsa, l’app informa che Google riceve le richieste cartografiche relative all’area visualizzata. I punti del percorso sono mantenuti in memoria e disegnati come sovrapposizione: non viene creato un file di scambio del tracciato né inviato un rapporto a un server MoscoRun. La visualizzazione usa Maps SDK standard, senza Map ID, Places o calcolo di itinerari. Non viene chiesto il permesso GPS del telefono per visualizzare un percorso già registrato. Le informazioni restano consultabili anche nella schermata Informazioni sui dati.
 
 ## Primo confronto utile
 

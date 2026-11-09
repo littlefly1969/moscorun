@@ -63,6 +63,8 @@ jobs:
         run: bash gradlew assembleConnectOnlyDebug --no-daemon
       - name: Compila APK Samsung con firma stabile
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.with_samsung }}
+        env:
+          GOOGLE_MAPS_ANDROID_API_KEY: ${{ secrets.GOOGLE_MAPS_ANDROID_API_KEY }}
         run: bash gradlew assembleWithSamsungDebug --no-daemon
       - name: Verifica firme, identificativi e versioni APK
         run: python3 scripts/verify-apks.py

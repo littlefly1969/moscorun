@@ -17,7 +17,7 @@ EE:9C:07:8D:07:77:F1:8D:FA:42:9B:BA:B8:E7:8B:F0:E5:56:7D:BF
 
 In Google Cloud, nella chiave per Maps SDK for Android, aggiungere una restrizione **App Android** per ciascun identificativo che deve usare la mappa, con questa SHA-1. Questa coppia sostituisce, per le nuove app, i valori dei precedenti APK di prova. Le modifiche al codice e al numero versione non cambiano il certificato.
 
-Questo incremento stabilizza identità e firma; non introduce ancora il Maps SDK o una chiave Google nel codice. Il namespace interno Kotlin resta invariato: per Google Cloud si usa l'`applicationId` della tabella, non il namespace.
+La versione completa integra Maps SDK for Android per la prova della mappa e la visualizzazione dei percorsi. La chiave viene inserita nella compilazione dal secret `GOOGLE_MAPS_ANDROID_API_KEY`, separato dal bundle di firma. Non aggiungere chiavi nei sorgenti; per lo sviluppo locale usare la variabile di ambiente omonima o `android-probe/maps.properties` con `apiKey=...`. Il valore presente nell’APK è recuperabile, quindi mantenere le restrizioni Google per API, pacchetto e certificato. La versione HC resta senza Maps e senza Internet. Il namespace interno Kotlin resta invariato: per Google Cloud si usa l'`applicationId` della tabella, non il namespace.
 
 ## Attivazione una sola volta su GitHub
 

@@ -14,6 +14,12 @@ val signingProperties = Properties().apply {
     if (signingFile.isFile) signingFile.inputStream().use { load(it) }
 }
 val hasStableSigning = signingFile.isFile
+val mapsProperties = Properties().apply {
+    val localFile = rootProject.file("maps.properties")
+    if (localFile.isFile) localFile.inputStream().use { load(it) }
+}
+val googleMapsKey = providers.environmentVariable("GOOGLE_MAPS_ANDROID_API_KEY").orNull
+    ?.trim() ?: mapsProperties.getProperty("apiKey", "").trim()
 val identity = JsonSlurper().parse(rootProject.file("signing/identity.json")) as Map<*, *>
 if (hasStableSigning) {
     listOf("storeFile", "storePassword", "keyAlias", "keyPassword").forEach {
@@ -39,13 +45,17 @@ android {
         versionCode = providers.gradleProperty("moscorunVersionCode")
             .orElse(providers.environmentVariable("MOSCORUN_VERSION_CODE")).orElse("2").get().toInt()
             .also { check(it in 1..2100000000) { "versionCode fuori intervallo" } }
-        versionName = "0.2.0"
+        versionName = "0.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     flavorDimensions += "connector"
     productFlavors {
         create("connectOnly") { dimension = "connector"; applicationIdSuffix = ".hc"; resValue("string", "app_name", "MoscoRun HC") }
-        create("withSamsung") { dimension = "connector"; resValue("string", "app_name", "MoscoRun") }
+        create("withSamsung") {
+            dimension = "connector"
+            resValue("string", "app_name", "MoscoRun")
+            manifestPlaceholders["GOOGLE_MAPS_ANDROID_API_KEY"] = googleMapsKey.ifBlank { "MAPS_KEY_NOT_CONFIGURED" }
+        }
     }
     signingConfigs {
         if (hasStableSigning) create("stable") {
@@ -74,10 +84,18 @@ val requireStableSigning by tasks.registering {
         }
     }
 }
+val requireGoogleMapsKey by tasks.registering {
+    doLast {
+        check(googleMapsKey.matches(Regex("AIza[A-Za-z0-9_-]{35}"))) {
+            "Chiave Maps Android assente o non valida. Configurare GOOGLE_MAPS_ANDROID_API_KEY."
+        }
+    }
+}
 tasks.configureEach {
     // Resources and JVM tests remain available without giving a PR the private key.
     if (name.matches(Regex("(?:package|sign|validateSigning).*(?:Debug|Release)(?:Bundle)?$")) || name == "signingReport") {
         dependsOn(requireStableSigning)
+        if (name.contains("WithSamsung")) dependsOn(requireGoogleMapsKey)
     }
 }
 dependencies {
@@ -87,6 +105,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     implementation("com.google.code.gson:gson:2.13.1")
     add("withSamsungImplementation", files("libs/samsung-health-data-api.aar"))
+    add("withSamsungImplementation", "com.google.android.gms:play-services-maps:20.0.0")
     testImplementation("junit:junit:4.13.2")
 }
 tasks.matching { it.name.contains("WithSamsung") && it.name.startsWith("pre") }.configureEach {
