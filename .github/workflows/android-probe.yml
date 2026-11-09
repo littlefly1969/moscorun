@@ -26,6 +26,18 @@ jobs:
       MOSCORUN_VERSION_CODE: ${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
+      - name: Verifica configurazione Google Maps
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.with_samsung }}
+        env:
+          GOOGLE_MAPS_ANDROID_API_KEY: ${{ secrets.GOOGLE_MAPS_ANDROID_API_KEY }}
+        run: |
+          python3 - <<'PY'
+          import os, re
+          key = os.environ.get("GOOGLE_MAPS_ANDROID_API_KEY", "").strip()
+          if not re.fullmatch(r"AIza[A-Za-z0-9_-]{35}", key):
+              raise SystemExit("::error::Aggiungere il Repository secret GOOGLE_MAPS_ANDROID_API_KEY con la chiave Maps SDK for Android.")
+          print("Chiave Maps presente e formato valido; valore non mostrato.")
+          PY
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
