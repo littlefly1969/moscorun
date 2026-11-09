@@ -56,7 +56,7 @@ Il workflow **Android Probe APK** si avvia su push o pull request che interessan
 - risultati dei test e di Android Lint;
 - APK con entrambi i collegamenti, usando la dipendenza Samsung privata predisposta. Nel lancio manuale è possibile disattivare `with_samsung` per generare soltanto Health Connect.
 
-Aprire un'esecuzione completata con successo e scaricare `moscorun-probe-apk-<numero>` dalla sezione **Artifacts**, estrarre lo ZIP e installare l'APK sul telefono. Gli artefatti sono conservati per 7 giorni e sono soggetti alle quote GitHub dell'account. Non occorre un PC configurato per compilarli; l'installazione dell'APK sul telefono resta un passaggio esplicito dell'utente.
+Aprire un'esecuzione completata con successo e scaricare `moscorun-probe-apk-<numero>-<tentativo>` dalla sezione **Artifacts**, estrarre lo ZIP e installare l'APK sul telefono. Ogni tentativo usa un nome distinto anche per i rapporti dei controlli, così un rilancio non entra in conflitto con i file del tentativo precedente. Gli artefatti sono conservati per 7 giorni e sono soggetti alle quote GitHub dell'account. Non occorre un PC configurato per compilarli; l'installazione dell'APK sul telefono resta un passaggio esplicito dell'utente.
 
 Gli APK di debug e release usano lo stesso certificato stabile MoscoRun, controllato prima della compilazione e verificato negli APK prima della pubblicazione. La chiave privata viene ripristinata dal secret GitHub Actions `MOSCORUN_SIGNING_BUNDLE`; non viene generata sui runner. Se il secret manca o il certificato è diverso, il workflow esegue i controlli precedenti ma non pubblica APK. Il materiale temporaneo viene rimosso a fine esecuzione.
 
