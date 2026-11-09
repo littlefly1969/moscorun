@@ -106,6 +106,8 @@ dependencies {
     implementation("com.google.code.gson:gson:2.13.1")
     add("withSamsungImplementation", files("libs/samsung-health-data-api.aar"))
     add("withSamsungImplementation", "com.google.android.gms:play-services-maps:20.0.0")
+    // Maps brings an old Fragment transitively; Activity Result requires a modern version.
+    add("withSamsungImplementation", "androidx.fragment:fragment-ktx:1.8.9")
     testImplementation("junit:junit:4.13.2")
 }
 tasks.matching { it.name.contains("WithSamsung") && it.name.startsWith("pre") }.configureEach {
