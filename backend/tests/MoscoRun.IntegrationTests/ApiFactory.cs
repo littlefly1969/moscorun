@@ -24,13 +24,15 @@ namespace MoscoRun.IntegrationTests;
 public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     public const string AdminEmail = "admin@moscorun.test";
-    public const string AdminPassword = "integration-Secret-42";
-    public const string UserPassword = "integration-Secret-43";
+
+    // Credenziali generate a ogni esecuzione (maiuscola e cifra per le regole di Identity): nessuna password nel repository.
+    public static readonly string AdminPassword = $"Adm9-{Guid.NewGuid():N}";
+    public static readonly string UserPassword = $"Usr9-{Guid.NewGuid():N}";
 
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine")
         .WithDatabase("moscorun")
         .WithUsername("moscorun")
-        .WithPassword("integration-db-secret")
+        .WithPassword($"db-{Guid.NewGuid():N}")
         .Build();
 
     public FakeTimeProvider Time { get; } = new(DateTimeOffset.UtcNow);
