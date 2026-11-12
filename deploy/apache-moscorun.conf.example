@@ -1,0 +1,15 @@
+# Esempio di virtual host Apache (mod_proxy, mod_proxy_http, mod_headers, mod_ssl).
+# Il certificato può essere gestito da certbot come per gli altri siti del server.
+<VirtualHost *:443>
+    ServerName moscorun.example.it
+
+    SSLEngine on
+    SSLCertificateFile    /etc/letsencrypt/live/moscorun.example.it/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/moscorun.example.it/privkey.pem
+
+    ProxyPreserveHost On
+    ProxyPass        / http://127.0.0.1:8085/
+    ProxyPassReverse / http://127.0.0.1:8085/
+    RequestHeader set X-Forwarded-Proto "https"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</VirtualHost>
