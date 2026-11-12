@@ -1,0 +1,140 @@
+using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
+using MoscoRun.Api.Auth;
+using MoscoRun.Api.Features.Dashboard;
+using MoscoRun.Api.Features.Devices;
+using MoscoRun.Api.Features.System;
+using MoscoRun.Api.Features.Weighings;
+using MoscoRun.Infrastructure;
+using MoscoRun.Infrastructure.Identity;
+using MoscoRun.Infrastructure.Persistence;
+
+namespace MoscoRun.Api.Hosting;
+
+public static class ApplicationSetup
+{
+    public const string LoginRateLimitPolicy = "login";
+
+    private static readonly string[] TrustedProxyNetworks = ["127.0.0.0/8", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "::1/128"];
+
+    public static WebApplicationBuilder AddMoscoRun(this WebApplicationBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        var services = builder.Services;
+
+        services.AddSingleton(TimeProvider.System);
+        if (!AppInfo.IsGeneratingOpenApiDocument)
+        {
+            StartupSettingsValidation.Register(services, builder.Configuration);
+        }
+
+        services.AddProblemDetails();
+        services.AddValidation();
+        services.ConfigureHttpJsonOptions(o =>
+            o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+        services.AddOpenApi(o => o.AddDocumentTransformer<SecuritySchemeTransformer>());
+
+        services.AddMoscoRunPersistence(builder.Configuration);
+
+        AddIdentityAndSecurity(services, builder.Configuration);
+
+        services.AddHealthChecks()
+            .AddDbContextCheck<MoscoRunDbContext>("database", tags: ["ready"]);
+
+        var loginPermits = builder.Configuration.GetValue("Security:LoginAttemptsPerMinute", 10);
+        services.AddRateLimiter(o =>
+        {
+            o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            o.AddPolicy(LoginRateLimitPolicy, ctx => RateLimitPartition.GetFixedWindowLimiter(
+                ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = loginPermits, Window = TimeSpan.FromMinutes(1) }));
+        });
+
+        services.Configure<ForwardedHeadersOptions>(o =>
+        {
+            // Il container è raggiungibile solo dal reverse proxy sull'host (porta su 127.0.0.1).
+            o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+            o.KnownIPNetworks.Clear();
+            o.KnownProxies.Clear();
+            foreach (var network in TrustedProxyNetworks)
+            {
+                o.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(network));
+            }
+        });
+
+        return builder;
+    }
+
+    private static void AddIdentityAndSecurity(IServiceCollection services, IConfiguration configuration)
+    {
+        var dataProtection = services.AddDataProtection().SetApplicationName("MoscoRun");
+        if (!string.IsNullOrWhiteSpace(configuration.GetConnectionString(DependencyInjection.ConnectionStringName)))
+        {
+            // Chiavi nel database: i cookie di sessione sopravvivono ad aggiornamenti e riavvii del container.
+            // Senza connessione (es. generazione del contratto OpenAPI in build) restano in memoria.
+            dataProtection.PersistKeysToDbContext<MoscoRunDbContext>();
+        }
+
+        services.AddIdentityCore<AppUser>(o =>
+            {
+                o.User.RequireUniqueEmail = true;
+                o.Password.RequiredLength = 12;
+                o.Password.RequireNonAlphanumeric = false;
+                o.Lockout.MaxFailedAccessAttempts = 5;
+                o.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+            })
+            .AddEntityFrameworkStores<MoscoRunDbContext>()
+            .AddSignInManager()
+            .AddDefaultTokenProviders();
+
+        services.AddMoscoRunAuthentication();
+    }
+
+    public static WebApplication UseMoscoRun(this WebApplication app)
+    {
+        ArgumentNullException.ThrowIfNull(app);
+
+        app.UseForwardedHeaders();
+        app.UseExceptionHandler();
+        app.UseStatusCodePages();
+        app.UseMiddleware<SecurityHeadersMiddleware>();
+
+        app.UseDefaultFiles();
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            OnPrepareResponse = ctx =>
+            {
+                // I file in /assets hanno l'hash nel nome: possono essere messi in cache per sempre.
+                var immutable = ctx.Context.Request.Path.StartsWithSegments("/assets", StringComparison.Ordinal);
+                ctx.Context.Response.Headers.CacheControl = immutable ? "public, max-age=31536000, immutable" : "no-cache";
+            },
+        });
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseRateLimiter();
+
+        app.MapOpenApi("/api/openapi/{documentName}.json");
+        app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+        app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") });
+
+        var api = app.MapGroup("/api");
+        api.MapAuthEndpoints();
+        api.MapSystemEndpoints();
+
+        var v1 = api.MapGroup("/v1");
+        v1.MapWeighingEndpoints();
+        v1.MapDeviceEndpoints();
+        v1.MapDashboardEndpoints();
+
+        // Le rotte /api inesistenti restano 404; tutto il resto è gestito dal router React.
+        api.Map("{**path}", () => Results.NotFound()).ExcludeFromDescription();
+        app.MapFallbackToFile("index.html");
+
+        return app;
+    }
+}

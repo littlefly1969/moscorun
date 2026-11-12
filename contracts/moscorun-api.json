@@ -1,0 +1,804 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "MoscoRun API",
+    "description": "API dell'assistente per allenamenti e forma fisica MoscoRun.",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Autenticazione"
+        ],
+        "summary": "Accede al cruscotto e imposta il cookie di sessione.",
+        "operationId": "Login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": [
+          "Autenticazione"
+        ],
+        "operationId": "Logout",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": [
+          "Autenticazione"
+        ],
+        "operationId": "GetCurrentUser",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUser"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/system/info": {
+      "get": {
+        "tags": [
+          "Sistema"
+        ],
+        "operationId": "GetSystemInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ingest/weighings": {
+      "post": {
+        "tags": [
+          "Acquisizione"
+        ],
+        "summary": "Registra una pesata definitiva in modo idempotente.",
+        "description": "201 alla prima ricezione, 200 se lo stesso evento è reinviato identico, 409 se lo stesso sourceEventId arriva con valori diversi.",
+        "operationId": "IngestWeighing",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestWeighingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeighingDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeighingDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/summary": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetDashboardSummary",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/weighings": {
+      "get": {
+        "tags": [
+          "Pesate"
+        ],
+        "operationId": "ListWeighings",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeighingList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/weighings/{id}/attribution": {
+      "put": {
+        "tags": [
+          "Pesate"
+        ],
+        "operationId": "UpdateWeighingAttribution",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAttributionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeighingDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/devices": {
+      "get": {
+        "tags": [
+          "Dispositivi"
+        ],
+        "operationId": "ListDevices",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Dispositivi"
+        ],
+        "operationId": "RegisterDevice",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDeviceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisteredDevice"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{id}": {
+      "delete": {
+        "tags": [
+          "Dispositivi"
+        ],
+        "operationId": "RevokeDevice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AttributionStatus": {
+        "enum": [
+          "Assumed",
+          "Confirmed",
+          "Rejected"
+        ],
+        "description": "Quanto è certa l'associazione della pesata alla persona."
+      },
+      "CurrentUser": {
+        "required": [
+          "id",
+          "email",
+          "displayName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "DashboardSummary": {
+        "required": [
+          "latestWeightKg",
+          "latestMeasuredAt",
+          "trend7Days",
+          "trend30Days",
+          "weighingsLast30Days",
+          "sources"
+        ],
+        "type": "object",
+        "properties": {
+          "latestWeightKg": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "description": "Ultima pesata attribuita (non esclusa).",
+            "format": "double"
+          },
+          "latestMeasuredAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Istante dell'ultima pesata.",
+            "format": "date-time"
+          },
+          "trend7Days": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "description": "Variazione della media mobile a 7 giorni rispetto a 7 giorni prima.",
+            "format": "double"
+          },
+          "trend30Days": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "description": "Variazione della media mobile a 7 giorni rispetto a 30 giorni prima.",
+            "format": "double"
+          },
+          "weighingsLast30Days": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "description": "Numero di pesate negli ultimi 30 giorni (copertura).",
+            "format": "int32"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SourceFreshness"
+            },
+            "description": "Freschezza di ogni dispositivo attivo."
+          }
+        }
+      },
+      "DeviceDto": {
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "createdAt",
+          "lastSeenAt",
+          "revokedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/DeviceKind"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSeenAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "revokedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "DeviceKind": {
+        "enum": [
+          "ScaleAgent",
+          "PhoneBridge"
+        ],
+        "description": "Tipo di agente che invia dati al server."
+      },
+      "HttpValidationProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "IngestWeighingRequest": {
+        "required": [
+          "sourceEventId",
+          "measuredAt",
+          "weightKg",
+          "impedanceOhm"
+        ],
+        "type": "object",
+        "properties": {
+          "sourceEventId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Identificativo stabile generato dall'agente; reinviare lo stesso valore è sicuro."
+          },
+          "measuredAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Istante della misura (ISO 8601 con offset).",
+            "format": "date-time"
+          },
+          "weightKg": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "description": "Peso in kg.",
+            "format": "double"
+          },
+          "impedanceOhm": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "description": "Impedenza della stessa misura, se disponibile.",
+            "format": "int32"
+          }
+        },
+        "description": "Pesata definitiva inviata dall'agente della bilancia."
+      },
+      "LoginRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "maxLength": 256,
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 256,
+            "type": "string"
+          }
+        }
+      },
+      "RegisterDeviceRequest": {
+        "required": [
+          "name",
+          "kind"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 80,
+            "type": "string"
+          },
+          "kind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DeviceKind"
+              }
+            ]
+          }
+        }
+      },
+      "RegisteredDevice": {
+        "required": [
+          "device",
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "device": {
+            "description": "Dispositivo registrato.",
+            "$ref": "#/components/schemas/DeviceDto"
+          },
+          "token": {
+            "type": "string",
+            "description": "Credenziale da configurare nell'agente. Viene mostrata solo ora."
+          }
+        }
+      },
+      "SourceFreshness": {
+        "required": [
+          "deviceId",
+          "name",
+          "lastSeenAt"
+        ],
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "lastSeenAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "SystemInfo": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateAttributionRequest": {
+        "required": [
+          "attribution"
+        ],
+        "type": "object",
+        "properties": {
+          "attribution": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AttributionStatus"
+              }
+            ]
+          }
+        }
+      },
+      "WeighingDto": {
+        "required": [
+          "id",
+          "deviceId",
+          "sourceEventId",
+          "measuredAt",
+          "weightKg",
+          "impedanceOhm",
+          "attribution",
+          "receivedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceEventId": {
+            "type": "string"
+          },
+          "measuredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "weightKg": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "impedanceOhm": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "attribution": {
+            "$ref": "#/components/schemas/AttributionStatus"
+          },
+          "receivedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WeighingList": {
+        "required": [
+          "items",
+          "from",
+          "to"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WeighingDto"
+            }
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "cookie": {
+        "type": "apiKey",
+        "description": "Sessione del cruscotto web, ottenuta con POST /api/auth/login.",
+        "name": ".MoscoRun.Session",
+        "in": "cookie"
+      },
+      "deviceToken": {
+        "type": "http",
+        "description": "Token di un dispositivo (mr1_...), creato dal cruscotto e mostrato una sola volta.",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Autenticazione"
+    },
+    {
+      "name": "Sistema"
+    },
+    {
+      "name": "Acquisizione"
+    },
+    {
+      "name": "Cruscotto"
+    },
+    {
+      "name": "Pesate"
+    },
+    {
+      "name": "Dispositivi"
+    }
+  ]
+}

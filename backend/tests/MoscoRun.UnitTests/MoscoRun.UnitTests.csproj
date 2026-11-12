@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\MoscoRun.Api\MoscoRun.Api.csproj" />
+  </ItemGroup>
+</Project>

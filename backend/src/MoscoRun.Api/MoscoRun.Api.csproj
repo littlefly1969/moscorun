@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <UserSecretsId>moscorun-api</UserSecretsId>
+    <!-- Il documento OpenAPI è generato in build e versionato: è il contratto con il cruscotto React. -->
+    <OpenApiDocumentsDirectory>$(MSBuildThisFileDirectory)..\..\..\contracts</OpenApiDocumentsDirectory>
+    <OpenApiGenerateDocumentsOptions>--file-name moscorun-api</OpenApiGenerateDocumentsOptions>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MoscoRun.Domain\MoscoRun.Domain.csproj" />
+    <ProjectReference Include="..\MoscoRun.Infrastructure\MoscoRun.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="MoscoRun.UnitTests" />
+    <InternalsVisibleTo Include="MoscoRun.IntegrationTests" />
+  </ItemGroup>
+</Project>

@@ -23,3 +23,17 @@ captures/
 local.properties
 .gradle/
 build/
+
+# .NET
+bin/
+obj/
+*.user
+TestResults/
+coverage/
+
+# Web
+node_modules/
+dist/
+playwright-report/
+test-results/
+src/MoscoRun.Api/wwwroot/

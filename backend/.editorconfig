@@ -1,0 +1,34 @@
+root = false
+
+[*.cs]
+# Le stringhe di log e messaggi non sono localizzate tramite risorse.
+dotnet_diagnostic.CA1303.severity = none
+# ConfigureAwait non serve in ASP.NET Core (nessun SynchronizationContext).
+dotnet_diagnostic.CA2007.severity = none
+dotnet_diagnostic.MA0004.severity = none
+# Endpoint minimal API: le classi statiche di mapping sono intenzionali.
+dotnet_diagnostic.CA1515.severity = none
+# Usa LoggerMessage source generator per i log a caldo.
+dotnet_diagnostic.CA1848.severity = warning
+dotnet_diagnostic.IDE0005.severity = warning
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_style_var_for_built_in_types = true:suggestion
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+
+[tests/**.cs]
+# Nei test i nomi descrittivi usano underscore.
+dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.CA2234.severity = none
+dotnet_diagnostic.MA0048.severity = none
+
+[src/MoscoRun.Domain/Common/Result.cs]
+# Factory statiche su Result<T>: pattern voluto, leggibile al punto d'uso.
+dotnet_diagnostic.CA1000.severity = none
+
+[src/MoscoRun.Api/**.cs]
+# I file di endpoint raggruppano i propri contratti (request/response) per funzionalità.
+dotnet_diagnostic.MA0048.severity = none
+
+[src/MoscoRun.Infrastructure/Persistence/Migrations/**.cs]
+generated_code = true
+dotnet_analyzer_diagnostic.severity = none
