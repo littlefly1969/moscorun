@@ -160,6 +160,10 @@ jobs:
           npm ci --no-audit --no-fund
           npx playwright install --with-deps chromium
           npm run e2e
+      - name: Contesto dei test E2E falliti
+        if: failure()
+        working-directory: web
+        run: find test-results -name error-context.md -exec sh -c 'echo "::group::$1"; cat "$1"; echo "::endgroup::"' _ {} \; || true
       - name: Log applicazione
         if: failure()
         working-directory: deploy

@@ -11,8 +11,12 @@ export default defineConfig({
   workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
+  reporter: process.env.CI ? [["github"], ["list"], ["html", { open: "never" }]] : "list",
+  // Un'azione bloccata fallisce con il selettore nel messaggio invece di esaurire il tempo del test.
+  expect: { timeout: 10_000 },
   use: {
+    actionTimeout: 10_000,
+    navigationTimeout: 15_000,
     baseURL: process.env.E2E_BASE_URL ?? "http://127.0.0.1:8085",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
