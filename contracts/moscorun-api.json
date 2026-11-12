@@ -381,11 +381,9 @@
         "type": "object",
         "properties": {
           "latestWeightKg": {
-            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
             "type": [
               "null",
-              "number",
-              "string"
+              "number"
             ],
             "description": "Ultima pesata attribuita (non esclusa).",
             "format": "double"
@@ -399,31 +397,23 @@
             "format": "date-time"
           },
           "trend7Days": {
-            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
             "type": [
               "null",
-              "number",
-              "string"
+              "number"
             ],
             "description": "Variazione della media mobile a 7 giorni rispetto a 7 giorni prima.",
             "format": "double"
           },
           "trend30Days": {
-            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
             "type": [
               "null",
-              "number",
-              "string"
+              "number"
             ],
             "description": "Variazione della media mobile a 7 giorni rispetto a 30 giorni prima.",
             "format": "double"
           },
           "weighingsLast30Days": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "description": "Numero di pesate negli ultimi 30 giorni (copertura).",
             "format": "int32"
           },
@@ -500,11 +490,9 @@
             ]
           },
           "status": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "null",
-              "integer",
-              "string"
+              "integer"
             ],
             "format": "int32"
           },
@@ -556,21 +544,17 @@
             "format": "date-time"
           },
           "weightKg": {
-            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
             "type": [
               "null",
-              "number",
-              "string"
+              "number"
             ],
             "description": "Peso in kg.",
             "format": "double"
           },
           "impedanceOhm": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "null",
-              "integer",
-              "string"
+              "integer"
             ],
             "description": "Impedenza della stessa misura, se disponibile.",
             "format": "int32"
@@ -717,19 +701,13 @@
             "format": "date-time"
           },
           "weightKg": {
-            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "impedanceOhm": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "null",
-              "integer",
-              "string"
+              "integer"
             ],
             "format": "int32"
           },

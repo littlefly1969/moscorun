@@ -35,7 +35,11 @@ public static class ApplicationSetup
         services.AddProblemDetails();
         services.AddValidation();
         services.ConfigureHttpJsonOptions(o =>
-            o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+        {
+            // Numeri solo come numeri JSON: contratto preciso per client e agenti.
+            o.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
+            o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        });
         services.AddOpenApi(o => o.AddDocumentTransformer<SecuritySchemeTransformer>());
 
         services.AddMoscoRunPersistence(builder.Configuration);
