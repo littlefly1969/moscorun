@@ -1,35 +1,76 @@
-# Installazione Linux proposta
+# Installazione e aggiornamento sul server Linux
 
-Questo è un piano di installazione. Nessun comando è stato eseguito sul server dell’utente e non è disponibile in questa sessione un collegamento al server.
+Procedura verificata su uno stack di prova (installazione, aggiornamento, rollback automatico, ripristino). Non è ancora stata eseguita sul server reale: restano da rilevare i dati dell'inventario in fondo.
 
-## Servizi
+## Come funziona
 
-- Backend e web ASP.NET Core nello stesso container applicativo.
-- Database dedicato e ruolo dedicato nell’istanza PostgreSQL già presente, previa verifica di capacità e versione. Non creare automaticamente un secondo cluster.
-- Lettore Bluetooth come servizio systemd sull’host Linux. Un solo processo usa il dispositivo configurato. Accesso BlueZ/D-Bus limitato alle operazioni necessarie; utenza dedicata. Non richiedere un container privilegiato come configurazione ordinaria.
-- Ingresso HTTPS tramite un virtual host del reverse proxy già in uso. Se Apache gestisce i siti del server, usare quello; il dettaglio va verificato.
+- Un'unica immagine `ghcr.io/littlefly1969/moscorun` contiene API e cruscotto React, gira come utente non root su filesystem in sola lettura ed espone la porta 8080 solo su `127.0.0.1` dell'host.
+- Il reverse proxy già presente (Apache) pubblica l'HTTPS: esempio in [deploy/apache-moscorun.conf.example](../deploy/apache-moscorun.conf.example).
+- Il database è l'istanza PostgreSQL esistente (database e utente dedicati) oppure, in alternativa, il PostgreSQL incluso nel compose (`COMPOSE_PROFILES=bundled-db`).
+- Ogni release crea l'immagine per amd64 e arm64: va bene qualunque CPU del server.
 
-Il backend viene esposto al proxy su una porta locale libera e assegnata dopo l’inventario. PostgreSQL rimane raggiungibile sulla sola rete necessaria all’applicazione. Evitare nuove esposizioni pubbliche del database o conflitti con i servizi esistenti.
+## Prima installazione
 
-Il servizio BLE usa un ambiente Python dedicato e dipendenze fissate. Se l’API è in container sullo stesso server, l’agente la raggiunge attraverso un endpoint locale configurato e autenticato. Il collegamento dal telefono usa HTTPS e autenticazione; la disponibilità da rete esterna o tramite VPN dipende dall’uso desiderato.
+```bash
+sudo mkdir -p /opt/moscorun && cd /opt/moscorun
+# Copiare da deploy/: compose.yaml, moscorun.sh, .env.example, systemd/
+cp .env.example .env && chmod 600 .env && nano .env
 
-## Dati persistenti e aggiornamenti
+# Repository privato: login a GHCR con un token "classic" con il solo permesso read:packages
+echo '<token>' | docker login ghcr.io -u littlefly1969 --password-stdin
 
-Persistenza distinta dal rilascio del codice: dati PostgreSQL, coda dell’agente e backup. Segreti esterni al repository, file di configurazione con accesso limitato e credenziali separate per app e agente.
+# Database dedicato nell'istanza esistente (una volta sola)
+#   CREATE ROLE moscorun LOGIN PASSWORD '<password>';  CREATE DATABASE moscorun OWNER moscorun;
 
-Le migrazioni del database sono versionate e applicate come passo esplicito di rilascio, una sola volta. Un backup verificato precede migrazioni che modificano dati; non supporre che tornare a una vecchia immagine annulli una migrazione.
+./moscorun.sh update      # scarica, applica le migrazioni, crea l'amministratore, avvia e verifica
+```
 
-Il processo di rilascio deve registrare versione applicativa, schema e compatibilità dell’agente. Riavvio automatico, controlli di salute, log con rotazione e controllo dello spazio su disco sono parte della prima installazione stabile. Verificare un ripristino del backup prima di considerarlo operativo.
+## Aggiornamento con un comando
 
-## Inventario da acquisire prima di scrivere la configurazione di deploy
+```bash
+./moscorun.sh update            # versione del canale scelto in .env (es. latest)
+./moscorun.sh update 0.3.1      # versione esatta
+```
+
+Passi eseguiti, nell'ordine:
+
+1. Scarica l'immagine; se è identica a quella in uso non fa nulla.
+2. Backup del database (`pg_dump`, formato custom) in `MOSCORUN_BACKUP_DIR`, con rotazione.
+3. Applica le migrazioni con un container temporaneo. Se falliscono, la versione in uso resta attiva.
+4. Riavvia l'applicazione e attende l'healthcheck.
+5. Se la nuova versione non diventa sana entro 90 secondi, torna automaticamente all'immagine precedente.
+
+Altri comandi: `rollback`, `backup`, `restore <file>` (chiede conferma), `status`, `logs`.
+
+## Aggiornamento automatico
+
+```bash
+sudo cp systemd/moscorun-update.* /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl enable --now moscorun-update.timer
+systemctl list-timers moscorun-update.timer   # prossima esecuzione (ogni notte alle 04:30 circa)
+journalctl -u moscorun-update                 # esito
+```
+
+Con `MOSCORUN_VERSION=latest` arrivano tutte le release; con `MOSCORUN_VERSION=0` solo quelle della major 0 (nessuna modifica incompatibile).
+
+## Segreti
+
+| Dove | Cosa |
+| --- | --- |
+| `.env` sul server (permessi 600, controllati dallo script) | Password PostgreSQL, amministratore iniziale, porta |
+| GitHub Secrets | Solo ciò che serve alle pipeline (es. firma APK, eventuale `RELEASE_PLEASE_TOKEN`) |
+| Repository | Nessun segreto. `.env.example` contiene solo nomi e spiegazioni |
+
+L'applicazione si rifiuta di partire se manca la stringa di connessione, se la password del database è vuota o un segnaposto (`change-me`, `password`…) o se la password dell'amministratore è più corta di 12 caratteri.
+
+## Inventario ancora da rilevare
 
 | Informazione | Perché serve |
 | --- | --- |
-| Distribuzione Linux e versione | Compatibilità runtime, BlueZ e gestione servizi |
-| Architettura CPU, RAM e spazio | Immagini corrette e budget risorse |
+| Distribuzione Linux e versione | BlueZ per l'agente bilancia e systemd |
+| Architettura CPU, RAM e spazio | Limite di memoria del container e spazio per i backup |
 | Bluetooth LE e posizione fisica | Ricezione effettiva della bilancia |
-| Container e reti già presenti | Collegamento al database e assenza di conflitti |
-| Versione PostgreSQL e gestione backup | Compatibilità e riuso dell’istanza |
-| Proxy, domini e porte | Nuovo endpoint HTTPS sul server condiviso |
+| Container e reti già presenti, versione PostgreSQL | Come raggiungere l'istanza esistente (`POSTGRES_HOST`) |
+| Proxy, domini e porte | Virtual host HTTPS e porta locale libera (`MOSCORUN_PORT`) |
 
-Non includere password, token o file di configurazione con segreti nell’inventario condiviso. I dati sopra possono essere forniti come riepilogo; non occorre inviare credenziali.
+Non includere password o token nell'inventario: bastano le informazioni descrittive.

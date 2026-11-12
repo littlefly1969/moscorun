@@ -19,7 +19,7 @@
 7. Costruire il ponte Android e l'importazione sul server; ripetere il trasferimento senza duplicati e verificare correzioni/cancellazioni.
 8. Realizzare il primo cruscotto e il calendario; verificare separatamente l'eventuale invio di sessioni al Watch.
 
-Le integrazioni hardware non sono state provate in questo ambiente. Non esistono ancora app, API, decoder o cruscotto funzionanti.
+Le integrazioni hardware non sono state provate in questo ambiente. Dal 12/11/2026 esistono API, archivio e cruscotto (vedi README); mancano decoder BLE e ponte Android verso il server.
 
 ## Fonti tecniche consultate il 9 novembre 2026
 

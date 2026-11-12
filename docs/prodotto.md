@@ -1,6 +1,6 @@
 # Base di prodotto
 
-Decisione proposta il 9 novembre 2026. Questo documento descrive il progetto, non funzionalità già implementate.
+Decisione proposta il 9 novembre 2026, aggiornata il 12 novembre 2026 (cruscotto in React, distribuzione via container). Lo stato di implementazione è nel README.
 
 ## Scelte
 
@@ -10,7 +10,8 @@ Decisione proposta il 9 novembre 2026. Questo documento descrive il progetto, no
 | Organizzazione | Un backend organizzato in moduli | Sviluppo e manutenzione sostenibili su un server piccolo |
 | Accesso dati | EF Core e provider PostgreSQL compatibile | Modello e migrazioni versionati |
 | Database | PostgreSQL già disponibile | Un solo archivio centrale; database e ruolo dedicati all’app |
-| Web | Razor Pages responsive | Interfaccia iniziale semplice da distribuire nello stesso backend |
+| Web | React 19 + TypeScript (Vite), servito dallo stesso container dell'API | Interfaccia ricca e reattiva; tipi generati dal contratto OpenAPI; stessa origine per cookie sicuri |
+| Distribuzione | Immagine unica su GHCR, Docker Compose, script di aggiornamento | Aggiornamento del server con un comando o automatico, rollback incluso |
 | Bilancia | Servizio Python sul server Linux | Adattatore BLE indipendente dal modello di dominio |
 | Telefono | App Android Kotlin e Health Connect | Ingresso documentato dei dati Samsung Health |
 
