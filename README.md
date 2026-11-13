@@ -2,7 +2,7 @@
 
 Assistente personale per allenamenti e forma fisica: raccoglie peso e allenamenti e confronta il lavoro svolto con quello programmato. La prima applicazione è il percorso Roma–Ostia e Berlino; le entità del prodotto restano indipendenti dalle gare.
 
-**Stato (12 novembre 2026):** primo incremento implementato. Backend, cruscotto web, pipeline e installazione sul server sono pronti e testati; agente Bluetooth della bilancia e ponte Android verso il server sono i prossimi incrementi. Repository privato: [littlefly1969/moscorun](https://github.com/littlefly1969/moscorun).
+**Stato (13 novembre 2026):** primo incremento implementato e in revisione. Backend, cruscotto web, pipeline e script di installazione sono testati in CI su uno stack reale; l'installazione sul server di casa non è ancora stata validata. **Non implementati:** agente Bluetooth della bilancia e sincronizzazione Android → server (prossime fasi, sotto). Repository privato: [littlefly1969/moscorun](https://github.com/littlefly1969/moscorun).
 
 ## Cosa c'è
 
@@ -12,8 +12,18 @@ Assistente personale per allenamenti e forma fisica: raccoglie peso e allenament
 | Cruscotto web | React 19, TypeScript strict, Vite, TanStack Query | Accesso, andamento del peso, freschezza delle sorgenti, gestione dispositivi |
 | Contratto API | OpenAPI 3.1 generato in build ([contracts/](contracts/)) | I tipi TypeScript del cruscotto sono generati dal contratto e verificati in CI |
 | Distribuzione | Un'immagine container multi-arch su GHCR, Docker Compose | Aggiornamento con un comando, backup e rollback automatici |
-| Agente bilancia | Python, Bleak/BlueZ | Da implementare: serve il modello della bilancia |
-| Ponte Android | Kotlin, Health Connect | Prototipo in sola lettura nella PR #1 |
+| Agente bilancia | Python, Bleak/BlueZ | **Non implementato**: serve il modello della bilancia |
+| Ponte Android | Kotlin, Health Connect | **Sincronizzazione verso il server non implementata**; prototipo in sola lettura nella PR #1 |
+
+## Prossime fasi
+
+| Fase | Contenuto | Prerequisiti |
+| --- | --- | --- |
+| Agente bilancia | Raccolta di pacchetti BLE reali e decodifica; coda persistente su disco; invio con retry e backoff; idempotenza per `sourceEventId`; deduplicazione; gestione di correzioni e cancellazioni; token del dispositivo | Modello della bilancia, Bluetooth del server |
+| Sincronizzazione Android | Lettura incrementale da Health Connect (token di modifica); coda locale; retry; idempotenza; gestione di cancellazioni e modifiche a posteriori | Modello del Watch, revisione della PR #1 |
+| Installazione reale | Validazione sul server (vedi [deploy-linux.md](docs/deploy-linux.md)), poi attivazione del timer | Inventario del server |
+
+I test di questa versione non coprono le due fasi non implementate.
 
 ## Percorso dei dati
 

@@ -66,7 +66,13 @@ dotnet tool restore
 dotnet ef migrations add NomeMigrazione -p src/MoscoRun.Infrastructure -s src/MoscoRun.Api -o Persistence/Migrations
 ```
 
-Le migrazioni devono restare compatibili con la versione precedente dell'applicazione (aggiungere prima, rimuovere in una release successiva), perché il rollback automatico riporta l'immagine precedente ma non lo schema.
+Regola **expand/contract**: il rollback automatico riporta l'immagine precedente ma non lo schema, quindi ogni migrazione deve lasciare funzionante la versione precedente.
+
+- **Expand** (automatiche): nuove tabelle, colonne nullable o con default, indici.
+- **Contract** (rimozioni, rename, colonne rese obbligatorie, SQL libero): in una release successiva a quella che ha smesso di usare la struttura, con `[ContractMigration("motivo")]` sulla classe. `migrate` le rifiuta senza `--allow-contract` (vedi [deploy-linux.md](deploy-linux.md)).
+- Esempio di rinomina: release N aggiunge la colonna nuova e scrive su entrambe; release N+1 legge solo la nuova; release N+2 rimuove la vecchia (contract).
+
+`MigrationSafetyTests` analizza le operazioni di ogni migrazione e fa fallire la CI se una distruttiva non è annotata. `dotnet run -- migrate --plan` mostra cosa verrebbe applicato senza modificare il database.
 
 ## Commit e rilasci
 
