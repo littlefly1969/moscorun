@@ -20,6 +20,8 @@ env:
   GITLEAKS_IMAGE: ghcr.io/gitleaks/gitleaks:v8.30.1
   TRIVY_IMAGE: ghcr.io/aquasecurity/trivy:0.76.2
   SEMGREP_IMAGE: semgrep/semgrep:1.142.0
+  NGINX_IMAGE: nginx:1.28.0-alpine
+  HTTPD_IMAGE: httpd:2.4.63-alpine
   # Regole Semgrep fissate a un commit: risultati riproducibili, aggiornamento esplicito.
   SEMGREP_RULES_REF: a5ad1714f00c9f7fde980cab0ea1d6dc6d414fd2
 
@@ -114,7 +116,7 @@ jobs:
           docker run --rm -v "$PWD:/src" -v "$RUNNER_TEMP/semgrep-rules:/rules:ro" -w /src "$SEMGREP_IMAGE" \
             semgrep scan --metrics=off --disable-version-check --error --severity WARNING --severity ERROR \
             --config /rules/csharp --config /rules/typescript --config /rules/javascript \
-            --config /rules/dockerfile --config /rules/yaml/github-actions --config /rules/bash \
+            --config /rules/dockerfile --config /rules/yaml/github-actions --config /rules/bash --config /rules/generic/nginx \
             --exclude 'web/src/api/schema.d.ts' --exclude '**/Migrations/**'
 
   image:

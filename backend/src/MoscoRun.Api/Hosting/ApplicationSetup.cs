@@ -53,6 +53,14 @@ public static class ApplicationSetup
         services.AddRateLimiter(o =>
         {
             o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            o.OnRejected = (context, _) =>
+            {
+                var http = context.HttpContext;
+                AuthLog.RateLimited(
+                    http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger(AuthLog.Category),
+                    http.Connection.RemoteIpAddress?.ToString() ?? "sconosciuto");
+                return ValueTask.CompletedTask;
+            };
             o.AddPolicy(LoginRateLimitPolicy, ctx => RateLimitPartition.GetFixedWindowLimiter(
                 ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = loginPermits, Window = TimeSpan.FromMinutes(1) }));
@@ -65,7 +73,7 @@ public static class ApplicationSetup
 
     /// <summary>
     /// Le intestazioni X-Forwarded-* sono accettate solo dai proxy indicati: per impostazione predefinita il solo loopback.
-    /// In produzione Apache sull'host raggiunge il container tramite il gateway della rete Docker del progetto
+    /// In produzione nginx sull'host raggiunge il container tramite il gateway della rete Docker del progetto
     /// (<c>Security:TrustedProxies</c>, impostato da compose.yaml). Nessuna intera rete privata è considerata fidata.
     /// </summary>
     private static void ConfigureForwardedHeaders(IServiceCollection services, ConfigurationManager configuration)

@@ -7,6 +7,7 @@
 #   ./moscorun.sh restore <file>      ripristina un backup (chiede conferma)
 #   ./moscorun.sh status | logs       stato (esce con errore se l'app non è pronta) e log
 #   ./moscorun.sh auto-update         usato dal timer systemd: aggiorna solo se MOSCORUN_AUTO_UPDATE=1
+#   ./moscorun.sh proxy-config nginx|apache   stampa la configurazione del reverse proxy generata da .env
 #
 # Il gate di ogni aggiornamento è /health/ready (database raggiungibile), non la sola liveness del processo.
 set -Eeuo pipefail
@@ -197,6 +198,95 @@ cmd_auto_update() {
   MOSCORUN_ALLOW_CONTRACT_MIGRATIONS=0 cmd_update
 }
 
+# Configurazioni dei reverse proxy generate dai parametri di .env (validati: finiscono in file di sistema).
+readonly HOST_RE='^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)*$'
+readonly ADDR_RE='^[0-9A-Fa-f:.]+(/[0-9]{1,3})?$'
+readonly LISTEN_RE='^(([0-9.]+|\[[0-9A-Fa-f:]+\]):)?[0-9]{1,5}$'
+readonly UPSTREAM_RE='^https?://([A-Za-z0-9.-]+|\[[0-9A-Fa-f:]+\])(:[0-9]{1,5})?/$'
+readonly PATH_RE='^/[A-Za-z0-9._/-]+$'
+
+# fill <testo> CHIAVE valore ...: sostituisce i segnaposto @@CHIAVE@@.
+fill() {
+  local out="$1" key
+  shift
+  while (($#)); do
+    key="$1"
+    out="${out//"@@${key}@@"/"$2"}"
+    shift 2
+  done
+  printf '%s' "$out"
+}
+part() { [[ -f "$SCRIPT_DIR/proxy/$1" ]] || die "modello mancante: proxy/$1"; cat "$SCRIPT_DIR/proxy/$1"; }
+require() { [[ "$2" =~ $3 ]] || die "$1 non valido o mancante in .env: '$2'"; }
+done_render() { [[ "$1" != *@@* ]] || die "segnaposto non sostituito nella configurazione generata"; printf '%s\n' "$1"; }
+
+proxy_nginx() {
+  local host="$1" mode="${MOSCORUN_PROXY_TLS:-0}" listen="${MOSCORUN_PROXY_LISTEN:-80}"
+  local tls_listen="${MOSCORUN_PROXY_TLS_LISTEN:-443}" port="${MOSCORUN_PORT:-8085}"
+  local acme="${MOSCORUN_ACME_ROOT:-/var/www/letsencrypt}" geo="" realip="" addr site servers headers="" h3=""
+  require MOSCORUN_PROXY_LISTEN "$listen" "$LISTEN_RE"
+  require MOSCORUN_PORT "$port" '^[0-9]{1,5}$'
+  require MOSCORUN_ACME_ROOT "$acme" "$PATH_RE"
+  local edges="${MOSCORUN_EDGE_PROXIES:-}"
+  for addr in ${edges//,/ }; do
+    require MOSCORUN_EDGE_PROXIES "$addr" "$ADDR_RE"
+    geo+=$'\n'"    $addr 1;"
+    realip+="    set_real_ip_from $addr;"$'\n'
+  done
+  if [[ -n "$realip" ]]; then
+    realip="    # IP reale del client: l'ultimo indirizzo aggiunto dalla frontiera, accettato solo dalla frontiera."$'\n'"${realip}    real_ip_header X-Forwarded-For;"$'\n'
+  fi
+  if [[ "${MOSCORUN_PROXY_HTTP3:-0}" == 1 ]]; then
+    [[ "$mode" == 1 ]] || die "MOSCORUN_PROXY_HTTP3=1 richiede MOSCORUN_PROXY_TLS=1"
+    h3="    listen $tls_listen quic;"
+    headers="    add_header Alt-Svc 'h3=\":${tls_listen##*:}\"; ma=86400' always;"$'\n'
+  fi
+  site="$(fill "$(part nginx-site.part)" PUBLIC_HOST "$host" EDGE_REALIP "$realip" EXTRA_HEADERS "$headers" ACME_ROOT "$acme" APP_PORT "$port")"
+  case "$mode" in
+    0)
+      servers="$(fill "$(part nginx-server-http.part)" LISTEN "$listen" PUBLIC_HOST "$host" SITE "$site")"
+      mode="HTTP su $listen${edges:+, HTTPS terminato dalla frontiera}"
+      ;;
+    1)
+      local cert="${MOSCORUN_TLS_CERT:-/etc/letsencrypt/live/$host/fullchain.pem}"
+      local key="${MOSCORUN_TLS_KEY:-/etc/letsencrypt/live/$host/privkey.pem}"
+      require MOSCORUN_PROXY_TLS_LISTEN "$tls_listen" "$LISTEN_RE"
+      require MOSCORUN_TLS_CERT "$cert" "$PATH_RE"
+      require MOSCORUN_TLS_KEY "$key" "$PATH_RE"
+      servers="$(fill "$(part nginx-server-tls.part)" LISTEN "$listen" TLS_LISTEN "$tls_listen" HTTP3_LISTEN "$h3" \
+        PUBLIC_HOST "$host" TLS_CERT "$cert" TLS_KEY "$key" ACME_ROOT "$acme" SITE "$site")"
+      mode="HTTPS terminato da nginx su $tls_listen${h3:+ (HTTP/2 e HTTP/3)}, redirect da $listen"
+      ;;
+    *) die "MOSCORUN_PROXY_TLS deve valere 0 o 1" ;;
+  esac
+  done_render "$(fill "$(part nginx.conf.template)" PUBLIC_HOST "$host" APP_PORT "$port" MODE "$mode" \
+    EDGE_GEO "$geo" SERVERS "$servers")"
+}
+
+proxy_apache() {
+  local host="$1" upstream="${MOSCORUN_PROXY_UPSTREAM:-}" ssl_proxy=""
+  [[ -z "$upstream" || "$upstream" == */ ]] || upstream+=/
+  require MOSCORUN_PROXY_UPSTREAM "$upstream" "$UPSTREAM_RE"
+  local cert="${MOSCORUN_TLS_CERT:-/etc/letsencrypt/live/$host/fullchain.pem}"
+  local key="${MOSCORUN_TLS_KEY:-/etc/letsencrypt/live/$host/privkey.pem}"
+  require MOSCORUN_TLS_CERT "$cert" "$PATH_RE"
+  require MOSCORUN_TLS_KEY "$key" "$PATH_RE"
+  [[ "$upstream" != https://* ]] || ssl_proxy="    SSLProxyEngine on"$'\n'
+  done_render "$(fill "$(part apache-edge.conf.template)" PUBLIC_HOST "$host" UPSTREAM "$upstream" \
+    TLS_CERT "$cert" TLS_KEY "$key" SSL_PROXY "$ssl_proxy")"
+}
+
+cmd_proxy_config() {
+  load_env
+  local host="${MOSCORUN_PUBLIC_HOST:-}"
+  require MOSCORUN_PUBLIC_HOST "$host" "$HOST_RE"
+  case "${1:-}" in
+    nginx) proxy_nginx "$host" ;;
+    apache) proxy_apache "$host" ;;
+    *) die "uso: moscorun.sh proxy-config nginx|apache" ;;
+  esac
+}
+
 main() {
   command -v docker >/dev/null || die "docker non installato"
   local cmd="${1:-}"
@@ -208,11 +298,12 @@ main() {
     restore) cmd_restore "$@" ;;
     status) cmd_status ;;
     auto-update) cmd_auto_update ;;
+    proxy-config) cmd_proxy_config "$@" ;;
     logs)
       load_env
       compose logs --tail=200 -f app
       ;;
-    *) sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+    *) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
   esac
 }
 

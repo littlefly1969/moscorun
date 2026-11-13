@@ -5,9 +5,9 @@ Procedura verificata automaticamente in CI su uno stack reale (installazione con
 ## Come funziona
 
 - Un'unica immagine `ghcr.io/littlefly1969/moscorun` contiene API e cruscotto React, gira come utente non root su filesystem in sola lettura ed espone la porta 8080 solo su `127.0.0.1` dell'host.
-- Il reverse proxy già presente (Apache) pubblica l'HTTPS: esempio in [deploy/apache-moscorun.conf.example](../deploy/apache-moscorun.conf.example).
-- Topologia: Apache sull'host → `127.0.0.1:MOSCORUN_PORT` → container. Docker inoltra la connessione dal gateway della rete del progetto (`MOSCORUN_GATEWAY`, predefinito `172.30.85.1` sulla subnet `172.30.85.0/24`): è l'**unico** indirizzo, oltre al loopback, da cui l'app accetta `X-Forwarded-For/Proto/Host`. Nessuna intera rete privata è considerata fidata. Se la subnet è già usata sul server, cambiare `MOSCORUN_SUBNET` e `MOSCORUN_GATEWAY` in `.env`.
-- Il database è l'istanza PostgreSQL esistente (database e utente dedicati) oppure, in alternativa, il PostgreSQL incluso nel compose (`COMPOSE_PROFILES=bundled-db`).
+- L'HTTPS è pubblicato da un reverse proxy sull'host (nginx), con una configurazione **generata da `.env`** (`./moscorun.sh proxy-config nginx`): vedi [Reverse proxy](#reverse-proxy).
+- Dal proxy al container: `127.0.0.1:MOSCORUN_PORT` → Docker inoltra la connessione dal gateway della rete del progetto (`MOSCORUN_GATEWAY`, predefinito `172.30.85.1` sulla subnet `172.30.85.0/24`). È l'**unico** indirizzo, oltre al loopback, da cui l'app accetta `X-Forwarded-For/Proto/Host`; nessuna intera rete privata è considerata fidata. Se la subnet è già usata sul server, cambiare `MOSCORUN_SUBNET` e `MOSCORUN_GATEWAY` in `.env` (Docker rifiuta l'avvio in caso di sovrapposizione, senza toccare le altre reti).
+- Database: vedi [Database](#database).
 - Ogni release crea l'immagine per amd64 e arm64: va bene qualunque CPU del server.
 
 ## Prima installazione
@@ -20,13 +20,93 @@ cp .env.example .env && chmod 600 .env && nano .env
 # Repository privato: login a GHCR con un token "classic" con il solo permesso read:packages
 echo '<token>' | docker login ghcr.io -u littlefly1969 --password-stdin
 
-# Database dedicato nell'istanza esistente (una volta sola)
-#   CREATE ROLE moscorun LOGIN PASSWORD '<password>';  CREATE DATABASE moscorun OWNER moscorun;
+# Solo con un PostgreSQL esistente: database e ruolo dedicati (vedi "Database")
 
 ./moscorun.sh update      # scarica, genera il certificato Data Protection, migra, crea l'amministratore, avvia e verifica
 ```
 
 Al primo `update` lo script genera (con l'immagine stessa) il certificato che cifra a riposo le chiavi dei cookie di sessione e lo aggiunge a `.env` come `MOSCORUN_DATA_PROTECTION_CERT`. In produzione l'app non parte senza un certificato valido.
+
+## Reverse proxy
+
+La configurazione del proxy non si scrive a mano: `moscorun.sh proxy-config` la genera dai parametri di `.env`, validati (nomi host, indirizzi, porte e percorsi finiscono in file di sistema). Si rigenera dopo ogni modifica di `.env`.
+
+| Parametro | Significato | Predefinito |
+| --- | --- | --- |
+| `MOSCORUN_PUBLIC_HOST` | Nome pubblico del sito | obbligatorio |
+| `MOSCORUN_PROXY_TLS` | `1`: nginx termina l'HTTPS; `0`: nginx in HTTP (TLS terminato a monte) | `0` |
+| `MOSCORUN_PROXY_HTTP3` | `1`: anche HTTP/3 (QUIC, porta UDP 443 aperta) | `0` |
+| `MOSCORUN_EDGE_PROXIES` | Proxy a monte fidati (IP o CIDR, separati da virgola o spazio) | nessuno |
+| `MOSCORUN_TLS_CERT`, `MOSCORUN_TLS_KEY` | Certificato e chiave | `/etc/letsencrypt/live/<host>/…` |
+| `MOSCORUN_ACME_ROOT` | Webroot per `certbot --webroot` | `/var/www/letsencrypt` |
+| `MOSCORUN_PROXY_LISTEN`, `MOSCORUN_PROXY_TLS_LISTEN` | Porte di ascolto HTTP e HTTPS | `80`, `443` |
+| `MOSCORUN_PROXY_UPSTREAM` | Solo per `proxy-config apache`: indirizzo di nginx visto dalla frontiera | — |
+
+**Regola di fiducia.** nginx è l'unico punto che decide di chi fidarsi:
+- accetta `X-Forwarded-For/Proto` solo dai proxy in `MOSCORUN_EDGE_PROXIES`, e solo l'ultimo indirizzo aggiunto da loro;
+- verso l'app inoltra sempre valori propri (`X-Forwarded-For $remote_addr`).
+
+Un client non può quindi falsificare IP o schema. Questo vale per i cookie `Secure`, per il limite dei tentativi di accesso per IP e per il registro accessi (`MoscoRun.Security`, con l'IP reale e senza l'email).
+
+**Convivenza con altri siti.** La configurazione generata si integra con quelli già presenti sullo stesso nginx:
+- un blocco `server` dedicato, scelto solo da `server_name`, senza `default_server`;
+- variabili e cache TLS con prefisso `moscorun_`;
+- nessuna modifica a `nginx.conf` o agli altri siti.
+
+### Configurazione consigliata: nginx termina il TLS
+
+```bash
+sudo mkdir -p /var/www/letsencrypt
+# 1) Prima emissione: sito in HTTP (serve solo la validazione ACME)
+MOSCORUN_PROXY_TLS=0 ./moscorun.sh proxy-config nginx | sudo tee /etc/nginx/sites-available/moscorun >/dev/null
+sudo ln -s /etc/nginx/sites-available/moscorun /etc/nginx/sites-enabled/moscorun
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot certonly --webroot -w /var/www/letsencrypt -d <MOSCORUN_PUBLIC_HOST> \
+  --deploy-hook 'systemctl reload nginx'
+# 2) HTTPS: in .env MOSCORUN_PROXY_TLS=1 (e facoltativamente MOSCORUN_PROXY_HTTP3=1)
+./moscorun.sh proxy-config nginx | sudo tee /etc/nginx/sites-available/moscorun >/dev/null
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Il risultato:
+- HTTP risponde solo alla validazione ACME e reindirizza (301) a HTTPS;
+- HTTPS usa TLS 1.2/1.3, HTTP/2, HSTS e, se attivato, HTTP/3 annunciato con `Alt-Svc`;
+- il rinnovo dei certificati passa dal webroot e non modifica il file generato.
+
+Il comando `proxy-config` lo produce da `.env` e basta reinstallarlo dopo una modifica. Il comando `certbot --nginx`, che riscrive i file di nginx, non serve.
+
+### Con un proxy di frontiera (es. Apache su un'altra macchina)
+
+Internet → frontiera (HTTPS) → nginx sul server (HTTP in LAN) → app.
+
+- In `.env` del server indicare l'IP LAN della frontiera in `MOSCORUN_EDGE_PROXIES` e lasciare `MOSCORUN_PROXY_TLS=0`.
+- Per la frontiera, `MOSCORUN_PROXY_UPSTREAM=http://<IP del server> ./moscorun.sh proxy-config apache` genera il virtual host Apache, con redirect, `ProxyPreserveHost` e `X-Forwarded-Proto: https`. Apache aggiunge da solo l'IP del client a `X-Forwarded-For`.
+- Un host della LAN che si collega direttamente a nginx non ha privilegi: per lui valgono IP e schema reali.
+
+Il passaggio successivo, cioè eliminare la frontiera e terminare il TLS su nginx, richiede solo due modifiche a `.env` (`MOSCORUN_EDGE_PROXIES` vuoto, `MOSCORUN_PROXY_TLS=1`), la rigenerazione e il port forwarding di 80/443 (più UDP 443 per HTTP/3) verso il server.
+
+**Verifica in CI.** Entrambe le topologie sono provate su nginx e Apache reali, con l'app reale (`deploy/tests/scenarios.sh`):
+- TLS con HTTP/2, redirect, ACME e HSTS;
+- catena frontiera → nginx;
+- tentativi di falsificare IP e schema, sia da Internet sia dalla LAN, controllati sul registro accessi dell'app.
+
+## Database
+
+| Situazione | Configurazione |
+| --- | --- |
+| Nessun PostgreSQL di sistema, oppure isolamento da altre applicazioni (consigliato) | PostgreSQL incluso: `COMPOSE_PROFILES=bundled-db`, `POSTGRES_HOST=db`. Volume Docker dedicato, nessuna porta pubblicata, backup e ripristino toccano solo questo database |
+| PostgreSQL di sistema sull'host | `POSTGRES_HOST=host.docker.internal`; database e ruolo dedicati (sotto); in `pg_hba.conf` solo `host moscorun moscorun <MOSCORUN_SUBNET> scram-sha-256` |
+| PostgreSQL di un'altra applicazione in un container | Sconsigliato: lega aggiornamenti, backup e riavvii di MoscoRun a quelli dell'altra applicazione. Usare il database incluso |
+
+Ruolo con privilegi minimi in un'istanza esistente:
+
+```sql
+CREATE ROLE moscorun LOGIN PASSWORD '<password>' NOSUPERUSER NOCREATEDB NOCREATEROLE;
+CREATE DATABASE moscorun OWNER moscorun;
+REVOKE ALL ON DATABASE moscorun FROM PUBLIC;
+```
+
+`backup` e `restore` operano solo su `POSTGRES_DB` con l'utente `POSTGRES_USER`: gli altri database dell'istanza non vengono letti né modificati. Il client usato è PostgreSQL 17, quindi l'istanza deve essere alla versione 17 o precedente.
 
 ## Aggiornamento con un comando
 
@@ -105,7 +185,7 @@ L'applicazione si rifiuta di partire se manca la stringa di connessione, se la p
 
 La CI verifica lo script su un runner Ubuntu amd64 con PostgreSQL incluso. Sul server vanno ripetuti, prima di attivare il timer:
 
-1. Installazione da zero con l'istanza PostgreSQL esistente (`POSTGRES_HOST`) e con Apache davanti (cookie `Secure`, IP reale nei log).
+1. Installazione da zero con la configurazione di database e proxy scelta (cookie `Secure`, IP reale nel registro accessi, altri siti di nginx invariati).
 2. `./moscorun.sh backup` e `restore` su un database di prova con dati.
 3. Riavvio del server: container e sessioni tornano da soli.
 4. Arresto di PostgreSQL: `status` segnala "non pronto"; alla ripartenza l'app torna pronta.
@@ -113,14 +193,17 @@ La CI verifica lo script su un runner Ubuntu amd64 con PostgreSQL incluso. Sul s
 6. Aggiornamento senza rete verso GHCR: lo script si ferma senza cambiare nulla.
 7. Architettura: l'immagine multi-arch scelta (`amd64`/`arm64`) parte e risponde.
 
-## Inventario ancora da rilevare
+## Inventario del server
 
-| Informazione | Perché serve |
-| --- | --- |
-| Distribuzione Linux e versione | BlueZ per l'agente bilancia e systemd |
-| Architettura CPU, RAM e spazio | Limite di memoria del container e spazio per i backup |
-| Bluetooth LE e posizione fisica | Ricezione effettiva della bilancia |
-| Container e reti già presenti, versione PostgreSQL | Come raggiungere l'istanza esistente (`POSTGRES_HOST`) |
-| Proxy, domini e porte | Virtual host HTTPS e porta locale libera (`MOSCORUN_PORT`) |
+Per un'installazione nuova bastano: distribuzione e architettura, RAM e spazio, porte e siti già presenti nel proxy, eventuale PostgreSQL esistente e versione, Bluetooth LE (per l'agente bilancia). Non includere password o token: bastano le informazioni descrittive. Il modello della bilancia non serve, perché l'agente lo rileva da solo durante l'installazione (#3).
 
-Non includere password o token nell'inventario: bastano le informazioni descrittive.
+Server attuale (rilevato il 2026-11-13):
+- **Sistema e risorse:** Ubuntu 26.04.1 LTS, x86_64 a 16 thread, 30 GiB di RAM, Docker 29.1 con Compose 2.40.
+- **Proxy:** nginx 1.28 sulla porta 80, oggi dietro un Apache di frontiera.
+- **Applicazione già presente:** nubarca, su 127.0.0.1:8080/8081, con il proprio PostgreSQL in container. Nessun PostgreSQL di sistema.
+- **Scelte per MoscoRun:**
+  - `MOSCORUN_PORT=8085`, che è libera;
+  - database incluso;
+  - prima configurazione dietro la frontiera, poi TLS su nginx.
+- **Bluetooth:** adattatore Realtek USB presente ma controller non visibile a BlueZ (da sistemare con l'agente, #3).
+- **Ancora da indicare:** l'IP LAN della frontiera, da mettere in `MOSCORUN_EDGE_PROXIES`.

@@ -1,0 +1,24 @@
+# Generato da "moscorun.sh proxy-config apache" a partire da .env: non modificare a mano, rigenerare.
+# Virtual host sul proxy di frontiera (Apache esposto su Internet): termina l'HTTPS per @@PUBLIC_HOST@@
+# e inoltra a @@UPSTREAM@@ (nginx sul server di MoscoRun, che deve elencare questo host in MOSCORUN_EDGE_PROXIES).
+# Moduli: ssl, proxy, proxy_http, headers (Debian/Ubuntu: a2enmod ssl proxy proxy_http headers).
+# mod_proxy aggiunge da solo l'IP del client in coda a X-Forwarded-For; nginx usa solo quell'ultimo valore.
+
+<VirtualHost *:80>
+    ServerName @@PUBLIC_HOST@@
+    Redirect permanent / https://@@PUBLIC_HOST@@/
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName @@PUBLIC_HOST@@
+
+    SSLEngine on
+    SSLCertificateFile    @@TLS_CERT@@
+    SSLCertificateKeyFile @@TLS_KEY@@
+@@SSL_PROXY@@
+    ProxyPreserveHost On
+    ProxyPass        / @@UPSTREAM@@
+    ProxyPassReverse / @@UPSTREAM@@
+    # mod_proxy non lo imposta: senza questa riga l'app crederebbe di essere in HTTP (cookie non Secure).
+    RequestHeader set X-Forwarded-Proto "https"
+</VirtualHost>

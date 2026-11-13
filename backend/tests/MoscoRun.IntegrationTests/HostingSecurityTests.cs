@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 using MoscoRun.Api.Commands;
 using MoscoRun.Infrastructure.Persistence;
@@ -91,6 +93,38 @@ public sealed class HostingSecurityTests(ApiFactory factory)
         var cookie = response.Headers.GetValues("Set-Cookie").Single(c => c.StartsWith(".MoscoRun.Session", StringComparison.Ordinal));
         // Il cookie è "secure" solo se lo schema HTTPS dichiarato dal proxy è stato accettato.
         cookie.Contains("secure", StringComparison.OrdinalIgnoreCase).Should().Be(trusted);
+    }
+
+    [Theory]
+    [InlineData(ProxyIp, "203.0.113.9")]
+    [InlineData("192.168.1.20", "192.168.1.20")]
+    public async Task Security_log_records_the_real_client_address_without_the_email(string peer, string expectedClientIp)
+    {
+        var logs = new FakeLogCollector();
+        using var app = factory.WithWebHostBuilder(b =>
+        {
+            b.UseSetting("Security:TrustedProxies:0", ProxyIp);
+            b.ConfigureTestServices(s => s.AddSingleton<IStartupFilter>(new PeerAddressFilter(peer)));
+            b.ConfigureLogging(l => l.AddProvider(new FakeLoggerProvider(logs)));
+        });
+        var (email, _) = await factory.CreateUserAsync();
+        var client = app.CreateClient();
+
+        foreach (var password in new[] { "Sbagliata-1", ApiFactory.UserPassword })
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/login")
+            {
+                Content = JsonContent.Create(new { email, password }),
+            };
+            request.Headers.Add("X-Forwarded-For", "203.0.113.9");
+            await client.SendAsync(request, Ct);
+        }
+
+        var security = logs.GetSnapshot().Where(r => string.Equals(r.Category, "MoscoRun.Security", StringComparison.Ordinal)).ToList();
+        security.Select(r => (r.Id.Id, r.Message)).Should().Equal(
+            (1002, $"Accesso non riuscito da {expectedClientIp}"),
+            (1001, $"Accesso riuscito da {expectedClientIp}"));
+        security.Should().NotContain(r => r.Message.Contains(email, StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

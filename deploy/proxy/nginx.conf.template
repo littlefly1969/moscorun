@@ -1,0 +1,27 @@
+# Generato da "moscorun.sh proxy-config nginx" a partire da .env: non modificare a mano, rigenerare.
+# Sito pubblico: @@PUBLIC_HOST@@ -> 127.0.0.1:@@APP_PORT@@ (MoscoRun).
+#
+# Blocco server dedicato, scelto solo dal proprio server_name (nessun default_server): convive con gli altri
+# siti di nginx. nginx è l'unico punto che decide di chi fidarsi: X-Forwarded-For/Proto sono accettati solo
+# dai proxy di frontiera elencati in MOSCORUN_EDGE_PROXIES; verso l'app inoltra sempre valori propri, così un
+# client non può falsificare IP o schema. Senza proxy di frontiera valgono IP e schema della connessione.
+# Modalità: @@MODE@@.
+
+# 1 se il peer TCP è un proxy di frontiera fidato ($realip_remote_addr non è alterato da real_ip).
+geo $realip_remote_addr $moscorun_from_edge {
+    default 0;@@EDGE_GEO@@
+}
+
+# Schema originale: quello dichiarato dalla frontiera solo se la richiesta arriva dalla frontiera.
+map "$moscorun_from_edge:$http_x_forwarded_proto" $moscorun_proto {
+    default         $scheme;
+    "~^1:(https?)$" $1;
+}
+
+# HSTS solo sulle risposte che il browser riceve in HTTPS (un valore vuoto non genera l'intestazione).
+map $moscorun_proto $moscorun_hsts {
+    default "";
+    https   "max-age=31536000; includeSubDomains";
+}
+
+@@SERVERS@@

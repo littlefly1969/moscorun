@@ -36,12 +36,25 @@ internal static class AuthEndpoints
     }
 
     private static async Task<Results<NoContent, ProblemHttpResult>> LoginAsync(
-        LoginRequest request, SignInManager<AppUser> signIn)
+        LoginRequest request, SignInManager<AppUser> signIn, HttpContext http, ILoggerFactory loggers)
     {
         var result = await signIn.PasswordSignInAsync(request.Email, request.Password, isPersistent: true, lockoutOnFailure: true);
+        var log = loggers.CreateLogger(AuthLog.Category);
+        var clientIp = http.Connection.RemoteIpAddress?.ToString() ?? "sconosciuto";
         if (result.Succeeded)
         {
+            AuthLog.LoginSucceeded(log, clientIp);
             return TypedResults.NoContent();
+        }
+
+        // Nei log l'IP reale (dopo i proxy fidati) ma non l'email: niente dati personali né elenco di account.
+        if (result.IsLockedOut)
+        {
+            AuthLog.LockedOut(log, clientIp);
+        }
+        else
+        {
+            AuthLog.LoginFailed(log, clientIp);
         }
 
         // Messaggio volutamente generico: non rivela se l'utente esiste.
