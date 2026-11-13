@@ -53,28 +53,71 @@ public static class MigrationSafety
         })];
     }
 
-    private static string? Describe(MigrationOperation operation, HashSet<(string? Schema, string Name)> createdTables) => operation switch
+    /// <summary>
+    /// Elenco chiuso (fail closed): sono compatibili solo le operazioni puramente additive riconosciute qui.
+    /// Qualsiasi altra operazione, compresi tipi futuri o sconosciuti, è considerata contract finché una persona
+    /// non la dichiara tale con <see cref="ContractMigrationAttribute"/>.
+    /// </summary>
+    private static string? Describe(MigrationOperation operation, HashSet<(string? Schema, string Name)> createdTables)
     {
-        DropTableOperation o => $"DropTable {o.Name}",
-        DropColumnOperation o => $"DropColumn {o.Table}.{o.Name}",
-        DropSchemaOperation o => $"DropSchema {o.Name}",
-        RenameTableOperation o => $"RenameTable {o.Name} -> {o.NewName}",
-        RenameColumnOperation o => $"RenameColumn {o.Table}.{o.Name} -> {o.NewName}",
-        AlterColumnOperation o when IsNarrowing(o) => $"AlterColumn {o.Table}.{o.Name}",
+        bool IsNew(string? schema, string table) => createdTables.Contains((schema, table));
 
-        // La versione precedente non conosce la colonna: i suoi INSERT fallirebbero senza un valore predefinito.
-        AddColumnOperation o when !createdTables.Contains((o.Schema, o.Table))
-            && !o.IsNullable && o.DefaultValue is null && o.DefaultValueSql is null && o.ComputedColumnSql is null
-            => $"AddColumn NOT NULL senza default {o.Table}.{o.Name}",
+        return operation switch
+        {
+            EnsureSchemaOperation or CreateTableOperation or CreateSequenceOperation => null,
 
-        // SQL libero: non verificabile automaticamente.
-        SqlOperation => "Sql",
-        _ => null,
+            // Un indice normale non cambia il comportamento delle scritture; un indice UNIQUE su una tabella
+            // esistente può far fallire INSERT/UPDATE che la versione precedente considera validi.
+            CreateIndexOperation o when !o.IsUnique || IsNew(o.Schema, o.Table) => null,
+            CreateIndexOperation o => $"CreateIndex UNIQUE {o.Table}.{o.Name}",
+
+            // Nuovi vincoli su tabelle esistenti possono rifiutare scritture della versione precedente.
+            AddForeignKeyOperation o when IsNew(o.Schema, o.Table) => null,
+            AddForeignKeyOperation o => $"AddForeignKey {o.Table}.{o.Name}",
+            AddCheckConstraintOperation o when IsNew(o.Schema, o.Table) => null,
+            AddCheckConstraintOperation o => $"AddCheckConstraint {o.Table}.{o.Name}",
+            AddUniqueConstraintOperation o when IsNew(o.Schema, o.Table) => null,
+            AddUniqueConstraintOperation o => $"AddUniqueConstraint {o.Table}.{o.Name}",
+            AddPrimaryKeyOperation o when IsNew(o.Schema, o.Table) => null,
+            AddPrimaryKeyOperation o => $"AddPrimaryKey {o.Table}.{o.Name}",
+
+            // La versione precedente non conosce la colonna: i suoi INSERT riescono solo se può restare vuota
+            // o ha un valore predefinito.
+            AddColumnOperation o when IsNew(o.Schema, o.Table)
+                || (o.ComputedColumnSql is null && (o.IsNullable || o.DefaultValue is not null || o.DefaultValueSql is not null)) => null,
+            AddColumnOperation o => $"AddColumn {o.Table}.{o.Name} (NOT NULL senza default o calcolata)",
+
+            AlterColumnOperation o when IsWidening(o) => null,
+            AlterColumnOperation o => $"AlterColumn {o.Table}.{o.Name}",
+
+            _ => $"{operation.GetType().Name.Replace("Operation", string.Empty, StringComparison.Ordinal)} {Target(operation)}".TrimEnd(),
+        };
+    }
+
+    /// <summary>Solo allargamenti: stessa colonna, stesso tipo, vincoli uguali o più permissivi, default conservato.</summary>
+    private static bool IsWidening(AlterColumnOperation o)
+    {
+        var old = o.OldColumn;
+        var sameType = o.ClrType == old.ClrType && string.Equals(o.ColumnType, old.ColumnType, StringComparison.Ordinal);
+        var nullability = o.IsNullable || !old.IsNullable;
+        var length = o.MaxLength is null || (old.MaxLength is { } oldMax && o.MaxLength >= oldMax);
+        var oldHasDefault = old.DefaultValue is not null || old.DefaultValueSql is not null;
+        var newHasDefault = o.DefaultValue is not null || o.DefaultValueSql is not null;
+        var keepsDefault = !oldHasDefault || newHasDefault || o.IsNullable;
+        var computed = string.Equals(o.ComputedColumnSql, old.ComputedColumnSql, StringComparison.Ordinal);
+        return sameType && nullability && length && keepsDefault && computed;
+    }
+
+    private static string Target(MigrationOperation operation) => operation switch
+    {
+        DropTableOperation o => o.Name,
+        DropColumnOperation o => $"{o.Table}.{o.Name}",
+        DropIndexOperation o => $"{o.Table}.{o.Name}",
+        DropForeignKeyOperation o => $"{o.Table}.{o.Name}",
+        DropSchemaOperation o => o.Name,
+        RenameTableOperation o => $"{o.Name} -> {o.NewName}",
+        RenameColumnOperation o => $"{o.Table}.{o.Name} -> {o.NewName}",
+        RenameIndexOperation o => $"{o.Name} -> {o.NewName}",
+        _ => string.Empty,
     };
-
-    private static bool IsNarrowing(AlterColumnOperation o) =>
-        (o.OldColumn.IsNullable && !o.IsNullable)
-        || o.ClrType != o.OldColumn.ClrType
-        || !string.Equals(o.ColumnType, o.OldColumn.ColumnType, StringComparison.Ordinal)
-        || (o.MaxLength is { } max && (o.OldColumn.MaxLength is null || max < o.OldColumn.MaxLength));
 }

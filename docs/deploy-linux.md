@@ -40,7 +40,7 @@ Passi eseguiti, nell'ordine:
 1. Scarica l'immagine; se è identica a quella in uso non fa nulla.
 2. Backup del database (`pg_dump`, formato custom) in `MOSCORUN_BACKUP_DIR`, con rotazione; il percorso resta in `.state/last-backup`.
 3. **Preflight delle migrazioni:** il comando `migrate` dell'immagine elenca le migrazioni in attesa e rifiuta quelle *contract* (che rimuovono o restringono struttura) senza consenso esplicito, prima di toccare lo schema. Se le migrazioni falliscono o vengono rifiutate, la versione in uso resta attiva.
-4. Riavvia l'applicazione e attende la **readiness**: container sano (*liveness*, `/health/live`) **e** database raggiungibile (`/health/ready`).
+4. Riavvia l'applicazione e attende la **readiness**: container sano (*liveness*, `/health/live`) **e** `/health/ready`, che verifica la connessione al database, l'assenza di migrazioni non applicate e la corrispondenza dello schema al modello di questa versione (legge una riga da ogni tabella con tutte le colonne mappate).
 5. Se la nuova versione non è pronta entro 90 secondi, torna automaticamente all'immagine precedente e ne verifica di nuovo la readiness.
 
 Altri comandi: `rollback`, `backup`, `restore <file>` (chiede conferma), `status` (esce con errore se l'app non è pronta), `logs`.
@@ -49,7 +49,8 @@ Altri comandi: `rollback`, `backup`, `restore <file>` (chiede conferma), `status
 
 Il rollback automatico riporta l'immagine precedente ma **non** lo schema. Per questo:
 
-- Le migrazioni applicate in automatico sono solo **expand**: aggiungono tabelle, colonne nullable o con valore predefinito, indici. La versione precedente continua a funzionare sullo schema nuovo, quindi il rollback è sicuro. Un test in CI (`MigrationSafetyTests`) fa fallire la build se una migrazione distruttiva non è dichiarata.
+- Le migrazioni applicate in automatico sono solo **expand**: aggiungono tabelle, colonne nullable o con valore predefinito, indici non univoci. La classificazione è a **elenco chiuso**: qualunque operazione non riconosciuta come additiva (indice UNIQUE, FK o check su tabella esistente, default rimosso, SQL libero, tipi futuri…) è contract. `MigrationSafetyTests` fa fallire la build se una migrazione contract non è dichiarata.
+- La regola è un'euristica, non una prova: per questo la CI avvia anche l'**ultima release pubblicata sullo schema migrato dal nuovo commit** e ne verifica readiness e API principali (scenario "Compatibilità N-1"). La review manuale delle migrazioni resta obbligatoria.
 - Le rimozioni (**contract**: drop, rename, colonne rese obbligatorie, SQL libero) si pubblicano solo in una release successiva a quella che ha smesso di usare la struttura, sono annotate con `[ContractMigration("motivo")]` e richiedono il consenso esplicito:
 
   ```bash

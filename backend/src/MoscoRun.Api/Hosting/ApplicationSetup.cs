@@ -46,7 +46,8 @@ public static class ApplicationSetup
         AddIdentityAndSecurity(services, builder.Configuration);
 
         services.AddHealthChecks()
-            .AddDbContextCheck<MoscoRunDbContext>("database", tags: ["ready"]);
+            .AddDbContextCheck<MoscoRunDbContext>("database", tags: ["ready"])
+            .AddCheck<SchemaHealthCheck>("schema", tags: ["ready"]);
 
         var loginPermits = builder.Configuration.GetValue("Security:LoginAttemptsPerMinute", 10);
         services.AddRateLimiter(o =>

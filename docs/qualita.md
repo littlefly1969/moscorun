@@ -10,7 +10,7 @@ Ogni modifica passa dagli stessi controlli in locale e in CI. Una PR non va unit
 | Integrazione | WebApplicationFactory + Testcontainers PostgreSQL 17 | API reale su database reale: autenticazione, isolamento fra utenti, concorrenza, migrazioni (regola expand/contract), avvio con segreti errati, chiavi Data Protection cifrate, proxy fidati, readiness con database irraggiungibile, ultimo peso oltre la finestra del trend |
 | Componenti web | Vitest, Testing Library, MSW | Pagine del cruscotto con risposte HTTP simulate, errori, stati vuoti; soglia di copertura 80% |
 | End-to-end | Playwright (desktop e mobile) + axe-core | Immagine container reale installata con lo script di produzione: accesso, registrazione dispositivo, invio pesata, conferma "È mia", cruscotto, revoca; nessuna violazione WCAG 2.1 AA, nessuno scorrimento orizzontale |
-| Distribuzione | `moscorun.sh` + `deploy/tests/scenarios.sh` in CI | Installazione da zero, migrazioni, readiness; riavvio con sessioni conservate, solo il gateway come proxy fidato, perdita e ritorno del database, versione non pronta scartata con rollback automatico, backup → perdita dati → ripristino |
+| Distribuzione | `moscorun.sh` + `deploy/tests/scenarios.sh` in CI | Installazione da zero, migrazioni, readiness, smoke delle API principali; ultima release pubblicata sullo schema nuovo (N-1); riavvio con sessioni conservate, solo il gateway come proxy fidato, perdita e ritorno del database, versione non pronta scartata con rollback automatico, backup → perdita dati → ripristino |
 
 ## Analisi statica
 

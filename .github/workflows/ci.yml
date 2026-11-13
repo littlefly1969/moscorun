@@ -122,6 +122,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [backend, web]
+    permissions:
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
@@ -174,12 +177,17 @@ jobs:
           npm ci --no-audit --no-fund
           npx playwright install --with-deps chromium
           npm run e2e
-      - name: Scenari operativi (riavvio, proxy, perdita DB, rollback su readiness, backup e ripristino)
+      - name: Scenari operativi (smoke, riavvio, proxy, perdita DB, rollback, compatibilità N-1, backup e ripristino)
         working-directory: deploy
         env:
           E2E_ADMIN_EMAIL: admin@moscorun.ci
           E2E_ADMIN_PASSWORD: E2e-${{ github.run_id }}-${{ github.run_attempt }}-Pass9
-        run: ./tests/scenarios.sh
+          # Ultima release pubblicata: deve restare compatibile con lo schema migrato da questo commit.
+          PREVIOUS_IMAGE: ghcr.io/${{ github.repository }}:latest
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin >/dev/null
+          ./tests/scenarios.sh
       - name: Contesto dei test E2E falliti
         if: failure()
         working-directory: web

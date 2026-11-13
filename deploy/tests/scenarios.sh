@@ -31,10 +31,22 @@ login() {
   curl -fsS -o /dev/null -c "$WORK/cookies" -H 'Content-Type: application/json' --data "$(login_body)" "$BASE/api/auth/login"
 }
 session_valid() { [[ "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/cookies" "$BASE/api/auth/me")" == 200 ]]; }
+# Smoke funzionale: le query di business principali rispondono, non solo la connessione al database.
+smoke() {
+  local path
+  login
+  for path in /api/auth/me /api/v1/dashboard/summary /api/v1/weighings /api/v1/devices; do
+    [[ "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/cookies" "$BASE$path")" == 200 ]] || fail "smoke: $path non risponde 200"
+  done
+}
 wait_until_ready() {
   for _ in $(seq 1 40); do "$SCRIPT" status >/dev/null 2>&1 && return 0; sleep 3; done
   return 1
 }
+
+step "Smoke funzionale sulla versione installata"
+smoke
+pass "API principali operative"
 
 step "Aggiornamento senza nuova immagine: nessuna azione"
 "$SCRIPT" update | tee "$WORK/out"
@@ -87,7 +99,24 @@ if MOSCORUN_HEALTH_TIMEOUT=30 "$SCRIPT" update dbless; then fail "l'aggiornament
 [[ "$(app_image)" == "$previous" ]] || fail "dopo il rollback deve girare l'immagine precedente"
 "$SCRIPT" status >/dev/null || fail "dopo il rollback l'app deve essere pronta"
 session_valid || fail "sessione persa dopo il rollback"
+smoke
 pass "versione non pronta scartata, precedente ripristinata"
+
+# Compatibilità all'indietro reale: l'ultima release pubblicata deve funzionare sullo schema migrato da questa
+# versione, perché è l'immagine a cui tornerebbe un rollback. Saltato finché non esiste una release.
+step "Compatibilità N-1: ultima release pubblicata sullo schema di questa versione"
+if [[ -n "${PREVIOUS_IMAGE:-}" ]] && { docker image inspect "$PREVIOUS_IMAGE" >/dev/null 2>&1 || docker pull -q "$PREVIOUS_IMAGE" >/dev/null 2>&1; }; then
+  docker tag "$PREVIOUS_IMAGE" moscorun:previous
+  MOSCORUN_IMAGE=moscorun MOSCORUN_VERSION=previous compose up -d --no-deps app
+  wait_until_ready || fail "la release precedente non è pronta sullo schema nuovo: la migrazione non è expand"
+  smoke
+  compose up -d --no-deps app
+  wait_until_ready || fail "la versione corrente non torna pronta"
+  pass "$PREVIOUS_IMAGE compatibile con lo schema nuovo"
+else
+  printf '::notice::Nessuna release precedente disponibile (%s): verifica N-1 saltata\n' "${PREVIOUS_IMAGE:-non indicata}"
+  pass "saltato"
+fi
 
 step "Backup e ripristino con dati reali"
 "$SCRIPT" backup
@@ -101,6 +130,7 @@ echo RIPRISTINA | "$SCRIPT" restore "$backup"
 [[ "$(sql "select count(*) from moscorun.weighings")" == "$weighings" ]] || fail "pesate non ripristinate"
 [[ "$(sql "select count(*) from moscorun.\"AspNetUsers\"")" == "$users" ]] || fail "utenti non ripristinati"
 session_valid || fail "sessione non valida dopo il ripristino"
+smoke
 pass "ripristinate $weighings pesate e $users utenti"
 
 printf '\nTutti gli scenari superati.\n'

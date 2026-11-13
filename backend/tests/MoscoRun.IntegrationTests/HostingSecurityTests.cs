@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using MoscoRun.Api.Commands;
 using MoscoRun.Infrastructure.Persistence;
+using Npgsql;
 
 namespace MoscoRun.IntegrationTests;
 
@@ -97,6 +98,26 @@ public sealed class HostingSecurityTests(ApiFactory factory)
     {
         using var app = factory.WithWebHostBuilder(b =>
             b.UseSetting("ConnectionStrings:MoscoRun", "Host=127.0.0.1;Port=1;Database=moscorun;Username=moscorun;Password=unreachable-db;Timeout=2"));
+        var client = app.CreateClient();
+
+        (await client.GetAsync("/health/live", Ct)).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await client.GetAsync("/health/ready", Ct)).StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+    }
+
+    [Fact]
+    public async Task Readiness_fails_when_the_schema_does_not_match_this_version()
+    {
+        // Database raggiungibile ma senza le migrazioni di questa versione: connessione ok, schema no.
+        var database = $"vuoto_{Guid.NewGuid():N}";
+        await using (var connection = new NpgsqlConnection(factory.ConnectionString))
+        {
+            await connection.OpenAsync(Ct);
+            await using var create = new NpgsqlCommand($"CREATE DATABASE {database}", connection);
+            await create.ExecuteNonQueryAsync(Ct);
+        }
+
+        var empty = new NpgsqlConnectionStringBuilder(factory.ConnectionString) { Database = database }.ConnectionString;
+        using var app = factory.WithWebHostBuilder(b => b.UseSetting("ConnectionStrings:MoscoRun", empty));
         var client = app.CreateClient();
 
         (await client.GetAsync("/health/live", Ct)).StatusCode.Should().Be(HttpStatusCode.OK);
