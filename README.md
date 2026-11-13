@@ -19,8 +19,8 @@ Assistente personale per allenamenti e forma fisica: raccoglie peso e allenament
 
 | Fase | Contenuto | Prerequisiti |
 | --- | --- | --- |
-| Agente bilancia | Raccolta di pacchetti BLE reali e decodifica; coda persistente su disco; invio con retry e backoff; idempotenza per `sourceEventId`; deduplicazione; gestione di correzioni e cancellazioni; token del dispositivo | Modello della bilancia, Bluetooth del server |
-| Sincronizzazione Android | Lettura incrementale da Health Connect (token di modifica); coda locale; retry; idempotenza; gestione di cancellazioni e modifiche a posteriori | Modello del Watch, revisione della PR #1 |
+| Agente bilancia ([#3](https://github.com/littlefly1969/moscorun/issues/3)) | Raccolta di pacchetti BLE reali e decodifica; coda persistente su disco; invio con retry e backoff; idempotenza per `sourceEventId`; deduplicazione; gestione di correzioni e cancellazioni; token del dispositivo | Modello della bilancia, Bluetooth del server |
+| Sincronizzazione Android ([#4](https://github.com/littlefly1969/moscorun/issues/4)) | Lettura incrementale da Health Connect (token di modifica); coda locale; retry; idempotenza; gestione di cancellazioni e modifiche a posteriori | Modello del Watch, revisione della PR #1 |
 | Installazione reale | Validazione sul server (vedi [deploy-linux.md](docs/deploy-linux.md)), poi attivazione del timer | Inventario del server |
 
 I test di questa versione non coprono le due fasi non implementate.
