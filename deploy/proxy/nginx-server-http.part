@@ -1,0 +1,6 @@
+server {
+    listen @@LISTEN@@;
+    server_name @@PUBLIC_HOST@@;
+
+@@SITE@@
+}

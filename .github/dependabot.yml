@@ -1,0 +1,51 @@
+# Aggiornamenti automatici delle dipendenze (gratuito anche per repository privati).
+# Raggruppati per ridurre il rumore: una PR settimanale per ecosistema, sicurezza subito.
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /backend
+    schedule: { interval: weekly, day: monday, time: "06:00", timezone: Europe/Rome }
+    commit-message: { prefix: deps }
+    groups:
+      microsoft:
+        patterns: ["Microsoft.*", "System.*", "Npgsql*"]
+      test:
+        patterns: ["xunit*", "AwesomeAssertions", "Testcontainers*", "Microsoft.Testing.*"]
+      other:
+        patterns: ["*"]
+    ignore:
+      # .NET 10 è LTS: le major successive si adottano con una scelta esplicita.
+      - dependency-name: "Microsoft.*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Npgsql*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: npm
+    directory: /web
+    schedule: { interval: weekly, day: monday, time: "06:00", timezone: Europe/Rome }
+    commit-message: { prefix: deps }
+    groups:
+      react:
+        patterns: ["react", "react-dom", "@types/react*", "react-router"]
+      tooling:
+        dependency-type: development
+      runtime:
+        dependency-type: production
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly, day: monday, time: "06:00", timezone: Europe/Rome }
+    commit-message: { prefix: ci }
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directory: /
+    schedule: { interval: weekly, day: monday, time: "06:00", timezone: Europe/Rome }
+    commit-message: { prefix: deps }
+
+  - package-ecosystem: docker-compose
+    directory: /deploy
+    schedule: { interval: weekly, day: monday, time: "06:00", timezone: Europe/Rome }
+    commit-message: { prefix: deps }

@@ -1,0 +1,15 @@
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/coverage
+**/TestResults
+**/playwright-report
+**/test-results
+.git
+.github
+android-probe
+deploy
+docs
+**/.env
+**/.env.*
