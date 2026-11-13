@@ -22,6 +22,10 @@ services:
       Bootstrap__AdminEmail: ${MOSCORUN_ADMIN_EMAIL:-}
       Bootstrap__AdminPassword: ${MOSCORUN_ADMIN_PASSWORD:-}
       Security__LoginAttemptsPerMinute: ${MOSCORUN_LOGIN_ATTEMPTS_PER_MINUTE:-10}
+      # Unico proxy fidato per X-Forwarded-*: il gateway della rete del progetto, da cui arrivano le
+      # connessioni di Apache verso 127.0.0.1:MOSCORUN_PORT. Nessuna intera rete privata è fidata.
+      Security__TrustedProxies__0: ${MOSCORUN_GATEWAY:-172.30.85.1}
+      DataProtection__CertificateBase64: ${MOSCORUN_DATA_PROTECTION_CERT:-}
     # Solo sull'interfaccia locale: il reverse proxy esistente (es. Apache) pubblica l'HTTPS.
     ports: ["127.0.0.1:${MOSCORUN_PORT:-8085}:8080"]
     # Per un PostgreSQL pubblicato sull'host usare POSTGRES_HOST=host.docker.internal.
@@ -45,6 +49,13 @@ services:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       retries: 12
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${MOSCORUN_SUBNET:-172.30.85.0/24}
+          gateway: ${MOSCORUN_GATEWAY:-172.30.85.1}
 
 volumes:
   db-data:

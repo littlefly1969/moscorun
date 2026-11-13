@@ -19,6 +19,9 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   GITLEAKS_IMAGE: ghcr.io/gitleaks/gitleaks:v8.30.1
   TRIVY_IMAGE: ghcr.io/aquasecurity/trivy:0.76.2
+  SEMGREP_IMAGE: semgrep/semgrep:1.142.0
+  # Regole Semgrep fissate a un commit: risultati riproducibili, aggiornamento esplicito.
+  SEMGREP_RULES_REF: a5ad1714f00c9f7fde980cab0ea1d6dc6d414fd2
 
 jobs:
   backend:
@@ -101,7 +104,18 @@ jobs:
       - name: Ricerca di segreti nella storia Git (gitleaks)
         run: docker run --rm -v "$PWD:/repo" "$GITLEAKS_IMAGE" git /repo --redact --verbose --exit-code 1
       - name: ShellCheck
-        run: shellcheck -x deploy/*.sh
+        run: shellcheck -x deploy/*.sh deploy/tests/*.sh
+      # CodeQL non è disponibile sui repository privati del piano Free: Semgrep (OSS) copre C#, TypeScript/React,
+      # Dockerfile, GitHub Actions e Bash. Blocca la CI su risultati WARNING/ERROR.
+      - name: Analisi statica di sicurezza (Semgrep)
+        run: |
+          git clone --quiet --filter=blob:none https://github.com/semgrep/semgrep-rules "$RUNNER_TEMP/semgrep-rules"
+          git -C "$RUNNER_TEMP/semgrep-rules" checkout --quiet "$SEMGREP_RULES_REF"
+          docker run --rm -v "$PWD:/src" -v "$RUNNER_TEMP/semgrep-rules:/rules:ro" -w /src "$SEMGREP_IMAGE" \
+            semgrep scan --metrics=off --disable-version-check --error --severity WARNING --severity ERROR \
+            --config /rules/csharp --config /rules/typescript --config /rules/javascript \
+            --config /rules/dockerfile --config /rules/yaml/github-actions --config /rules/bash \
+            --exclude 'web/src/api/schema.d.ts' --exclude '**/Migrations/**'
 
   image:
     name: Immagine, scansione ed E2E
@@ -160,6 +174,12 @@ jobs:
           npm ci --no-audit --no-fund
           npx playwright install --with-deps chromium
           npm run e2e
+      - name: Scenari operativi (riavvio, proxy, perdita DB, rollback su readiness, backup e ripristino)
+        working-directory: deploy
+        env:
+          E2E_ADMIN_EMAIL: admin@moscorun.ci
+          E2E_ADMIN_PASSWORD: E2e-${{ github.run_id }}-${{ github.run_attempt }}-Pass9
+        run: ./tests/scenarios.sh
       - name: Contesto dei test E2E falliti
         if: failure()
         working-directory: web

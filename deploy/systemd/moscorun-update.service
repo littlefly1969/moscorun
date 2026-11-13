@@ -1,5 +1,5 @@
 [Unit]
-Description=Aggiornamento automatico di MoscoRun (backup, migrazioni, verifica salute, rollback)
+Description=Aggiornamento automatico di MoscoRun (attivo solo con MOSCORUN_AUTO_UPDATE=1 in .env)
 Wants=network-online.target
 After=network-online.target docker.service
 Requires=docker.service
@@ -8,5 +8,5 @@ Requires=docker.service
 Type=oneshot
 # Percorso di installazione: adeguare se diverso.
 WorkingDirectory=/opt/moscorun
-ExecStart=/opt/moscorun/moscorun.sh update
+ExecStart=/opt/moscorun/moscorun.sh auto-update
 TimeoutStartSec=15min
