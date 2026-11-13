@@ -14,7 +14,7 @@ Procedura verificata automaticamente in CI su uno stack reale (installazione con
 
 ```bash
 sudo mkdir -p /opt/moscorun && cd /opt/moscorun
-# Copiare da deploy/: compose.yaml, moscorun.sh, .env.example, systemd/
+# Copiare da deploy/: compose.yaml, moscorun.sh, .env.example, proxy/, systemd/
 cp .env.example .env && chmod 600 .env && nano .env
 
 # Repository privato: login a GHCR con un token "classic" con il solo permesso read:packages
