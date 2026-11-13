@@ -68,8 +68,14 @@ test("percorso completo: dispositivo, pesata dall'agente, cruscotto", async ({ p
   await expect(page.getByText(`${deviceName}: ultimo contatto`)).toBeVisible();
   await expectNoA11yViolations(page);
 
-  // 4. Revoca: il token smette di funzionare subito.
+  // 4. Revoca: il token smette di funzionare subito. La pagina non deve scorrere in orizzontale
+  //    (su mobile il browser ridurrebbe lo zoom e i pulsanti diventerebbero difficili da toccare).
   await page.getByRole("link", { name: "Dispositivi" }).click();
+  await expect(page.getByRole("table")).toBeVisible();
+  const overflow = await page.evaluate<number>(
+    "document.documentElement.scrollWidth - document.documentElement.clientWidth",
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
   const row = page.getByRole("row", { name: new RegExp(deviceName) });
   await row.getByRole("button", { name: "Revoca" }).click();
   await row.getByRole("button", { name: "Conferma revoca" }).click();

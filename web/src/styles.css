@@ -159,9 +159,19 @@ h2 {
   margin: 0;
 }
 
+/* Le tabelle non allargano mai la pagina: su schermi stretti scorrono dentro la scheda. */
+.table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
+}
+
+td {
+  overflow-wrap: anywhere;
 }
 
 th,

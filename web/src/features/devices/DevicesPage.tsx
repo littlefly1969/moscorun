@@ -151,23 +151,25 @@ export function DevicesPage() {
         {devices.isError && <p role="alert">Impossibile caricare i dispositivi.</p>}
         {devices.data?.length === 0 && <p className="muted">Nessun dispositivo.</p>}
         {devices.data && devices.data.length > 0 && (
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Nome</th>
-                <th scope="col">Tipo</th>
-                <th scope="col">Ultimo contatto</th>
-                <th scope="col">
-                  <span className="visually-hidden">Azioni</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {devices.data.map((d) => (
-                <DeviceRow key={d.id} device={d} />
-              ))}
-            </tbody>
-          </table>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Nome</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col">Ultimo contatto</th>
+                  <th scope="col">
+                    <span className="visually-hidden">Azioni</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {devices.data.map((d) => (
+                  <DeviceRow key={d.id} device={d} />
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </>
