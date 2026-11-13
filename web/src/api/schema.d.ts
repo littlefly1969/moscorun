@@ -187,7 +187,7 @@ export interface components {
     DashboardSummary: {
       /**
        * Format: double
-       * @description Ultima pesata attribuita (non esclusa).
+       * @description Ultima pesata non esclusa, di qualunque data.
        */
       latestWeightKg: null | number;
       /**
@@ -214,15 +214,34 @@ export interface components {
       sources: components["schemas"]["SourceFreshness"][];
     };
     DeviceDto: {
-      /** Format: uuid */
+      /**
+       * Format: uuid
+       * @description Identificativo, incluso nel token.
+       */
       id: string;
+      /** @description Nome scelto dall'utente. */
       name: string;
+      /** @description Tipo di agente. */
       kind: components["schemas"]["DeviceKind"];
-      /** Format: date-time */
+      /**
+       * Format: date-time
+       * @description Registrazione.
+       */
       createdAt: string;
-      /** Format: date-time */
+      /**
+       * Format: date-time
+       * @description Ultima richiesta autenticata del dispositivo (contatto), anche se non ha portato dati.
+       */
       lastSeenAt: null | string;
-      /** Format: date-time */
+      /**
+       * Format: date-time
+       * @description Ultima pesata accettata dal dispositivo (freschezza dei dati).
+       */
+      lastIngestedAt: null | string;
+      /**
+       * Format: date-time
+       * @description Revoca del token, se avvenuta.
+       */
       revokedAt: null | string;
     };
     /**
@@ -276,11 +295,23 @@ export interface components {
       token: string;
     };
     SourceFreshness: {
-      /** Format: uuid */
+      /**
+       * Format: uuid
+       * @description Dispositivo.
+       */
       deviceId: string;
+      /** @description Nome scelto dall'utente. */
       name: string;
-      /** Format: date-time */
+      /**
+       * Format: date-time
+       * @description Ultimo contatto autenticato (l'agente è vivo).
+       */
       lastSeenAt: null | string;
+      /**
+       * Format: date-time
+       * @description Ultima pesata accettata (i dati sono aggiornati).
+       */
+      lastIngestedAt: null | string;
     };
     SystemInfo: {
       version: string;

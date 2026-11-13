@@ -46,6 +46,7 @@ function DeviceRow({ device }: { device: Device }) {
       <td>{device.name}</td>
       <td>{kindLabel[device.kind]}</td>
       <td>{active ? formatRelative(device.lastSeenAt) : "revocato"}</td>
+      <td>{formatRelative(device.lastIngestedAt)}</td>
       <td>
         {active &&
           (confirming ? (
@@ -158,6 +159,7 @@ export function DevicesPage() {
                   <th scope="col">Nome</th>
                   <th scope="col">Tipo</th>
                   <th scope="col">Ultimo contatto</th>
+                  <th scope="col">Ultima pesata ricevuta</th>
                   <th scope="col">
                     <span className="visually-hidden">Azioni</span>
                   </th>

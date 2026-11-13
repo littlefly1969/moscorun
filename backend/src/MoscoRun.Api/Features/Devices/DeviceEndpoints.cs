@@ -8,10 +8,17 @@ using MoscoRun.Infrastructure.Persistence;
 
 namespace MoscoRun.Api.Features.Devices;
 
+/// <param name="Id">Identificativo, incluso nel token.</param>
+/// <param name="Name">Nome scelto dall'utente.</param>
+/// <param name="Kind">Tipo di agente.</param>
+/// <param name="CreatedAt">Registrazione.</param>
+/// <param name="LastSeenAt">Ultima richiesta autenticata del dispositivo (contatto), anche se non ha portato dati.</param>
+/// <param name="LastIngestedAt">Ultima pesata accettata dal dispositivo (freschezza dei dati).</param>
+/// <param name="RevokedAt">Revoca del token, se avvenuta.</param>
 public sealed record DeviceDto(
-    Guid Id, string Name, DeviceKind Kind, DateTimeOffset CreatedAt, DateTimeOffset? LastSeenAt, DateTimeOffset? RevokedAt)
+    Guid Id, string Name, DeviceKind Kind, DateTimeOffset CreatedAt, DateTimeOffset? LastSeenAt, DateTimeOffset? LastIngestedAt, DateTimeOffset? RevokedAt)
 {
-    public static DeviceDto From(Device d) => new(d.Id, d.Name, d.Kind, d.CreatedAt, d.LastSeenAt, d.RevokedAt);
+    public static DeviceDto From(Device d) => new(d.Id, d.Name, d.Kind, d.CreatedAt, d.LastSeenAt, d.LastIngestedAt, d.RevokedAt);
 }
 
 public sealed record RegisterDeviceRequest(

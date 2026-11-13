@@ -13,25 +13,40 @@ const attributionLabel: Record<Weighing["attribution"], string> = {
   Rejected: "Di un'altra persona",
 };
 
+/** Azioni possibili per ogni stato: una pesata presunta si può confermare o escludere direttamente. */
+const attributionActions: Record<Weighing["attribution"], { to: Weighing["attribution"]; label: string }[]> =
+  {
+    Assumed: [
+      { to: "Confirmed", label: "È mia" },
+      { to: "Rejected", label: "Non è mia" },
+    ],
+    Confirmed: [{ to: "Rejected", label: "Non è mia" }],
+    Rejected: [{ to: "Confirmed", label: "È mia" }],
+  };
+
 function WeighingRow({ weighing }: { weighing: Weighing }) {
   const setAttribution = useSetAttribution();
-  const next = weighing.attribution === "Rejected" ? "Confirmed" : "Rejected";
   return (
     <tr className={weighing.attribution === "Rejected" ? "rejected" : undefined}>
       <td>{formatDateTime(weighing.measuredAt)}</td>
       <td className="num">{formatKg(weighing.weightKg)}</td>
       <td>{attributionLabel[weighing.attribution]}</td>
       <td>
-        <button
-          type="button"
-          className="link"
-          disabled={setAttribution.isPending}
-          onClick={() => {
-            setAttribution.mutate({ id: weighing.id, attribution: next });
-          }}
-        >
-          {next === "Rejected" ? "Non è mia" : "È mia"}
-        </button>
+        <div className="actions">
+          {attributionActions[weighing.attribution].map((action) => (
+            <button
+              key={action.to}
+              type="button"
+              className="link"
+              disabled={setAttribution.isPending}
+              onClick={() => {
+                setAttribution.mutate({ id: weighing.id, attribution: action.to });
+              }}
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
       </td>
     </tr>
   );
@@ -75,9 +90,13 @@ export function DashboardPage() {
         ) : (
           <ul className="sources">
             {s.sources.map((src) => (
-              <li key={src.deviceId} data-freshness={freshness(src.lastSeenAt)}>
+              // La freschezza dipende dai dati ricevuti, non dal semplice contatto dell'agente.
+              <li key={src.deviceId} data-freshness={freshness(src.lastIngestedAt)}>
                 <span className="dot" aria-hidden="true" />
-                {src.name}: ultimo contatto {formatRelative(src.lastSeenAt)}
+                <span>
+                  {src.name}: ultima pesata ricevuta {formatRelative(src.lastIngestedAt)}
+                  <span className="muted"> · ultimo contatto {formatRelative(src.lastSeenAt)}</span>
+                </span>
               </li>
             ))}
           </ul>
@@ -89,25 +108,27 @@ export function DashboardPage() {
         {items.length === 0 ? (
           <p className="muted">Nessuna pesata negli ultimi 90 giorni.</p>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Quando</th>
-                <th scope="col" className="num">
-                  Peso
-                </th>
-                <th scope="col">Attribuzione</th>
-                <th scope="col">
-                  <span className="visually-hidden">Azioni</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.slice(0, 30).map((w) => (
-                <WeighingRow key={w.id} weighing={w} />
-              ))}
-            </tbody>
-          </table>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Quando</th>
+                  <th scope="col" className="num">
+                    Peso
+                  </th>
+                  <th scope="col">Attribuzione</th>
+                  <th scope="col">
+                    <span className="visually-hidden">Azioni</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.slice(0, 30).map((w) => (
+                  <WeighingRow key={w.id} weighing={w} />
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </>

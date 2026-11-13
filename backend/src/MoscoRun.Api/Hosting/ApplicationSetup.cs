@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.DataProtection;
@@ -19,8 +20,6 @@ public static class ApplicationSetup
 {
     public const string LoginRateLimitPolicy = "login";
 
-    private static readonly string[] TrustedProxyNetworks = ["127.0.0.0/8", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "::1/128"];
-
     public static WebApplicationBuilder AddMoscoRun(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -29,7 +28,7 @@ public static class ApplicationSetup
         services.AddSingleton(TimeProvider.System);
         if (!AppInfo.IsGeneratingOpenApiDocument)
         {
-            StartupSettingsValidation.Register(services, builder.Configuration);
+            StartupSettingsValidation.Register(services, builder.Configuration, builder.Environment);
         }
 
         services.AddProblemDetails();
@@ -58,22 +57,35 @@ public static class ApplicationSetup
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = loginPermits, Window = TimeSpan.FromMinutes(1) }));
         });
 
-        services.Configure<ForwardedHeadersOptions>(o =>
-        {
-            // Il container è raggiungibile solo dal reverse proxy sull'host (porta su 127.0.0.1).
-            o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
-            o.KnownIPNetworks.Clear();
-            o.KnownProxies.Clear();
-            foreach (var network in TrustedProxyNetworks)
-            {
-                o.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(network));
-            }
-        });
+        ConfigureForwardedHeaders(services, builder.Configuration);
 
         return builder;
     }
 
-    private static void AddIdentityAndSecurity(IServiceCollection services, IConfiguration configuration)
+    /// <summary>
+    /// Le intestazioni X-Forwarded-* sono accettate solo dai proxy indicati: per impostazione predefinita il solo loopback.
+    /// In produzione Apache sull'host raggiunge il container tramite il gateway della rete Docker del progetto
+    /// (<c>Security:TrustedProxies</c>, impostato da compose.yaml). Nessuna intera rete privata è considerata fidata.
+    /// </summary>
+    private static void ConfigureForwardedHeaders(IServiceCollection services, ConfigurationManager configuration)
+    {
+        var proxies = configuration.GetSection("Security:TrustedProxies").Get<string[]>() ?? [];
+        services.Configure<ForwardedHeadersOptions>(o =>
+        {
+            o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+            o.ForwardLimit = 1;
+            o.KnownIPNetworks.Clear();
+            o.KnownProxies.Clear();
+            o.KnownProxies.Add(IPAddress.Loopback);
+            o.KnownProxies.Add(IPAddress.IPv6Loopback);
+            foreach (var proxy in proxies.Where(p => !string.IsNullOrWhiteSpace(p)))
+            {
+                o.KnownProxies.Add(IPAddress.Parse(proxy.Trim()));
+            }
+        });
+    }
+
+    private static void AddIdentityAndSecurity(IServiceCollection services, ConfigurationManager configuration)
     {
         var dataProtection = services.AddDataProtection().SetApplicationName("MoscoRun");
         if (!string.IsNullOrWhiteSpace(configuration.GetConnectionString(DependencyInjection.ConnectionStringName)))
@@ -81,6 +93,13 @@ public static class ApplicationSetup
             // Chiavi nel database: i cookie di sessione sopravvivono ad aggiornamenti e riavvii del container.
             // Senza connessione (es. generazione del contratto OpenAPI in build) restano in memoria.
             dataProtection.PersistKeysToDbContext<MoscoRunDbContext>();
+        }
+
+        // Chiavi cifrate a riposo con il certificato in .env: un dump del database (o un backup sottratto)
+        // non basta a falsificare i cookie di sessione. Obbligatorio in produzione (StartupSettingsValidation).
+        if (DataProtectionCertificate.TryLoad(configuration[DataProtectionCertificate.ConfigurationKey], out var certificate, out _))
+        {
+            dataProtection.ProtectKeysWithCertificate(certificate!).UnprotectKeysWithAnyCertificate(certificate!);
         }
 
         services.AddIdentityCore<AppUser>(o =>

@@ -12,6 +12,10 @@ public sealed class StartupSettings
     public string? AdminEmail { get; set; }
 
     public string? AdminPassword { get; set; }
+
+    public string? DataProtectionCertificate { get; set; }
+
+    public bool IsProduction { get; set; }
 }
 
 /// <summary>
@@ -24,7 +28,7 @@ internal sealed class StartupSettingsValidation : IValidateOptions<StartupSettin
 
     private static readonly string[] Placeholders = ["change-me", "changeme", "password", "example", "todo"];
 
-    public static void Register(IServiceCollection services, IConfiguration configuration)
+    public static void Register(IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         services.AddOptions<StartupSettings>()
             .Configure(s =>
@@ -32,6 +36,8 @@ internal sealed class StartupSettingsValidation : IValidateOptions<StartupSettin
                 s.ConnectionString = configuration.GetConnectionString(DependencyInjection.ConnectionStringName);
                 s.AdminEmail = configuration["Bootstrap:AdminEmail"];
                 s.AdminPassword = configuration["Bootstrap:AdminPassword"];
+                s.DataProtectionCertificate = configuration[Hosting.DataProtectionCertificate.ConfigurationKey];
+                s.IsProduction = environment.IsProduction();
             })
             .ValidateOnStart();
         services.AddSingleton<IValidateOptions<StartupSettings>, StartupSettingsValidation>();
@@ -64,6 +70,18 @@ internal sealed class StartupSettingsValidation : IValidateOptions<StartupSettin
             else if (ContainsPlaceholder(options.AdminPassword))
             {
                 failures.Add("Bootstrap__AdminPassword contiene un valore segnaposto.");
+            }
+        }
+
+        if (options.IsProduction || !string.IsNullOrWhiteSpace(options.DataProtectionCertificate))
+        {
+            if (Hosting.DataProtectionCertificate.TryLoad(options.DataProtectionCertificate, out var certificate, out var error))
+            {
+                certificate!.Dispose();
+            }
+            else
+            {
+                failures.Add($"DataProtection__CertificateBase64 {error}: in produzione è obbligatorio (lo genera ./moscorun.sh update).");
             }
         }
 

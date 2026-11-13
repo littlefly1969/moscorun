@@ -8,7 +8,7 @@ using MoscoRun.Infrastructure.Persistence;
 
 namespace MoscoRun.Api.Features.Dashboard;
 
-/// <param name="LatestWeightKg">Ultima pesata attribuita (non esclusa).</param>
+/// <param name="LatestWeightKg">Ultima pesata non esclusa, di qualunque data.</param>
 /// <param name="LatestMeasuredAt">Istante dell'ultima pesata.</param>
 /// <param name="Trend7Days">Variazione della media mobile a 7 giorni rispetto a 7 giorni prima.</param>
 /// <param name="Trend30Days">Variazione della media mobile a 7 giorni rispetto a 30 giorni prima.</param>
@@ -22,7 +22,11 @@ public sealed record DashboardSummary(
     int WeighingsLast30Days,
     IReadOnlyList<SourceFreshness> Sources);
 
-public sealed record SourceFreshness(Guid DeviceId, string Name, DateTimeOffset? LastSeenAt);
+/// <param name="DeviceId">Dispositivo.</param>
+/// <param name="Name">Nome scelto dall'utente.</param>
+/// <param name="LastSeenAt">Ultimo contatto autenticato (l'agente è vivo).</param>
+/// <param name="LastIngestedAt">Ultima pesata accettata (i dati sono aggiornati).</param>
+public sealed record SourceFreshness(Guid DeviceId, string Name, DateTimeOffset? LastSeenAt, DateTimeOffset? LastIngestedAt);
 
 internal static class DashboardEndpoints
 {
@@ -42,6 +46,13 @@ internal static class DashboardEndpoints
         var now = time.GetUtcNow();
         var windowStart = now - TimeSpan.FromDays(30 + WeightTrend.SmoothingDays);
 
+        // L'ultimo peso non dipende dalla finestra del trend: resta visibile anche dopo una lunga pausa.
+        var latest = await db.Weighings.AsNoTracking()
+            .Where(w => w.OwnerId == ownerId && w.Attribution != AttributionStatus.Rejected)
+            .OrderByDescending(w => w.MeasuredAt)
+            .Select(w => new WeightPoint(w.MeasuredAt, w.WeightKg))
+            .FirstOrDefaultAsync(ct);
+
         var points = await db.Weighings.AsNoTracking()
             .Where(w => w.OwnerId == ownerId && w.Attribution != AttributionStatus.Rejected && w.MeasuredAt >= windowStart)
             .OrderBy(w => w.MeasuredAt)
@@ -51,10 +62,9 @@ internal static class DashboardEndpoints
         var sources = await db.Devices.AsNoTracking()
             .Where(d => d.OwnerId == ownerId && d.RevokedAt == null)
             .OrderBy(d => d.Name)
-            .Select(d => new SourceFreshness(d.Id, d.Name, d.LastSeenAt))
+            .Select(d => new SourceFreshness(d.Id, d.Name, d.LastSeenAt, d.LastIngestedAt))
             .ToListAsync(ct);
 
-        var latest = points.Count > 0 ? points[^1] : null;
         return TypedResults.Ok(new DashboardSummary(
             latest?.WeightKg,
             latest?.MeasuredAt,

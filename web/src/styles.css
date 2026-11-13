@@ -325,6 +325,12 @@ button.danger {
   margin-bottom: 0.75rem;
 }
 
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+}
+
 .row {
   display: flex;
   gap: 0.5rem;

@@ -20,7 +20,14 @@ export const summary: DashboardSummary = {
   trend7Days: -0.6,
   trend30Days: -1.8,
   weighingsLast30Days: 21,
-  sources: [{ deviceId: "d1", name: "Bilancia bagno", lastSeenAt: "2026-11-12T06:30:05Z" }],
+  sources: [
+    {
+      deviceId: "d1",
+      name: "Bilancia bagno",
+      lastSeenAt: "2026-11-12T06:30:05Z",
+      lastIngestedAt: "2026-11-12T06:30:05Z",
+    },
+  ],
 };
 
 export const device = (over: Partial<Device> = {}): Device => ({
@@ -29,6 +36,7 @@ export const device = (over: Partial<Device> = {}): Device => ({
   kind: "ScaleAgent",
   createdAt: "2026-11-01T10:00:00Z",
   lastSeenAt: "2026-11-12T06:30:05Z",
+  lastIngestedAt: "2026-11-12T06:30:05Z",
   revokedAt: null,
   ...over,
 });

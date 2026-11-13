@@ -45,15 +45,18 @@ internal static class WeighingEndpoints
             return created.Errors.ToValidationProblem();
         }
 
+        var now = time.GetUtcNow();
         var existing = await FindAsync(db, deviceId, reading.SourceEventId, ct);
         if (existing is not null)
         {
-            return Replay(existing, reading);
+            return await ReplayAsync(db, existing, reading, now, ct);
         }
 
         db.Weighings.Add(created.Value);
+        await MarkIngestedAsync(db, deviceId, now, ct);
         try
         {
+            // Pesata e freschezza del dispositivo nella stessa transazione.
             await db.SaveChangesAsync(ct);
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
@@ -62,7 +65,7 @@ internal static class WeighingEndpoints
             db.ChangeTracker.Clear();
             var winner = await FindAsync(db, deviceId, reading.SourceEventId, ct)
                 ?? throw new InvalidOperationException("Violazione di unicità senza riga esistente.", ex);
-            return Replay(winner, reading);
+            return await ReplayAsync(db, winner, reading, now, ct);
         }
 
         var dto = WeighingDto.From(created.Value);
@@ -119,10 +122,29 @@ internal static class WeighingEndpoints
     private static Task<Weighing?> FindAsync(MoscoRunDbContext db, Guid deviceId, string sourceEventId, CancellationToken ct) =>
         db.Weighings.AsNoTracking().SingleOrDefaultAsync(w => w.DeviceId == deviceId && w.SourceEventId == sourceEventId, ct);
 
-    private static Results<Created<WeighingDto>, Ok<WeighingDto>, ValidationProblem, ProblemHttpResult> Replay(Weighing existing, WeighingReading reading) =>
-        existing.IsSameMeasurementAs(reading)
-            ? TypedResults.Ok(WeighingDto.From(existing))
-            : TypedResults.Problem(
+    private static async Task MarkIngestedAsync(MoscoRunDbContext db, Guid deviceId, DateTimeOffset now, CancellationToken ct)
+    {
+        var device = await db.Devices.FindAsync([deviceId], ct)
+            ?? throw new InvalidOperationException("Dispositivo autenticato non trovato.");
+        device.RecordIngestion(now);
+    }
+
+    private static async Task<Results<Created<WeighingDto>, Ok<WeighingDto>, ValidationProblem, ProblemHttpResult>> ReplayAsync(
+        MoscoRunDbContext db, Weighing existing, WeighingReading reading, DateTimeOffset now, CancellationToken ct)
+    {
+        if (!existing.IsSameMeasurementAs(reading))
+        {
+            return Conflict(existing);
+        }
+
+        // Un reinvio identico conferma che l'agente è sincronizzato: conta come acquisizione riuscita.
+        await MarkIngestedAsync(db, existing.DeviceId, now, ct);
+        await db.SaveChangesAsync(ct);
+        return TypedResults.Ok(WeighingDto.From(existing));
+    }
+
+    private static ProblemHttpResult Conflict(Weighing existing) =>
+        TypedResults.Problem(
                 "Lo stesso sourceEventId è già registrato con valori diversi.",
                 statusCode: StatusCodes.Status409Conflict,
                 title: "Conflitto di idempotenza",

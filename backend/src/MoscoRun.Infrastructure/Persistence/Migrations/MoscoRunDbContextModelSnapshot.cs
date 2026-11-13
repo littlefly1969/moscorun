@@ -224,6 +224,10 @@ namespace MoscoRun.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(32)")
                         .HasColumnName("kind");
 
+                    b.Property<DateTimeOffset?>("LastIngestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_ingested_at");
+
                     b.Property<DateTimeOffset?>("LastSeenAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_seen_at");

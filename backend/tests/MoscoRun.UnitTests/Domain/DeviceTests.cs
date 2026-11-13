@@ -59,4 +59,17 @@ public sealed class DeviceTests
         d.Touch(Now.AddMinutes(1)).Should().BeTrue();
         d.LastSeenAt.Should().Be(Now.AddMinutes(1));
     }
+
+    [Fact]
+    public void Ingestion_is_tracked_separately_from_contact_and_never_goes_back()
+    {
+        var d = Device.Register(Guid.NewGuid(), Guid.NewGuid(), "x", DeviceKind.ScaleAgent, Hash, Now).Value;
+        d.Touch(Now);
+        d.LastIngestedAt.Should().BeNull("un contatto non è un dato ricevuto");
+
+        d.RecordIngestion(Now.AddMinutes(5));
+        d.RecordIngestion(Now.AddMinutes(2));
+        d.LastIngestedAt.Should().Be(Now.AddMinutes(5));
+        d.LastSeenAt.Should().Be(Now);
+    }
 }

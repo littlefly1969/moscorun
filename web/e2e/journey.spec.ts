@@ -65,10 +65,20 @@ test("percorso completo: dispositivo, pesata dall'agente, cruscotto", async ({ p
     maximumFractionDigits: 2,
   }).format(weight);
   await expect(page.getByRole("region", { name: "Ultimo peso" })).toContainText(`${formatted} kg`);
-  await expect(page.getByText(`${deviceName}: ultimo contatto`)).toBeVisible();
+  await expect(page.getByText(`${deviceName}: ultima pesata ricevuta`)).toBeVisible();
   await expectNoA11yViolations(page);
 
-  // 4. Revoca: il token smette di funzionare subito. La pagina non deve scorrere in orizzontale
+  // 4. La pesata arriva "da confermare" e si conferma con un solo clic.
+  const weighingRow = page
+    .getByRole("region", { name: "Pesate recenti" })
+    .getByRole("row")
+    .filter({ hasText: `${formatted} kg` });
+  await expect(weighingRow.getByRole("cell").nth(2)).toHaveText("Da confermare");
+  await weighingRow.getByRole("button", { name: "È mia", exact: true }).click();
+  await expect(weighingRow.getByRole("cell").nth(2)).toHaveText("Mia");
+  await expect(weighingRow.getByRole("button")).toHaveText(["Non è mia"]);
+
+  // 5. Revoca: il token smette di funzionare subito. La pagina non deve scorrere in orizzontale
   //    (su mobile il browser ridurrebbe lo zoom e i pulsanti diventerebbero difficili da toccare).
   await page.getByRole("link", { name: "Dispositivi" }).click();
   await expect(page.getByRole("table")).toBeVisible();
@@ -76,7 +86,7 @@ test("percorso completo: dispositivo, pesata dall'agente, cruscotto", async ({ p
     "document.documentElement.scrollWidth - document.documentElement.clientWidth",
   );
   expect(overflow).toBeLessThanOrEqual(0);
-  const row = page.getByRole("row", { name: new RegExp(deviceName) });
+  const row = page.getByRole("row", { name: deviceName });
   await row.getByRole("button", { name: "Revoca" }).click();
   await row.getByRole("button", { name: "Conferma revoca" }).click();
   await expect(row).toContainText("revocato");
@@ -86,7 +96,7 @@ test("percorso completo: dispositivo, pesata dall'agente, cruscotto", async ({ p
   });
   expect(afterRevoke.status()).toBe(401);
 
-  // 5. Uscita.
+  // 6. Uscita.
   await page.getByRole("button", { name: "Esci" }).click();
   await expect(page).toHaveURL(/\/accesso$/);
 });

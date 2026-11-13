@@ -26,7 +26,11 @@ public sealed class Device
 
     public DateTimeOffset CreatedAt { get; private set; }
 
+    /// <summary>Ultima richiesta autenticata con il token, riuscita o no: indica che l'agente è vivo e raggiungibile.</summary>
     public DateTimeOffset? LastSeenAt { get; private set; }
+
+    /// <summary>Ultima pesata accettata da questo dispositivo: indica la freschezza dei dati, non solo del contatto.</summary>
+    public DateTimeOffset? LastIngestedAt { get; private set; }
 
     public DateTimeOffset? RevokedAt { get; private set; }
 
@@ -87,5 +91,15 @@ public sealed class Device
 
         LastSeenAt = now.ToUniversalTime();
         return true;
+    }
+
+    /// <summary>Registra un'acquisizione riuscita (prima ricezione o reinvio identico già presente).</summary>
+    public void RecordIngestion(DateTimeOffset now)
+    {
+        var utc = now.ToUniversalTime();
+        if (LastIngestedAt is null || utc > LastIngestedAt)
+        {
+            LastIngestedAt = utc;
+        }
     }
 }

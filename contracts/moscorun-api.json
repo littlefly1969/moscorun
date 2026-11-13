@@ -385,7 +385,7 @@
               "null",
               "number"
             ],
-            "description": "Ultima pesata attribuita (non esclusa).",
+            "description": "Ultima pesata non esclusa, di qualunque data.",
             "format": "double"
           },
           "latestMeasuredAt": {
@@ -433,22 +433,27 @@
           "kind",
           "createdAt",
           "lastSeenAt",
+          "lastIngestedAt",
           "revokedAt"
         ],
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
+            "description": "Identificativo, incluso nel token.",
             "format": "uuid"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "Nome scelto dall'utente."
           },
           "kind": {
+            "description": "Tipo di agente.",
             "$ref": "#/components/schemas/DeviceKind"
           },
           "createdAt": {
             "type": "string",
+            "description": "Registrazione.",
             "format": "date-time"
           },
           "lastSeenAt": {
@@ -456,6 +461,15 @@
               "null",
               "string"
             ],
+            "description": "Ultima richiesta autenticata del dispositivo (contatto), anche se non ha portato dati.",
+            "format": "date-time"
+          },
+          "lastIngestedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Ultima pesata accettata dal dispositivo (freschezza dei dati).",
             "format": "date-time"
           },
           "revokedAt": {
@@ -463,6 +477,7 @@
               "null",
               "string"
             ],
+            "description": "Revoca del token, se avvenuta.",
             "format": "date-time"
           }
         }
@@ -623,22 +638,34 @@
         "required": [
           "deviceId",
           "name",
-          "lastSeenAt"
+          "lastSeenAt",
+          "lastIngestedAt"
         ],
         "type": "object",
         "properties": {
           "deviceId": {
             "type": "string",
+            "description": "Dispositivo.",
             "format": "uuid"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "Nome scelto dall'utente."
           },
           "lastSeenAt": {
             "type": [
               "null",
               "string"
             ],
+            "description": "Ultimo contatto autenticato (l'agente è vivo).",
+            "format": "date-time"
+          },
+          "lastIngestedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Ultima pesata accettata (i dati sono aggiornati).",
             "format": "date-time"
           }
         }

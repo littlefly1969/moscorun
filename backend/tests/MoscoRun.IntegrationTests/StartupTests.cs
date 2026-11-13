@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MoscoRun.IntegrationTests;
 
+[Collection(HostStartupGroup.Name)]
 public sealed class StartupTests(ApiFactory factory)
 {
     [Theory]

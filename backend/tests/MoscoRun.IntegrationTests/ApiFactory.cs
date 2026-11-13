@@ -69,20 +69,22 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     /// <summary>Crea un utente nuovo e restituisce un client con la sessione già aperta.</summary>
     public async Task<(HttpClient Client, Guid UserId)> CreateUserClientAsync()
     {
-        var email = $"user-{Guid.NewGuid():N}@moscorun.test";
-        Guid id;
-        await using (var scope = Services.CreateAsyncScope())
-        {
-            var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-            var user = new AppUser { UserName = email, Email = email, EmailConfirmed = true };
-            (await users.CreateAsync(user, UserPassword)).Succeeded.Should().BeTrue();
-            id = user.Id;
-        }
-
+        var (email, id) = await CreateUserAsync();
         var client = CreateClient();
         var login = await client.PostAsJsonAsync("/api/auth/login", new { email, password = UserPassword }, TestContext.Current.CancellationToken);
         login.StatusCode.Should().Be(System.Net.HttpStatusCode.NoContent);
         return (client, id);
+    }
+
+    /// <summary>Crea un utente nuovo (password <see cref="UserPassword"/>): ogni test usa il proprio, senza contese sulla stessa riga.</summary>
+    public async Task<(string Email, Guid UserId)> CreateUserAsync()
+    {
+        var email = $"user-{Guid.NewGuid():N}@moscorun.test";
+        await using var scope = Services.CreateAsyncScope();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+        var user = new AppUser { UserName = email, Email = email, EmailConfirmed = true };
+        (await users.CreateAsync(user, UserPassword)).Succeeded.Should().BeTrue();
+        return (email, user.Id);
     }
 
     /// <summary>Registra un dispositivo per l'utente e restituisce un client autenticato con il suo token.</summary>
