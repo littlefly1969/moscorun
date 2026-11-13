@@ -10,7 +10,7 @@ COPY contracts/ /src/contracts/
 COPY web/ ./
 RUN npm run build
 
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0 AS api
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:11.0 AS api
 ARG TARGETARCH
 ARG VERSION=0.0.0-dev
 ARG REVISION=unknown
