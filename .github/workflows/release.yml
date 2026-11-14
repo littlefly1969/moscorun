@@ -71,7 +71,7 @@ jobs:
           if [[ "$release" == true ]]; then
             { echo "### Release $tag (precedente: ${previous:-nessuna})"; echo; cat "$RUNNER_TEMP/notes.md"; } >>"$GITHUB_STEP_SUMMARY"
           else
-            echo "Nessun commit rilasciabile dopo ${previous:-l'inizio}: nessuna release." >>"$GITHUB_STEP_SUMMARY"
+            echo "Nessun commit rilasciabile dopo ${previous:-il primo commit}: nessuna release." >>"$GITHUB_STEP_SUMMARY"
           fi
       - name: Gate - CI verde sul commit esatto
         if: steps.plan.outputs.publish == 'true'
