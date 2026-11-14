@@ -12,7 +12,7 @@ Il repository resta **privato** (decisione del 12/11/2026): la release `samsung-
 | Vulnerabilità delle dipendenze | `dotnet restore` con NuGet audit, `npm audit`, Dependabot alerts | Gratis |
 | Vulnerabilità dell'immagine | Trivy blocca la CI su HIGH/CRITICAL risolvibili | Gratis |
 | Aggiornamenti dipendenze | Dependabot settimanale, raggruppato (NuGet, npm, Actions, Docker) | Gratis |
-| Versioni e CHANGELOG | release-please da Conventional Commits | Gratis |
+| Versioni e note di rilascio | Rilascio continuo da Conventional Commits (`.github/scripts/release-plan.sh`), GitHub Releases | Gratis, solo `GITHUB_TOKEN` |
 | Gate di rilascio | `release.yml` parte solo dopo una CI riuscita su main e verifica la CI verde sul commit esatto del tag prima di pubblicare | Gratis |
 | Immagini container | GHCR, multi-arch, con SBOM e provenance; pulizia settimanale delle vecchie versioni | Gratis |
 | Azioni di terze parti | Fissate per SHA del commit, aggiornate da Dependabot | — |
@@ -34,15 +34,17 @@ Se il repository diventasse pubblico o passasse a un piano a pagamento: attivare
 
 ## Impostazioni da attivare una volta (Settings del repository)
 
-1. **Actions → General → Workflow permissions:** spuntare *Allow GitHub Actions to create and approve pull requests* (serve a release-please).
-2. **Code security:** attivare *Dependency graph*, *Dependabot alerts* e *Dependabot security updates*.
-3. **General → Pull Requests:** consentire solo *Squash merging* con titolo della PR come messaggio; attivare *Automatically delete head branches*.
-4. Facoltativo: secret `RELEASE_PLEASE_TOKEN` (token fine-grained con permessi Contents e Pull requests in scrittura su questo repository) per far partire la CI anche sulle PR di release.
+Il rilascio non richiede permessi speciali per GitHub Actions né token personali.
+
+1. **Code security:** attivare *Dependency graph*, *Dependabot alerts* e *Dependabot security updates*.
+2. **General → Pull Requests:** consentire solo *Squash merging* con titolo della PR come messaggio; attivare *Automatically delete head branches*.
 
 ## Flusso di rilascio
 
-1. Le PR vengono unite in main con titolo Conventional Commits.
-2. Terminata con successo la CI su main, release-please apre/aggiorna la PR "chore: release x.y.z" con il CHANGELOG.
-3. Unendo quella PR e dopo la CI verde su quel commit nascono tag e GitHub Release, e l'immagine `ghcr.io/littlefly1969/moscorun:x.y.z` (+ `x.y`, `x`, `latest`).
-4. Se la pubblicazione è stata bloccata dal gate (CI non ancora verde sul commit del tag), si rilancia a mano *Actions → Release → Run workflow* indicando il tag: il gate viene ripetuto.
+1. Le PR vengono unite in main; contano i messaggi Conventional Commits dei commit (`feat:`, `fix:`, `deps:`…).
+2. Terminata con successo la CI su main, il workflow **Release** calcola dai commit successivi all'ultimo tag se serve una versione nuova: `feat` → minor, `fix`/`perf`/`security`/`deps` → patch, modifica incompatibile → minor finché la major è 0. Commit di sola documentazione, CI, test o manutenzione non rilasciano.
+3. Verificata la CI verde sul commit esatto, crea tag `vX.Y.Z` e GitHub Release con le note divise per sezione, e pubblica `ghcr.io/littlefly1969/moscorun:X.Y.Z` (+ `X.Y`, `X`, `latest`) per amd64 e arm64.
+4. Se la pubblicazione dell'immagine fallisce, si rilancia a mano *Actions → Release → Run workflow* indicando il tag: il gate viene ripetuto e `latest` non si sposta.
 5. Il server la installa con `./moscorun.sh update` (il timer notturno resta spento fino alla validazione sul server reale).
+
+Le regole di versione sono provate da `.github/scripts/release-plan.test.sh` nella CI (job *Segreti e script*).

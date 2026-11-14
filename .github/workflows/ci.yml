@@ -106,7 +106,9 @@ jobs:
       - name: Ricerca di segreti nella storia Git (gitleaks)
         run: docker run --rm -v "$PWD:/repo" "$GITLEAKS_IMAGE" git /repo --redact --verbose --exit-code 1
       - name: ShellCheck
-        run: shellcheck -x deploy/*.sh deploy/tests/*.sh
+        run: shellcheck -x deploy/*.sh deploy/tests/*.sh .github/scripts/*.sh
+      - name: Test del piano di rilascio
+        run: .github/scripts/release-plan.test.sh
       # CodeQL non è disponibile sui repository privati del piano Free: Semgrep (OSS) copre C#, TypeScript/React,
       # Dockerfile, GitHub Actions e Bash. Blocca la CI su risultati WARNING/ERROR.
       - name: Analisi statica di sicurezza (Semgrep)
