@@ -167,7 +167,7 @@ Con `MOSCORUN_VERSION=latest` arrivano tutte le release; con `MOSCORUN_VERSION=0
 | Dove | Cosa |
 | --- | --- |
 | `.env` sul server (permessi 600, controllati dallo script) | Password PostgreSQL, amministratore iniziale, porta, certificato Data Protection (generato) |
-| GitHub Secrets | Solo ciò che serve alle pipeline (es. firma APK, eventuale `RELEASE_PLEASE_TOKEN`) |
+| GitHub Secrets | Solo ciò che serve alle pipeline (es. firma APK e chiave Maps dell'app Android) |
 | Repository | Nessun segreto. `.env.example` contiene solo nomi e spiegazioni |
 
 L'applicazione si rifiuta di partire se manca la stringa di connessione, se la password del database è vuota o un segnaposto (`change-me`, `password`…), se la password dell'amministratore è più corta di 12 caratteri o, in produzione, se manca un certificato Data Protection valido.
