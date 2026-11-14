@@ -20,9 +20,24 @@ captures/
 *.pem
 *.key
 *.keystore
+*.p12
+*.jks
+signing.properties
+maps.properties
+MOSCORUN_SIGNING_BUNDLE*
+MoscoRun-signing-backup*
 local.properties
 .gradle/
 build/
+*.aar
+*.apk
+*.aab
+captures/
+.idea/
+.kotlin/
+android-probe/.gradle/
+
+moscorun-probe-*.json
 
 # .NET
 bin/

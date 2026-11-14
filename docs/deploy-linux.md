@@ -206,4 +206,4 @@ Server attuale (rilevato il 2026-11-13):
   - database incluso;
   - prima configurazione dietro la frontiera, poi TLS su nginx.
 - **Bluetooth:** adattatore Realtek USB presente ma controller non visibile a BlueZ (da sistemare con l'agente, #3).
-- **Ancora da indicare:** l'IP LAN della frontiera, da mettere in `MOSCORUN_EDGE_PROXIES`.
+- **Frontiera:** Apache su 192.168.1.105 (`MOSCORUN_EDGE_PROXIES=192.168.1.105`) finché il TLS non passa a nginx.
