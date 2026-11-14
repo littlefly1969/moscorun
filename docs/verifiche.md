@@ -19,7 +19,7 @@
 7. Costruire il ponte Android e l'importazione sul server; ripetere il trasferimento senza duplicati e verificare correzioni/cancellazioni.
 8. Realizzare il primo cruscotto e il calendario; verificare separatamente l'eventuale invio di sessioni al Watch.
 
-È presente il prototipo Android di verifica locale in `android-probe`, con Health Connect e una variante opzionale per il Samsung Health Data SDK. Il collegamento Samsung richiede l’AAR ufficiale. Nessuna integrazione è stata provata sul telefono o sulla bilancia dell’utente. Backend, decoder BLE e cruscotto non sono ancora implementati.
+Le integrazioni hardware non sono state provate in questo ambiente. Dal 12/11/2026 esistono API, archivio e cruscotto (vedi README); mancano decoder BLE e ponte Android verso il server. Il prototipo Android in `android-probe` legge in sola lettura Health Connect e, nella variante completa, il Samsung Health Data SDK (AAR ufficiale scaricato dalla release privata, non presente nel repository); va provato sul telefono.
 
 ## Fonti tecniche consultate il 9 novembre 2026
 

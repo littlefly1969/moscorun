@@ -1,0 +1,4 @@
+# Password di test fisse presenti nel primo commit del backend, sostituite da valori casuali
+# generati a ogni esecuzione dei test. Non sono mai state credenziali reali.
+b04dd4ada3729fd2a7dc8fe1ffd09951103acaba:backend/tests/MoscoRun.IntegrationTests/ApiFactory.cs:generic-api-key:27
+b04dd4ada3729fd2a7dc8fe1ffd09951103acaba:backend/tests/MoscoRun.IntegrationTests/ApiFactory.cs:generic-api-key:28

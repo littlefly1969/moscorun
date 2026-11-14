@@ -1,0 +1,31 @@
+# HTTP: solo validazione ACME e redirect permanente a HTTPS.
+server {
+    listen @@LISTEN@@;
+    server_name @@PUBLIC_HOST@@;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root @@ACME_ROOT@@;
+        default_type text/plain;
+    }
+
+    location / {
+        return 301 https://@@PUBLIC_HOST@@$request_uri;
+    }
+}
+
+server {
+    listen @@TLS_LISTEN@@ ssl;
+@@HTTP3_LISTEN@@
+    http2 on;
+    server_name @@PUBLIC_HOST@@;
+
+    ssl_certificate     @@TLS_CERT@@;
+    ssl_certificate_key @@TLS_KEY@@;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache   shared:moscorun_tls:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+
+@@SITE@@
+}

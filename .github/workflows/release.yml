@@ -1,0 +1,123 @@
+name: Release
+
+# release-please legge i commit Conventional Commits su main e mantiene aperta una "PR di release"
+# con versione e CHANGELOG. Quando la PR viene unita crea tag e GitHub Release; questo stesso workflow
+# pubblica allora l'immagine multi-architettura su GHCR, che il server installa con ./moscorun.sh update.
+#
+# Gate: il workflow parte solo quando la CI di un push su main è terminata con successo, e prima di
+# pubblicare verifica che la CI sia verde proprio sul commit del tag (tutti i job: build, test, segreti,
+# Semgrep, Trivy, E2E, scenari di deploy). Un commit non verificato non arriva mai su GHCR.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Ripubblica l'immagine di un tag esistente (es. v0.2.0), se la pubblicazione era stata bloccata"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    # Da workflow_run: solo CI riuscita su un push a main (non su PR o esecuzioni annullate).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      created: ${{ steps.release.outputs.release_created }}
+      version: ${{ steps.release.outputs.version }}
+      tag: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          # Facoltativo: con un token dedicato la CI parte anche sulla PR di release.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish-image:
+    needs: release-please
+    if: needs.release-please.outputs.created == 'true' || inputs.tag != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag || needs.release-please.outputs.tag }}
+      - name: Gate - CI verde sul commit esatto del tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || needs.release-please.outputs.tag }}
+        run: |
+          sha="$(git rev-parse "$TAG^{commit}")"
+          ok="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$sha&event=push&status=success&per_page=1" --jq '.total_count')"
+          if [[ "$ok" -lt 1 ]]; then
+            echo "::error::Nessuna esecuzione della CI riuscita su $sha ($TAG): pubblicazione bloccata."
+            exit 1
+          fi
+          echo "CI verde su $sha: pubblicazione consentita."
+          {
+            echo "RELEASE_SHA=$sha"
+            echo "RELEASE_VERSION=${TAG#v}"
+          } >> "$GITHUB_ENV"
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ env.RELEASE_VERSION }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ env.RELEASE_VERSION }}
+            type=semver,pattern={{major}},value=${{ env.RELEASE_VERSION }}
+            type=raw,value=latest,enable=${{ inputs.tag == '' }}
+      - name: Build e push multi-architettura (amd64, arm64) con SBOM e provenance
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ env.RELEASE_VERSION }}
+            REVISION=${{ env.RELEASE_SHA }}
+          sbom: true
+          provenance: mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Riepilogo
+        run: |
+          {
+            echo "### Immagine pubblicata"
+            echo '```'
+            echo "${{ steps.meta.outputs.tags }}"
+            echo '```'
+            echo "Sul server: \`./moscorun.sh update\` (o attendere il timer notturno)."
+          } >> "$GITHUB_STEP_SUMMARY"

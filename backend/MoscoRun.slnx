@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MoscoRun.Api/MoscoRun.Api.csproj" />
+    <Project Path="src/MoscoRun.Domain/MoscoRun.Domain.csproj" />
+    <Project Path="src/MoscoRun.Infrastructure/MoscoRun.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MoscoRun.IntegrationTests/MoscoRun.IntegrationTests.csproj" />
+    <Project Path="tests/MoscoRun.UnitTests/MoscoRun.UnitTests.csproj" />
+  </Folder>
+</Solution>

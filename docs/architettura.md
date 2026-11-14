@@ -1,6 +1,32 @@
 # Architettura proposta
 
-La base applicativa proposta è ASP.NET Core su .NET 10 LTS con PostgreSQL. Il servizio Bluetooth Python resta un adattatore hardware; Kotlin resta il ponte Android. I dettagli di prodotto e installazione sono in `prodotto.md` e `deploy-linux.md`.
+La base applicativa è ASP.NET Core su .NET 10 LTS con PostgreSQL e un cruscotto React servito dalla stessa applicazione. Il servizio Bluetooth Python resta un adattatore hardware; Kotlin resta il ponte Android. I dettagli di prodotto e installazione sono in `prodotto.md` e `deploy-linux.md`.
+
+## Implementazione attuale (incremento 1)
+
+```
+Agente bilancia ──Bearer mr1_…──▶ POST /api/v1/ingest/weighings ─┐
+App Android    ──Bearer mr1_…──▶ (prossimo incremento)          │   ASP.NET Core (.NET 10)
+Browser ──cookie di sessione──▶ /api/auth, /api/v1/* ───────────┼─▶ Domain ─▶ EF Core ─▶ PostgreSQL
+        ◀── cruscotto React (file statici, stessa origine) ─────┘
+```
+
+- **Monolite modulare** in tre progetti: `Domain` (regole pure e testabili), `Infrastructure` (EF Core, Identity, migrazioni, schema `moscorun`), `Api` (endpoint minimal API raggruppati per funzionalità).
+- **Due modi di autenticazione:** cookie ASP.NET Core Identity per le persone, token per dispositivo (`mr1_<id>_<segreto>`) per gli agenti. Le policy impediscono gli usi incrociati.
+- **Contratto OpenAPI 3.1** generato in build in `contracts/` e usato per generare il client TypeScript.
+- **Comandi operativi** nella stessa immagine: `migrate` (migrazioni + amministratore iniziale) e `healthcheck`.
+- **Chiavi Data Protection nel database:** le sessioni sopravvivono ad aggiornamenti e riavvii.
+
+API principali:
+
+| Metodo e percorso | Chi | Scopo |
+| --- | --- | --- |
+| `POST /api/auth/login`, `/logout`, `GET /api/auth/me` | persona | Sessione del cruscotto |
+| `POST /api/v1/ingest/weighings` | dispositivo | Pesata definitiva, idempotente su `sourceEventId` |
+| `GET /api/v1/weighings`, `PUT /api/v1/weighings/{id}/attribution` | persona | Elenco e attribuzione (mia / di altri) |
+| `GET/POST/DELETE /api/v1/devices` | persona | Registrazione con token mostrato una volta, revoca |
+| `GET /api/v1/dashboard/summary` | persona | Ultimo peso, tendenze su medie mobili, copertura, freschezza sorgenti |
+| `GET /health/live`, `/health/ready`, `/api/system/info` | pubblico | Stato e versione |
 
 ## Acquisizione diretta della bilancia
 

@@ -1,0 +1,61 @@
+# MoscoRun sul server Linux. Uso quotidiano tramite ./moscorun.sh (update, rollback, backup, status).
+# Tutti i valori sensibili arrivano da .env (permessi 600, mai nel repository): vedi .env.example.
+name: moscorun
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "5" }
+
+services:
+  app:
+    image: ${MOSCORUN_IMAGE:-ghcr.io/littlefly1969/moscorun}:${MOSCORUN_VERSION:-latest}
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    logging: *logging
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__MoscoRun: >-
+        Host=${POSTGRES_HOST:?Impostare POSTGRES_HOST in .env};Port=${POSTGRES_PORT:-5432};Database=${POSTGRES_DB:-moscorun};Username=${POSTGRES_USER:-moscorun};Password=${POSTGRES_PASSWORD:?Impostare POSTGRES_PASSWORD in .env};SSL Mode=${POSTGRES_SSLMODE:-Prefer};GSS Encryption Mode=Disable
+      Bootstrap__AdminEmail: ${MOSCORUN_ADMIN_EMAIL:-}
+      Bootstrap__AdminPassword: ${MOSCORUN_ADMIN_PASSWORD:-}
+      Security__LoginAttemptsPerMinute: ${MOSCORUN_LOGIN_ATTEMPTS_PER_MINUTE:-10}
+      # Unico proxy fidato per X-Forwarded-*: il gateway della rete del progetto, da cui arrivano le
+      # connessioni del reverse proxy dell'host verso 127.0.0.1:MOSCORUN_PORT. Nessuna intera rete privata è fidata.
+      Security__TrustedProxies__0: ${MOSCORUN_GATEWAY:-172.30.85.1}
+      DataProtection__CertificateBase64: ${MOSCORUN_DATA_PROTECTION_CERT:-}
+    # Solo sull'interfaccia locale: la pubblica il reverse proxy dell'host (vedi "moscorun.sh proxy-config").
+    ports: ["127.0.0.1:${MOSCORUN_PORT:-8085}:8080"]
+    # Per un PostgreSQL pubblicato sull'host usare POSTGRES_HOST=host.docker.internal.
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    mem_limit: ${MOSCORUN_MEMORY_LIMIT:-512m}
+
+  # Database incluso, solo se non si usa l'istanza PostgreSQL già presente:
+  # COMPOSE_PROFILES=bundled-db e POSTGRES_HOST=db in .env
+  db:
+    profiles: [bundled-db]
+    image: postgres:17-alpine
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    logging: *logging
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-moscorun}
+      POSTGRES_USER: ${POSTGRES_USER:-moscorun}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Impostare POSTGRES_PASSWORD in .env}
+    volumes: [db-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      retries: 12
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${MOSCORUN_SUBNET:-172.30.85.0/24}
+          gateway: ${MOSCORUN_GATEWAY:-172.30.85.1}
+
+volumes:
+  db-data:
