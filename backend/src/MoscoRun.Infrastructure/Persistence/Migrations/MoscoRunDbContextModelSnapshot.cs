@@ -322,6 +322,179 @@ namespace MoscoRun.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("MoscoRun.Domain.Workouts.Workout", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<TimeSpan?>("ActiveDuration")
+                        .HasColumnType("interval")
+                        .HasColumnName("active_duration");
+
+                    b.Property<string>("ActivityType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("activity_type");
+
+                    b.Property<double?>("AverageHeartRate")
+                        .HasColumnType("double precision")
+                        .HasColumnName("average_heart_rate");
+
+                    b.Property<byte[]>("ContentHash")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("content_hash");
+
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("device_id");
+
+                    b.Property<double?>("DistanceM")
+                        .HasColumnType("double precision")
+                        .HasColumnName("distance_m");
+
+                    b.Property<DateTimeOffset>("EndedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ended_at");
+
+                    b.Property<double?>("EnergyKcal")
+                        .HasColumnType("double precision")
+                        .HasColumnName("energy_kcal");
+
+                    b.Property<double?>("MaxHeartRate")
+                        .HasColumnType("double precision")
+                        .HasColumnName("max_heart_rate");
+
+                    b.Property<double?>("MaxLatitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("max_latitude");
+
+                    b.Property<double?>("MaxLongitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("max_longitude");
+
+                    b.Property<double?>("MinLatitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("min_latitude");
+
+                    b.Property<double?>("MinLongitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("min_longitude");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.Property<long>("Revision")
+                        .HasColumnType("bigint")
+                        .HasColumnName("revision");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("SourceId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("source_id");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<int>("TrackPointCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("track_point_count");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int?>("UtcOffsetMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("utc_offset_minutes");
+
+                    b.HasKey("Id")
+                        .HasName("pk_workouts");
+
+                    b.HasIndex("DeviceId")
+                        .HasDatabaseName("ix_workouts_device_id");
+
+                    b.HasIndex("OwnerId", "StartedAt")
+                        .HasDatabaseName("ix_workouts_owner_id_started_at");
+
+                    b.HasIndex("OwnerId", "Source", "SourceId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_workouts_owner_id_source_source_id");
+
+                    b.ToTable("workouts", "moscorun", t =>
+                        {
+                            t.HasCheckConstraint("ck_workouts_content_hash", "octet_length(content_hash) = 32");
+
+                            t.HasCheckConstraint("ck_workouts_distance_m", "distance_m IS NULL OR distance_m BETWEEN 0 AND 1000000");
+
+                            t.HasCheckConstraint("ck_workouts_time", "ended_at > started_at");
+
+                            t.HasCheckConstraint("ck_workouts_track_point_count", "track_point_count BETWEEN 0 AND 100000");
+                        });
+                });
+
+            modelBuilder.Entity("MoscoRun.Domain.Workouts.WorkoutRoute", b =>
+                {
+                    b.Property<Guid>("WorkoutId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("workout_id");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("data");
+
+                    b.Property<int>("PointCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("point_count");
+
+                    b.HasKey("WorkoutId")
+                        .HasName("pk_workout_routes");
+
+                    b.ToTable("workout_routes", "moscorun");
+                });
+
+            modelBuilder.Entity("MoscoRun.Domain.Workouts.WorkoutSeries", b =>
+                {
+                    b.Property<Guid>("WorkoutId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("workout_id");
+
+                    b.Property<string>("Metric")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("metric");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("data");
+
+                    b.Property<int>("SampleCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("sample_count");
+
+                    b.HasKey("WorkoutId", "Metric")
+                        .HasName("pk_workout_series");
+
+                    b.ToTable("workout_series", "moscorun");
+                });
+
             modelBuilder.Entity("MoscoRun.Infrastructure.Identity.AppUser", b =>
                 {
                     b.Property<Guid>("Id")
@@ -489,6 +662,43 @@ namespace MoscoRun.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_weighings_asp_net_users_owner_id");
+                });
+
+            modelBuilder.Entity("MoscoRun.Domain.Workouts.Workout", b =>
+                {
+                    b.HasOne("MoscoRun.Domain.Devices.Device", null)
+                        .WithMany()
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_workouts_devices_device_id");
+
+                    b.HasOne("MoscoRun.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_workouts_asp_net_users_owner_id");
+                });
+
+            modelBuilder.Entity("MoscoRun.Domain.Workouts.WorkoutRoute", b =>
+                {
+                    b.HasOne("MoscoRun.Domain.Workouts.Workout", null)
+                        .WithOne()
+                        .HasForeignKey("MoscoRun.Domain.Workouts.WorkoutRoute", "WorkoutId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_workout_routes_workouts_workout_id");
+                });
+
+            modelBuilder.Entity("MoscoRun.Domain.Workouts.WorkoutSeries", b =>
+                {
+                    b.HasOne("MoscoRun.Domain.Workouts.Workout", null)
+                        .WithMany()
+                        .HasForeignKey("WorkoutId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_workout_series_workouts_workout_id");
                 });
 #pragma warning restore 612, 618
         }

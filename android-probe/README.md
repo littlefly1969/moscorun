@@ -1,6 +1,6 @@
 # MoscoRun per Android
 
-App Kotlin di verifica locale per confrontare i dati leggibili attraverso Health Connect e il Samsung Health Data SDK. Nessun collegamento a server MoscoRun, PostgreSQL, AI o tracciamento pubblicitario. La variante Health Connect non ha accesso Internet; la variante completa include Samsung Health Data SDK e Google Maps, che usano Internet. Le mappe si aprono con un comando esplicito. Il codice MoscoRun non invia rapporti sanitari a un proprio server. Android 10 o superiore; prove Samsung su telefono reale.
+App Kotlin per leggere i dati di Health Connect e del Samsung Health Data SDK e, nella variante completa, inviarli su comando al proprio server MoscoRun. Nessun collegamento ad AI o tracciamento pubblicitario. La variante Health Connect non ha accesso Internet; la variante completa include Samsung Health Data SDK e Google Maps, che usano Internet. Le mappe si aprono con un comando esplicito. Il codice MoscoRun non invia rapporti sanitari a un proprio server. Android 10 o superiore; prove Samsung su telefono reale.
 
 ## Cosa verificare
 
@@ -14,6 +14,14 @@ App Kotlin di verifica locale per confrontare i dati leggibili attraverso Health
 8. Facoltativamente esportare il rapporto JSON nella destinazione scelta. Non caricare il rapporto in GitHub: può contenere dati sanitari e posizioni precise.
 
 L'elenco può contenere attività diverse dalla corsa. I titoli mancanti sono mostrati con il codice tipo originale; il JSON conserva il tipo originale.
+
+## Invio al proprio server MoscoRun (variante completa)
+
+1. Nel cruscotto web, **Dispositivi → Registra**, tipo "Telefono Android": copiare il token mostrato una sola volta.
+2. Nell'app, **Configura server**: indirizzo HTTPS del server e token. Il token è cifrato con una chiave AES-GCM dell'Android Keystore; HTTP in chiaro è accettato solo verso il telefono stesso (sviluppo).
+3. Leggere gli allenamenti con **Samsung diretto** (7, 30 o 90 giorni) e premere **Invia allenamenti al server**.
+
+Ogni allenamento viaggia compresso (gzip) con tracciato GPS, riepilogo e serie (frequenza cardiaca, velocità, cadenza, potenza). Il server lo salva una sola volta; un allenamento modificato in Samsung Health ha una data di aggiornamento più recente e sostituisce la versione precedente. L'app ricorda l'impronta di ciò che il server ha accettato e non reinvia allenamenti invariati. Un token revocato interrompe l'invio con un messaggio esplicito. **Scollega dal server** rimuove indirizzo, token e registro degli invii dal telefono.
 
 ## Due varianti di compilazione
 

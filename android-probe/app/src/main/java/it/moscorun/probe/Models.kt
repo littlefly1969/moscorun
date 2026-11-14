@@ -28,11 +28,19 @@ data class TrackPoint(val time: String, val latitude: Double, val longitude: Dou
 data class Sample(val time: String, val value: Double, val unit: String,
     val recordId: String, val source: String)
 data class Series(val name: String, val status: String, val samples: List<Sample> = emptyList(),
-    val message: String? = null, val rawRecords: List<JsonElement> = emptyList())
+    val message: String? = null, val rawRecords: List<JsonElement> = emptyList(),
+    /** Server metric code (HeartRate, Speed, Cadence, Power); null when the series is not uploaded. */
+    val metric: String? = null)
+/** Session summary declared by the source; missing values stay null, never zero. */
+data class WorkoutSummary(val activityType: String, val revision: Long, val utcOffsetMinutes: Int? = null,
+    val activeDurationSeconds: Double? = null, val distanceM: Double? = null, val energyKcal: Double? = null,
+    val averageHeartRate: Double? = null, val maxHeartRate: Double? = null)
 data class Workout(val id: String, val title: String, val start: String, val end: String,
     val source: String, val raw: JsonElement, var routeState: String = "non_verificato",
     var route: List<TrackPoint> = emptyList(), var series: List<Series> = emptyList(),
-    var detailLoaded: Boolean = false, var rawRoute: JsonElement? = null)
+    var detailLoaded: Boolean = false, var rawRoute: JsonElement? = null,
+    /** Present when the source can be uploaded to a MoscoRun server (Samsung Health SDK). */
+    val summary: WorkoutSummary? = null, val uploadSource: String? = null)
 data class ProbeReport(val schemaVersion: Int = 1, val provider: String, val generatedAt: String,
     val windowStart: String, val windowEnd: String, val categories: List<CategoryResult>,
     val workouts: List<Workout>, val notes: List<String>)

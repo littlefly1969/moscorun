@@ -89,6 +89,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/ingest/workouts": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Registra o aggiorna un allenamento svolto, con tracciato GPS e serie.
+     * @description Idempotente su (source, sourceId) per persona. 201 alla prima ricezione; 200 se il contenuto è identico o se revision è maggiore di quella salvata (aggiornamento); 409 se il contenuto differisce senza revisione maggiore. Il corpo può essere compresso con Content-Encoding: gzip.
+     */
+    post: operations["IngestWorkout"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/dashboard/summary": {
     parameters: {
       query?: never;
@@ -137,6 +157,71 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/workouts": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ListWorkouts"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workouts/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetWorkout"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workouts/{id}/route": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Tracciato come Feature GeoJSON, semplificato a maxPoints punti conservandone la forma. */
+    get: operations["GetWorkoutRoute"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workouts/{id}/series": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetWorkoutSeries"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/devices": {
     parameters: {
       query?: never;
@@ -178,6 +263,28 @@ export interface components {
      * @enum {unknown}
      */
     AttributionStatus: "Assumed" | "Confirmed" | "Rejected";
+    BoundsDto: {
+      /**
+       * Format: double
+       * @description Latitudine minima.
+       */
+      minLatitude: number;
+      /**
+       * Format: double
+       * @description Longitudine minima.
+       */
+      minLongitude: number;
+      /**
+       * Format: double
+       * @description Latitudine massima.
+       */
+      maxLatitude: number;
+      /**
+       * Format: double
+       * @description Longitudine massima.
+       */
+      maxLongitude: number;
+    };
     CurrentUser: {
       /** Format: uuid */
       id: string;
@@ -280,6 +387,69 @@ export interface components {
        */
       impedanceOhm: null | number;
     };
+    /** @description Allenamento svolto inviato dal telefono. Reinviare lo stesso contenuto è sicuro. */
+    IngestWorkoutRequest: {
+      /** @description Fonte, es. `samsung-health`. */
+      source: null | string;
+      /** @description Identificativo stabile nella fonte. */
+      sourceId: null | string;
+      /**
+       * Format: int64
+       * @description Revisione nella fonte: un valore maggiore aggiorna l'allenamento già ricevuto.
+       */
+      revision: null | number;
+      /** @description Codice del tipo di attività nella fonte (es. `RUNNING`). */
+      activityType: null | string;
+      /**
+       * Format: date-time
+       * @description Inizio (ISO 8601 con offset).
+       */
+      startedAt: null | string;
+      /**
+       * Format: date-time
+       * @description Fine (ISO 8601 con offset).
+       */
+      endedAt: null | string;
+      /**
+       * Format: int32
+       * @description Fuso orario locale, se noto.
+       */
+      utcOffsetMinutes: null | number;
+      /**
+       * Format: double
+       * @description Durata senza pause, se indicata dalla fonte.
+       */
+      activeDurationSeconds: null | number;
+      /**
+       * Format: double
+       * @description Distanza in metri.
+       */
+      distanceM: null | number;
+      /**
+       * Format: double
+       * @description Energia in kcal.
+       */
+      energyKcal: null | number;
+      /**
+       * Format: double
+       * @description Frequenza cardiaca media (bpm).
+       */
+      averageHeartRate: null | number;
+      /**
+       * Format: double
+       * @description Frequenza cardiaca massima (bpm).
+       */
+      maxHeartRate: null | number;
+      /** @description Punti GPS in qualunque ordine; assenti se l'allenamento non ha tracciato. */
+      track: null | components["schemas"]["TrackPointInput"][];
+      /** @description Serie temporali, al più una per grandezza. */
+      series: null | components["schemas"]["SeriesInput"][];
+    };
+    /** @description Geometria GeoJSON (RFC 7946): coordinate `[longitudine, latitudine]` o con altitudine. */
+    LineStringGeometry: {
+      type: string;
+      coordinates: number[][];
+    };
     LoginRequest: {
       email: string;
       password: string;
@@ -294,6 +464,67 @@ export interface components {
       /** @description Credenziale da configurare nell'agente. Viene mostrata solo ora. */
       token: string;
     };
+    /** @description Tracciato come Feature GeoJSON (RFC 7946), utilizzabile da qualunque libreria di mappe. */
+    RouteFeature: {
+      /** @description Sempre `Feature`. */
+      type: string;
+      /** @description [ovest, sud, est, nord]. */
+      bbox: number[];
+      /** @description LineString del tracciato. */
+      geometry: components["schemas"]["LineStringGeometry"];
+      /** @description Metadati del tracciato. */
+      properties: components["schemas"]["RouteProperties"];
+    };
+    RouteProperties: {
+      /**
+       * Format: uuid
+       * @description Allenamento.
+       */
+      workoutId: string;
+      /**
+       * Format: int32
+       * @description Punti salvati.
+       */
+      totalPoints: number;
+      /**
+       * Format: int32
+       * @description Punti restituiti dopo la semplificazione.
+       */
+      returnedPoints: number;
+      /** @description Istante di ogni coordinata, in millisecondi Unix. */
+      times: number[];
+    };
+    SampleInput: {
+      /** Format: date-time */
+      time: null | string;
+      /** Format: double */
+      value: null | number;
+    };
+    /** @description Serie completa: `times` in millisecondi Unix e `values` allineati per indice. */
+    SeriesDto: {
+      metric: components["schemas"]["SeriesMetric"];
+      unit: string;
+      times: number[];
+      values: number[];
+    };
+    SeriesInfoDto: {
+      /** @description Grandezza. */
+      metric: components["schemas"]["SeriesMetric"];
+      /** @description Unità di misura. */
+      unit: string;
+      /**
+       * Format: int32
+       * @description Numero di campioni.
+       */
+      sampleCount: number;
+    };
+    SeriesInput: {
+      metric: null | components["schemas"]["SeriesMetric"];
+      /** @description Campioni. */
+      samples: null | components["schemas"]["SampleInput"][];
+    };
+    /** @enum {unknown} */
+    SeriesMetric: "HeartRate" | "Speed" | "Cadence" | "Power" | null;
     SourceFreshness: {
       /**
        * Format: uuid
@@ -315,6 +546,33 @@ export interface components {
     };
     SystemInfo: {
       version: string;
+    };
+    TrackPointInput: {
+      /**
+       * Format: date-time
+       * @description Istante.
+       */
+      time: null | string;
+      /**
+       * Format: double
+       * @description Latitudine WGS84.
+       */
+      lat: null | number;
+      /**
+       * Format: double
+       * @description Longitudine WGS84.
+       */
+      lon: null | number;
+      /**
+       * Format: double
+       * @description Altitudine in metri.
+       */
+      altitudeM: null | number;
+      /**
+       * Format: double
+       * @description Precisione orizzontale in metri.
+       */
+      accuracyM: null | number;
     };
     UpdateAttributionRequest: {
       attribution: null | components["schemas"]["AttributionStatus"];
@@ -341,6 +599,52 @@ export interface components {
       from: string;
       /** Format: date-time */
       to: string;
+    };
+    /** @description Dettaglio: riepilogo più l'elenco delle serie disponibili. */
+    WorkoutDetailDto: {
+      summary: components["schemas"]["WorkoutSummaryDto"];
+      series: components["schemas"]["SeriesInfoDto"][];
+    };
+    WorkoutList: {
+      items: components["schemas"]["WorkoutSummaryDto"][];
+      /** Format: date-time */
+      from: string;
+      /** Format: date-time */
+      to: string;
+    };
+    WorkoutSeriesList: {
+      items: components["schemas"]["SeriesDto"][];
+    };
+    /** @description Riepilogo di un allenamento, senza tracciato né serie. */
+    WorkoutSummaryDto: {
+      /** Format: uuid */
+      id: string;
+      source: string;
+      sourceId: string;
+      /** Format: int64 */
+      revision: number;
+      activityType: string;
+      /** Format: date-time */
+      startedAt: string;
+      /** Format: date-time */
+      endedAt: string;
+      /** Format: int32 */
+      utcOffsetMinutes: null | number;
+      /** Format: double */
+      activeDurationSeconds: null | number;
+      /** Format: double */
+      distanceM: null | number;
+      /** Format: double */
+      energyKcal: null | number;
+      /** Format: double */
+      averageHeartRate: null | number;
+      /** Format: double */
+      maxHeartRate: null | number;
+      /** Format: int32 */
+      trackPointCount: number;
+      bounds: null | components["schemas"]["BoundsDto"];
+      /** Format: date-time */
+      updatedAt: string;
     };
   };
   responses: never;
@@ -473,6 +777,48 @@ export interface operations {
       };
     };
   };
+  IngestWorkout: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["IngestWorkoutRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutSummaryDto"];
+        };
+      };
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutSummaryDto"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
   GetDashboardSummary: {
     parameters: {
       query?: never;
@@ -547,6 +893,136 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["WeighingDto"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  ListWorkouts: {
+    parameters: {
+      query?: {
+        from?: string;
+        to?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutList"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  GetWorkout: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutDetailDto"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetWorkoutRoute: {
+    parameters: {
+      query?: {
+        maxPoints?: number;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RouteFeature"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetWorkoutSeries: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutSeriesList"];
         };
       };
       /** @description Not Found */

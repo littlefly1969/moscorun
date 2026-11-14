@@ -10,6 +10,7 @@ using MoscoRun.Api.Features.Dashboard;
 using MoscoRun.Api.Features.Devices;
 using MoscoRun.Api.Features.System;
 using MoscoRun.Api.Features.Weighings;
+using MoscoRun.Api.Features.Workouts;
 using MoscoRun.Infrastructure;
 using MoscoRun.Infrastructure.Identity;
 using MoscoRun.Infrastructure.Persistence;
@@ -32,6 +33,9 @@ public static class ApplicationSetup
         }
 
         services.AddProblemDetails();
+
+        // Il telefono comprime gli allenamenti (gzip); il limite di dimensione vale sul corpo decompresso.
+        services.AddRequestDecompression();
         services.AddValidation();
         services.ConfigureHttpJsonOptions(o =>
         {
@@ -134,6 +138,7 @@ public static class ApplicationSetup
         app.UseExceptionHandler();
         app.UseStatusCodePages();
         app.UseMiddleware<SecurityHeadersMiddleware>();
+        app.UseRequestDecompression();
 
         app.UseDefaultFiles();
         app.UseStaticFiles(new StaticFileOptions
@@ -160,6 +165,7 @@ public static class ApplicationSetup
 
         var v1 = api.MapGroup("/v1");
         v1.MapWeighingEndpoints();
+        v1.MapWorkoutEndpoints();
         v1.MapDeviceEndpoints();
         v1.MapDashboardEndpoints();
 

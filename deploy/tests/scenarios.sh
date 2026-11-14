@@ -135,6 +135,17 @@ grep -qF "Accesso riuscito da $client_ip" <<<"$logs" || fail "IP reale del clien
 ! grep -qF 198.51.100 <<<"$logs" || fail "un X-Forwarded-For del client è finito nell'app"
 pass "TLS su nginx: HTTP/2, HTTP/3 annunciato, cookie Secure, HSTS, IP reale $client_ip"
 
+step "nginx: limite di dimensione ampio solo per l'invio degli allenamenti"
+head -c 2000000 /dev/zero | tr '\0' ' ' >"$WORK/big.json"
+post_big() {
+  curl -s -o /dev/null -w '%{http_code}' --cacert "$WORK/proxy/cert.pem" --resolve "$PUBLIC_HOST:8443:127.0.0.1" \
+    -H 'Content-Type: application/json' --data-binary @"$WORK/big.json" "https://$PUBLIC_HOST:8443$1"
+}
+# Senza token l'app risponde 401: la richiesta da 2 MB ha superato nginx.
+[[ "$(post_big /api/v1/ingest/workouts)" == 401 ]] || fail "un allenamento da 2 MB deve arrivare all'app"
+[[ "$(post_big /api/auth/login)" == 413 ]] || fail "le altre API devono restare limitate a 1 MB"
+pass "2 MB accettati per gli allenamenti, rifiutati (413) per le altre API"
+
 step "Frontiera Apache -> nginx in HTTP -> app: la catena X-Forwarded è fidata solo dalla frontiera"
 since="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 proxy_config MOSCORUN_EDGE_PROXIES=127.0.0.1 >"$WORK/proxy/nginx.conf"

@@ -135,6 +135,58 @@
         }
       }
     },
+    "/api/v1/ingest/workouts": {
+      "post": {
+        "tags": [
+          "Acquisizione"
+        ],
+        "summary": "Registra o aggiorna un allenamento svolto, con tracciato GPS e serie.",
+        "description": "Idempotente su (source, sourceId) per persona. 201 alla prima ricezione; 200 se il contenuto è identico o se revision è maggiore di quella salvata (aggiornamento); 409 se il contenuto differisce senza revisione maggiore. Il corpo può essere compresso con Content-Encoding: gzip.",
+        "operationId": "IngestWorkout",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestWorkoutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSummaryDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSummaryDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/dashboard/summary": {
       "get": {
         "tags": [
@@ -247,6 +299,175 @@
         }
       }
     },
+    "/api/v1/workouts": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "ListWorkouts",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetWorkout",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutDetailDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}/route": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "summary": "Tracciato come Feature GeoJSON, semplificato a maxPoints punti conservandone la forma.",
+        "operationId": "GetWorkoutRoute",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "maxPoints",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteFeature"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}/series": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetWorkoutSeries",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSeriesList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/devices": {
       "get": {
         "tags": [
@@ -345,6 +566,37 @@
           "Rejected"
         ],
         "description": "Quanto è certa l'associazione della pesata alla persona."
+      },
+      "BoundsDto": {
+        "required": [
+          "minLatitude",
+          "minLongitude",
+          "maxLatitude",
+          "maxLongitude"
+        ],
+        "type": "object",
+        "properties": {
+          "minLatitude": {
+            "type": "number",
+            "description": "Latitudine minima.",
+            "format": "double"
+          },
+          "minLongitude": {
+            "type": "number",
+            "description": "Longitudine minima.",
+            "format": "double"
+          },
+          "maxLatitude": {
+            "type": "number",
+            "description": "Latitudine massima.",
+            "format": "double"
+          },
+          "maxLongitude": {
+            "type": "number",
+            "description": "Longitudine massima.",
+            "format": "double"
+          }
+        }
       },
       "CurrentUser": {
         "required": [
@@ -577,6 +829,164 @@
         },
         "description": "Pesata definitiva inviata dall'agente della bilancia."
       },
+      "IngestWorkoutRequest": {
+        "required": [
+          "source",
+          "sourceId",
+          "revision",
+          "activityType",
+          "startedAt",
+          "endedAt",
+          "utcOffsetMinutes",
+          "activeDurationSeconds",
+          "distanceM",
+          "energyKcal",
+          "averageHeartRate",
+          "maxHeartRate",
+          "track",
+          "series"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Fonte, es. `samsung-health`."
+          },
+          "sourceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Identificativo stabile nella fonte."
+          },
+          "revision": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "Revisione nella fonte: un valore maggiore aggiorna l'allenamento già ricevuto.",
+            "format": "int64"
+          },
+          "activityType": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Codice del tipo di attività nella fonte (es. `RUNNING`)."
+          },
+          "startedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Inizio (ISO 8601 con offset).",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Fine (ISO 8601 con offset).",
+            "format": "date-time"
+          },
+          "utcOffsetMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "Fuso orario locale, se noto.",
+            "format": "int32"
+          },
+          "activeDurationSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "description": "Durata senza pause, se indicata dalla fonte.",
+            "format": "double"
+          },
+          "distanceM": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "description": "Distanza in metri.",
+            "format": "double"
+          },
+          "energyKcal": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "description": "Energia in kcal.",
+            "format": "double"
+          },
+          "averageHeartRate": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "description": "Frequenza cardiaca media (bpm).",
+            "format": "double"
+          },
+          "maxHeartRate": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "description": "Frequenza cardiaca massima (bpm).",
+            "format": "double"
+          },
+          "track": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/TrackPointInput"
+            },
+            "description": "Punti GPS in qualunque ordine; assenti se l'allenamento non ha tracciato."
+          },
+          "series": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SeriesInput"
+            },
+            "description": "Serie temporali, al più una per grandezza."
+          }
+        },
+        "description": "Allenamento svolto inviato dal telefono. Reinviare lo stesso contenuto è sicuro."
+      },
+      "LineStringGeometry": {
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "format": "double"
+              }
+            }
+          }
+        },
+        "description": "Geometria GeoJSON (RFC 7946): coordinate `[longitudine, latitudine]` o con altitudine."
+      },
       "LoginRequest": {
         "required": [
           "email",
@@ -634,6 +1044,189 @@
           }
         }
       },
+      "RouteFeature": {
+        "required": [
+          "type",
+          "bbox",
+          "geometry",
+          "properties"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Sempre `Feature`."
+          },
+          "bbox": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "description": "[ovest, sud, est, nord]."
+          },
+          "geometry": {
+            "description": "LineString del tracciato.",
+            "$ref": "#/components/schemas/LineStringGeometry"
+          },
+          "properties": {
+            "description": "Metadati del tracciato.",
+            "$ref": "#/components/schemas/RouteProperties"
+          }
+        },
+        "description": "Tracciato come Feature GeoJSON (RFC 7946), utilizzabile da qualunque libreria di mappe."
+      },
+      "RouteProperties": {
+        "required": [
+          "workoutId",
+          "totalPoints",
+          "returnedPoints",
+          "times"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "description": "Allenamento.",
+            "format": "uuid"
+          },
+          "totalPoints": {
+            "type": "integer",
+            "description": "Punti salvati.",
+            "format": "int32"
+          },
+          "returnedPoints": {
+            "type": "integer",
+            "description": "Punti restituiti dopo la semplificazione.",
+            "format": "int32"
+          },
+          "times": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Istante di ogni coordinata, in millisecondi Unix."
+          }
+        }
+      },
+      "SampleInput": {
+        "required": [
+          "time",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "value": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SeriesDto": {
+        "required": [
+          "metric",
+          "unit",
+          "times",
+          "values"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "$ref": "#/components/schemas/SeriesMetric"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "times": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        },
+        "description": "Serie completa: `times` in millisecondi Unix e `values` allineati per indice."
+      },
+      "SeriesInfoDto": {
+        "required": [
+          "metric",
+          "unit",
+          "sampleCount"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "description": "Grandezza.",
+            "$ref": "#/components/schemas/SeriesMetric"
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unità di misura."
+          },
+          "sampleCount": {
+            "type": "integer",
+            "description": "Numero di campioni.",
+            "format": "int32"
+          }
+        }
+      },
+      "SeriesInput": {
+        "required": [
+          "metric",
+          "samples"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "Grandezza; l'unità è fissata (bpm, m/s, 1/min, W).",
+                "$ref": "#/components/schemas/SeriesMetric"
+              }
+            ]
+          },
+          "samples": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SampleInput"
+            },
+            "description": "Campioni."
+          }
+        }
+      },
+      "SeriesMetric": {
+        "enum": [
+          "HeartRate",
+          "Speed",
+          "Cadence",
+          "Power",
+          null
+        ]
+      },
       "SourceFreshness": {
         "required": [
           "deviceId",
@@ -678,6 +1271,58 @@
         "properties": {
           "version": {
             "type": "string"
+          }
+        }
+      },
+      "TrackPointInput": {
+        "required": [
+          "time",
+          "lat",
+          "lon",
+          "altitudeM",
+          "accuracyM"
+        ],
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Istante.",
+            "format": "date-time"
+          },
+          "lat": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "description": "Latitudine WGS84.",
+            "format": "double"
+          },
+          "lon": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "description": "Longitudine WGS84.",
+            "format": "double"
+          },
+          "altitudeM": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "description": "Altitudine in metri.",
+            "format": "double"
+          },
+          "accuracyM": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "description": "Precisione orizzontale in metri.",
+            "format": "double"
           }
         }
       },
@@ -770,6 +1415,172 @@
             "format": "date-time"
           }
         }
+      },
+      "WorkoutDetailDto": {
+        "required": [
+          "summary",
+          "series"
+        ],
+        "type": "object",
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/WorkoutSummaryDto"
+          },
+          "series": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeriesInfoDto"
+            }
+          }
+        },
+        "description": "Dettaglio: riepilogo più l'elenco delle serie disponibili."
+      },
+      "WorkoutList": {
+        "required": [
+          "items",
+          "from",
+          "to"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkoutSummaryDto"
+            }
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WorkoutSeriesList": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeriesDto"
+            }
+          }
+        }
+      },
+      "WorkoutSummaryDto": {
+        "required": [
+          "id",
+          "source",
+          "sourceId",
+          "revision",
+          "activityType",
+          "startedAt",
+          "endedAt",
+          "utcOffsetMinutes",
+          "activeDurationSeconds",
+          "distanceM",
+          "energyKcal",
+          "averageHeartRate",
+          "maxHeartRate",
+          "trackPointCount",
+          "bounds",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source": {
+            "type": "string"
+          },
+          "sourceId": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "activityType": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "utcOffsetMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "activeDurationSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "distanceM": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "energyKcal": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "averageHeartRate": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "maxHeartRate": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "trackPointCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bounds": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BoundsDto"
+              }
+            ]
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "description": "Riepilogo di un allenamento, senza tracciato né serie."
       }
     },
     "securitySchemes": {
@@ -801,6 +1612,9 @@
     },
     {
       "name": "Pesate"
+    },
+    {
+      "name": "Allenamenti"
     },
     {
       "name": "Dispositivi"

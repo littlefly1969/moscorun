@@ -5,7 +5,7 @@ import { useDevices, useRegisterDevice, useRevokeDevice } from "./queries";
 
 const kindLabel: Record<DeviceKind, string> = {
   ScaleAgent: "Agente bilancia",
-  PhoneBridge: "Telefono (Health Connect)",
+  PhoneBridge: "Telefono Android",
 };
 
 function TokenNotice({ registered, onClose }: { registered: RegisteredDevice; onClose: () => void }) {
