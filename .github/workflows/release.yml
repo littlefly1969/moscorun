@@ -1,12 +1,14 @@
 name: Release
 
-# release-please legge i commit Conventional Commits su main e mantiene aperta una "PR di release"
-# con versione e CHANGELOG. Quando la PR viene unita crea tag e GitHub Release; questo stesso workflow
-# pubblica allora l'immagine multi-architettura su GHCR, che il server installa con ./moscorun.sh update.
+# Rilascio continuo da Conventional Commits, senza PR di release: quando la CI di un push su main termina
+# con successo, .github/scripts/release-plan.sh calcola dai commit dopo l'ultimo tag se serve una release
+# e quale versione (feat -> minor, fix/perf/security/deps -> patch, breaking -> minor finché la major è 0).
+# Se serve, crea tag e GitHub Release con le note e pubblica l'immagine multi-architettura su GHCR, che il
+# server installa con ./moscorun.sh update. Commit di sola documentazione, CI o manutenzione non rilasciano.
 #
-# Gate: il workflow parte solo quando la CI di un push su main è terminata con successo, e prima di
-# pubblicare verifica che la CI sia verde proprio sul commit del tag (tutti i job: build, test, segreti,
-# Semgrep, Trivy, E2E, scenari di deploy). Un commit non verificato non arriva mai su GHCR.
+# Gate: prima di creare il tag verifica che la CI sia verde proprio su quel commit (tutti i job: build,
+# test, segreti, Semgrep, Trivy, E2E, scenari di deploy). Un commit non verificato non arriva mai su GHCR.
+# Serve solo il GITHUB_TOKEN del workflow: nessuna PR automatica né token personali.
 
 on:
   workflow_run:
@@ -16,7 +18,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Ripubblica l'immagine di un tag esistente (es. v0.2.0), se la pubblicazione era stata bloccata"
+        description: "Ripubblica l'immagine di un tag esistente (es. v0.2.0); vuoto = valuta una nuova release dall'ultimo commit di main"
         required: false
         type: string
 
@@ -28,35 +30,76 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release-please:
+  release:
     # Da workflow_run: solo CI riuscita su un push a main (non su PR o esecuzioni annullate).
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: write
-      pull-requests: write
     outputs:
-      created: ${{ steps.release.outputs.release_created }}
-      version: ${{ steps.release.outputs.version }}
-      tag: ${{ steps.release.outputs.tag_name }}
+      publish: ${{ steps.plan.outputs.publish }}
+      tag: ${{ steps.plan.outputs.tag }}
+      version: ${{ steps.plan.outputs.version }}
+      sha: ${{ steps.plan.outputs.sha }}
     steps:
-      - id: release
-        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+      # Si esegue sempre il codice di main (ramo predefinito); il commit da rilasciare è usato solo come
+      # oggetto git e deve appartenere alla storia di main.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # Facoltativo: con un token dedicato la CI parte anche sulla PR di release.
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Piano di rilascio
+        id: plan
+        env:
+          REPUBLISH_TAG: ${{ inputs.tag }}
+          TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          if [[ -n "$REPUBLISH_TAG" ]]; then
+            [[ "$REPUBLISH_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::tag non valido: $REPUBLISH_TAG"; exit 1; }
+            sha="$(git rev-parse --verify "$REPUBLISH_TAG^{commit}")"
+            printf 'publish=true\nnew=false\ntag=%s\nversion=%s\nsha=%s\n' "$REPUBLISH_TAG" "${REPUBLISH_TAG#v}" "$sha" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git merge-base --is-ancestor "$TARGET_SHA" HEAD || { echo "::error::$TARGET_SHA non appartiene a main"; exit 1; }
+          ./.github/scripts/release-plan.sh "$TARGET_SHA" "$RUNNER_TEMP/notes.md" | tee "$RUNNER_TEMP/plan"
+          # shellcheck disable=SC1091
+          source "$RUNNER_TEMP/plan"
+          printf 'publish=%s\nnew=%s\ntag=%s\nversion=%s\nsha=%s\n' "$release" "$release" "$tag" "$version" "$TARGET_SHA" >>"$GITHUB_OUTPUT"
+          if [[ "$release" == true ]]; then
+            { echo "### Release $tag (precedente: ${previous:-nessuna})"; echo; cat "$RUNNER_TEMP/notes.md"; } >>"$GITHUB_STEP_SUMMARY"
+          else
+            echo "Nessun commit rilasciabile dopo ${previous:-il primo commit}: nessuna release." >>"$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Gate - CI verde sul commit esatto
+        if: steps.plan.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.plan.outputs.sha }}
+        run: |
+          ok="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$SHA&event=push&status=success&per_page=1" --jq '.total_count')"
+          if [[ "$ok" -lt 1 ]]; then
+            echo "::error::Nessuna esecuzione della CI riuscita su $SHA: rilascio bloccato."
+            exit 1
+          fi
+          echo "CI verde su $SHA: rilascio consentito."
+      - name: Tag e GitHub Release
+        if: steps.plan.outputs.new == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.plan.outputs.tag }}
+          VERSION: ${{ steps.plan.outputs.version }}
+          SHA: ${{ steps.plan.outputs.sha }}
+        run: gh release create "$TAG" --target "$SHA" --title "MoscoRun $VERSION" --notes-file "$RUNNER_TEMP/notes.md"
 
   publish-image:
-    needs: release-please
-    if: needs.release-please.outputs.created == 'true' || inputs.tag != ''
+    needs: release
+    if: needs.release.outputs.publish == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      actions: read
       contents: read
       packages: write
     env:
@@ -64,23 +107,12 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.tag || needs.release-please.outputs.tag }}
-      - name: Gate - CI verde sul commit esatto del tag
+          ref: ${{ needs.release.outputs.tag }}
+      - name: Versione e commit
         env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ inputs.tag || needs.release-please.outputs.tag }}
-        run: |
-          sha="$(git rev-parse "$TAG^{commit}")"
-          ok="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$sha&event=push&status=success&per_page=1" --jq '.total_count')"
-          if [[ "$ok" -lt 1 ]]; then
-            echo "::error::Nessuna esecuzione della CI riuscita su $sha ($TAG): pubblicazione bloccata."
-            exit 1
-          fi
-          echo "CI verde su $sha: pubblicazione consentita."
-          {
-            echo "RELEASE_SHA=$sha"
-            echo "RELEASE_VERSION=${TAG#v}"
-          } >> "$GITHUB_ENV"
+          VERSION: ${{ needs.release.outputs.version }}
+          SHA: ${{ needs.release.outputs.sha }}
+        run: printf 'RELEASE_VERSION=%s\nRELEASE_SHA=%s\n' "$VERSION" "$SHA" >>"$GITHUB_ENV"
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0

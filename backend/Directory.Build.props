@@ -27,6 +27,7 @@
 
     <Authors>Stefano Moschino</Authors>
     <Product>MoscoRun</Product>
-    <Version>0.1.0</Version> <!-- x-release-please-version -->
+    <!-- Versione dei build locali: nelle release la imposta la pipeline dal tag (Dockerfile, -p:Version). -->
+    <Version>0.1.0</Version>
   </PropertyGroup>
 </Project>

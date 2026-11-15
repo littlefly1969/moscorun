@@ -76,4 +76,4 @@ Regola **expand/contract**: il rollback automatico riporta l'immagine precedente
 
 ## Commit e rilasci
 
-Messaggi in formato [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `deps:`…). release-please calcola versione e CHANGELOG; l'unione della PR di release pubblica l'immagine.
+Messaggi in formato [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `deps:`…). Dopo la CI verde su main la pipeline calcola da questi messaggi la versione, crea tag e GitHub Release e pubblica l'immagine (vedi [github.md](github.md#flusso-di-rilascio)).
