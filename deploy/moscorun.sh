@@ -8,6 +8,7 @@
 #   ./moscorun.sh status | logs       stato (esce con errore se l'app non è pronta) e log
 #   ./moscorun.sh auto-update         usato dal timer systemd: aggiorna solo se MOSCORUN_AUTO_UPDATE=1
 #   ./moscorun.sh proxy-config nginx|apache   stampa la configurazione del reverse proxy generata da .env
+#   ./moscorun.sh check               verifica la coerenza di .env senza toccare container o database
 #
 # Il gate di ogni aggiornamento è /health/ready (database raggiungibile), non la sola liveness del processo.
 set -Eeuo pipefail
@@ -34,10 +35,57 @@ load_env() {
   # shellcheck disable=SC1091
   source "$SCRIPT_DIR/.env"
   set +a
-  : "${POSTGRES_HOST:?POSTGRES_HOST mancante in .env}"
-  : "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD mancante in .env}"
+  validate_env
   mkdir -p "$STATE_DIR"
   MOSCORUN_ENV_LOADED=1
+}
+
+has_profile() { [[ ",${COMPOSE_PROFILES:-}," == *",$1,"* ]]; }
+
+# Errori di configurazione fermati prima di toccare immagini, container o database, con l'indicazione del rimedio.
+validate_env() {
+  [[ -n "${POSTGRES_HOST:-}" ]] || die "POSTGRES_HOST mancante in .env (database incluso: POSTGRES_HOST=db e COMPOSE_PROFILES=bundled-db)"
+  [[ -n "${POSTGRES_PASSWORD:-}" ]] || die "POSTGRES_PASSWORD mancante in .env (generarla con: openssl rand -base64 32)"
+  if has_profile bundled-db; then
+    [[ "$POSTGRES_HOST" == db ]] ||
+      die "COMPOSE_PROFILES=bundled-db avvia il database incluso, raggiungibile solo come POSTGRES_HOST=db (ora: $POSTGRES_HOST)"
+  elif [[ "$POSTGRES_HOST" == db ]]; then
+    die "POSTGRES_HOST=db indica il database incluso, che parte solo con COMPOSE_PROFILES=bundled-db in .env"
+  fi
+  case "$POSTGRES_HOST" in
+    localhost | 127.* | ::1 | '[::1]')
+      die "POSTGRES_HOST=$POSTGRES_HOST punta al container dell'app, non al server: per un PostgreSQL sull'host usare POSTGRES_HOST=host.docker.internal" ;;
+  esac
+  # Stesse regole di Identity nell'app (StartupSettingsValidation): solo se l'amministratore va ancora creato.
+  local pw="${MOSCORUN_ADMIN_PASSWORD:-}" missing=()
+  if [[ -n "${MOSCORUN_ADMIN_EMAIL:-}" ]]; then
+    ((${#pw} >= 12)) || missing+=("almeno 12 caratteri")
+    [[ "$pw" =~ [[:upper:]] ]] || missing+=("una lettera maiuscola")
+    [[ "$pw" =~ [[:lower:]] ]] || missing+=("una lettera minuscola")
+    [[ "$pw" =~ [[:digit:]] ]] || missing+=("una cifra")
+    local word
+    for word in password example todo changeme change-me; do
+      [[ "${pw,,}" != *"$word"* ]] || missing+=("nessun segnaposto come \"$word\"")
+    done
+    if ((${#missing[@]} > 0)); then
+      local list
+      printf -v list '%s, ' "${missing[@]}"
+      die "MOSCORUN_ADMIN_PASSWORD non rispetta la politica delle password, servono: ${list%, }"
+    fi
+  fi
+  local name value
+  for name in POSTGRES_PORT MOSCORUN_PORT; do
+    value="${!name:-}"
+    [[ -z "$value" || ( "$value" =~ ^[0-9]{1,5}$ && "$value" -ge 1 && "$value" -le 65535 ) ]] ||
+      die "$name non è una porta valida: $value"
+  done
+}
+
+cmd_check() {
+  load_env
+  local db="PostgreSQL esterno su $POSTGRES_HOST:${POSTGRES_PORT:-5432}"
+  has_profile bundled-db && db="PostgreSQL incluso (container db)"
+  log "configurazione valida: $db, app su 127.0.0.1:${MOSCORUN_PORT:-8085}"
 }
 
 current_image_id() { docker inspect --format '{{.Image}}' "$(compose ps -q app 2>/dev/null)" 2>/dev/null || true; }
@@ -132,6 +180,7 @@ cmd_update() {
     0) ;;
     3) die "la release contiene migrazioni che rimuovono struttura del database: nulla è stato modificato.
    Dopo aver letto le note di rilascio: MOSCORUN_ALLOW_CONTRACT_MIGRATIONS=1 $0 update ${MOSCORUN_VERSION:-}" ;;
+    4) die "configurazione rifiutata dall'applicazione (dettagli sopra): database non toccato, correggere .env" ;;
     *) die "migrazioni fallite (codice $status): resta in esecuzione la versione precedente" ;;
   esac
 
@@ -288,10 +337,11 @@ cmd_proxy_config() {
 }
 
 main() {
-  command -v docker >/dev/null || die "docker non installato"
   local cmd="${1:-}"
   shift || true
+  [[ "$cmd" == check ]] || command -v docker >/dev/null || die "docker non installato"
   case "$cmd" in
+    check) cmd_check ;;
     update) cmd_update "$@" ;;
     rollback) cmd_rollback ;;
     backup) cmd_backup ;;
@@ -303,7 +353,7 @@ main() {
       load_env
       compose logs --tail=200 -f app
       ;;
-    *) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+    *) sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
   esac
 }
 

@@ -17,12 +17,14 @@ sudo mkdir -p /opt/moscorun && cd /opt/moscorun
 # Copiare da deploy/: compose.yaml, moscorun.sh, .env.example, proxy/, systemd/
 cp .env.example .env && chmod 600 .env && nano .env
 
-# Repository privato: login a GHCR con un token "classic" con il solo permesso read:packages
-echo '<token>' | docker login ghcr.io -u littlefly1969 --password-stdin
+# Repository privato: login a GHCR con un token "classic" con il solo permesso read:packages,
+# incollato quando viene chiesta la password (non resta nella cronologia della shell)
+docker login ghcr.io -u littlefly1969
 
 # Solo con un PostgreSQL esistente: database e ruolo dedicati (vedi "Database")
 
-./moscorun.sh update      # scarica, genera il certificato Data Protection, migra, crea l'amministratore, avvia e verifica
+./moscorun.sh check       # coerenza di .env (database, porte, permessi), senza toccare nulla
+./moscorun.sh update      # stessa verifica, poi scarica, genera il certificato Data Protection, migra, crea l'amministratore, avvia e verifica
 ```
 
 Al primo `update` lo script genera (con l'immagine stessa) il certificato che cifra a riposo le chiavi dei cookie di sessione e lo aggiunge a `.env` come `MOSCORUN_DATA_PROTECTION_CERT`. In produzione l'app non parte senza un certificato valido.
@@ -94,7 +96,7 @@ Il passaggio successivo, cioè eliminare la frontiera e terminare il TLS su ngin
 
 | Situazione | Configurazione |
 | --- | --- |
-| Nessun PostgreSQL di sistema, oppure isolamento da altre applicazioni (consigliato) | PostgreSQL incluso: `COMPOSE_PROFILES=bundled-db`, `POSTGRES_HOST=db`. Volume Docker dedicato, nessuna porta pubblicata, backup e ripristino toccano solo questo database |
+| Nessun PostgreSQL di sistema, oppure isolamento da altre applicazioni (consigliato) | PostgreSQL incluso (predefinito in `.env.example`): `COMPOSE_PROFILES=bundled-db` e `POSTGRES_HOST=db`, sempre insieme. Volume Docker dedicato, nessuna porta pubblicata, backup e ripristino toccano solo questo database |
 | PostgreSQL di sistema sull'host | `POSTGRES_HOST=host.docker.internal`; database e ruolo dedicati (sotto); in `pg_hba.conf` solo `host moscorun moscorun <MOSCORUN_SUBNET> scram-sha-256` |
 | PostgreSQL di un'altra applicazione in un container | Sconsigliato: lega aggiornamenti, backup e riavvii di MoscoRun a quelli dell'altra applicazione. Usare il database incluso |
 

@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using MoscoRun.Api.Hosting;
 using MoscoRun.Infrastructure.Identity;
 using MoscoRun.Infrastructure.Persistence;
 
@@ -11,11 +13,12 @@ namespace MoscoRun.Api.Commands;
 /// </summary>
 /// <remarks>
 /// Codici di uscita: 0 riuscito, 2 amministratore non creato, 3 migrazione "contract" in attesa senza
-/// <c>--allow-contract</c> (nessuna modifica applicata). Con <c>--plan</c> elenca le migrazioni senza applicarle.
+/// <c>--allow-contract</c> (nessuna modifica applicata), 4 configurazione non valida (database non toccato). Con <c>--plan</c> elenca le migrazioni senza applicarle.
 /// </remarks>
 internal static partial class MigrateCommand
 {
     public const int ContractMigrationRefused = 3;
+    public const int InvalidConfiguration = 4;
 
     public static async Task<int> RunAsync(IServiceProvider services, IReadOnlyCollection<string>? args = null)
     {
@@ -23,6 +26,19 @@ internal static partial class MigrateCommand
         await using var scope = services.CreateAsyncScope();
         var provider = scope.ServiceProvider;
         var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("MoscoRun.Migrate");
+
+        // Stessa validazione dell'avvio dell'app: una configurazione che l'app rifiuterebbe non deve né
+        // migrare il database né creare l'amministratore (es. password con un segnaposto).
+        try
+        {
+            _ = provider.GetRequiredService<IOptions<StartupSettings>>().Value;
+        }
+        catch (OptionsValidationException ex)
+        {
+            LogInvalidConfiguration(logger, string.Join(" ", ex.Failures));
+            return InvalidConfiguration;
+        }
+
         var db = provider.GetRequiredService<MoscoRunDbContext>();
 
         // Preflight: nessuna modifica allo schema se la versione in esecuzione potrebbe non sopportarla.
@@ -47,7 +63,11 @@ internal static partial class MigrateCommand
         }
 
         await db.Database.MigrateAsync();
+        return await CreateAdminIfFirstRunAsync(provider, logger);
+    }
 
+    private static async Task<int> CreateAdminIfFirstRunAsync(IServiceProvider provider, ILogger logger)
+    {
         var config = provider.GetRequiredService<IConfiguration>();
         var email = config["Bootstrap:AdminEmail"];
         var password = config["Bootstrap:AdminPassword"];
@@ -74,6 +94,9 @@ internal static partial class MigrateCommand
         LogAdminCreated(logger, email);
         return 0;
     }
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Configurazione non valida, database non toccato: {Failures}")]
+    private static partial void LogInvalidConfiguration(ILogger logger, string failures);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Migrazioni da applicare: {Count} {Names}")]
     private static partial void LogPending(ILogger logger, int count, IReadOnlyList<string> names);
