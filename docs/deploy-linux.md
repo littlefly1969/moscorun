@@ -164,6 +164,21 @@ journalctl -u moscorun-update                 # esito
 
 Con `MOSCORUN_VERSION=latest` arrivano tutte le release; con `MOSCORUN_VERSION=0` solo quelle della major 0 (nessuna modifica incompatibile). Su GHCR arrivano solo commit con CI completa riuscita (vedi [github.md](github.md)).
 
+## Mappe e zone private
+
+Il percorso degli allenamenti è sempre salvato e servito dal proprio server. La cartografia è facoltativa: senza chiave il cruscotto disegna il tracciato su sfondo neutro e il browser non contatta Google.
+
+Per usare Google Maps nel cruscotto web serve una chiave **Maps JavaScript API**, distinta da quella dell'app Android (che è limitata al pacchetto e all'impronta del certificato e non funziona in un browser):
+
+1. Console Google Cloud → *API e servizi* → *Libreria*: abilitare **Maps JavaScript API** nel progetto.
+2. *Credenziali* → *Crea credenziali* → *Chiave API*.
+3. Nella chiave: *Restrizioni dell'applicazione* = **Siti web**, referrer `https://<MOSCORUN_PUBLIC_HOST>/*`; *Restrizioni API* = solo **Maps JavaScript API**.
+4. In `.env`: `MOSCORUN_GOOGLE_MAPS_API_KEY=<chiave>`, poi `./moscorun.sh update`.
+
+Con la chiave attiva l'applicazione amplia la Content-Security-Policy ai soli domini di Google Maps e invia l'origine come referrer (`Referrer-Policy: strict-origin`), necessaria alla restrizione per sito web. Una chiave dal formato non valido blocca l'avvio con un messaggio esplicito. Google riceve le richieste delle immagini della mappa per l'area visualizzata; il tracciato è disegnato dal browser e non viene inviato.
+
+**Zone private** (spente per impostazione predefinita): `MOSCORUN_PRIVACY_ZONES="lat,lon,raggio;…"` con raggio tra 50 e 5000 m. I punti iniziali e finali dentro una zona non vengono mostrati né restituiti dall'API (cruscotto e app), e il riquadro geografico dei riepiloghi non è esposto. I dati salvati restano completi: togliendo la variabile il percorso torna intero.
+
 ## Segreti
 
 | Dove | Cosa |

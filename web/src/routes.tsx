@@ -4,6 +4,8 @@ import { LoginPage } from "./features/auth/LoginPage";
 import { RequireAuth } from "./features/auth/RequireAuth";
 import { DashboardPage } from "./features/dashboard/DashboardPage";
 import { DevicesPage } from "./features/devices/DevicesPage";
+import { WorkoutDetailPage } from "./features/workouts/WorkoutDetailPage";
+import { WorkoutsPage } from "./features/workouts/WorkoutsPage";
 
 export const routes: RouteObject[] = [
   { path: "/accesso", element: <LoginPage /> },
@@ -15,6 +17,8 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { index: true, element: <DashboardPage /> },
+      { path: "allenamenti", element: <WorkoutsPage /> },
+      { path: "allenamenti/:id", element: <WorkoutDetailPage /> },
       { path: "dispositivi", element: <DevicesPage /> },
     ],
   },

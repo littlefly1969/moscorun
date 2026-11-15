@@ -32,6 +32,8 @@ class MainActivity:ComponentActivity() {
     private var message="Scegli un collegamento, concedi i permessi e avvia la verifica."
     private val reports=mutableMapOf<String,ProbeReport>()
     private var selected:Workout?=null
+    private var remote:List<RemoteWorkout>?=null
+    private var remoteDetail:Pair<RemoteWorkout,RemoteRoute?>?=null
     private var pendingRoute:Workout?=null
     private var pendingExport:String?=null
     private var task:Job?=null
@@ -118,6 +120,7 @@ class MainActivity:ComponentActivity() {
         if(busy) root.addView(ProgressBar(this))
         val detail=selected
         if(detail!=null) { renderDetail(detail);return }
+        remoteDetail?.let { (w,route) -> renderRemote(w,route);return }
         if(canOpenGoogleRouteMap()) button("Prova Google Maps") { openGoogleMapPreview(this) }
         val tabs=LinearLayout(this).apply { orientation=LinearLayout.HORIZONTAL;root.addView(this) }
         button(if(provider=="Health Connect") "✓ Health Connect" else "Health Connect",tabs) { provider="Health Connect";message="Health Connect selezionato.";render() }
@@ -186,7 +189,7 @@ class MainActivity:ComponentActivity() {
             ).setPositiveButton("Ho capito",null).show()
         }
         button("Informazioni sui dati") { startActivity(Intent(this,PrivacyActivity::class.java)) }
-        button("Cancella risultati dalla memoria") { reports.clear();selected=null;message="Risultati rimossi dalla memoria dell'app. I dati originali non sono stati modificati.";render() }
+        button("Cancella risultati dalla memoria") { reports.clear();selected=null;remote=null;remoteDetail=null;message="Risultati rimossi dalla memoria dell'app. I dati originali non sono stati modificati.";render() }
     }
     private fun renderServer() {
         val c=card()
@@ -196,8 +199,61 @@ class MainActivity:ComponentActivity() {
         val workouts=reports["Samsung"]?.workouts.orEmpty()
         button("Invia allenamenti al server",c,enabled=!busy && settings.configured && workouts.isNotEmpty()) { confirmUpload(workouts) }
         if(workouts.isEmpty()) text("Leggi prima gli allenamenti con Samsung diretto.",12f,parent=c)
+        button("Allenamenti sul server",c,enabled=!busy && settings.configured) { loadRemote() }
+        remote?.let { list ->
+            if(list.isEmpty()) text("Nessun allenamento sul server negli ultimi 90 giorni.",12f,parent=c)
+            list.take(50).forEach { w ->
+                button("${WorkoutFormat.activity(w.activityType)} · ${WorkoutFormat.dateTime(w.startedAt)} · ${WorkoutFormat.distance(w.distanceM)}",c) { openRemote(w) }
+            }
+        }
         if(settings.configured) button("Scollega dal server",c) {
-            settings.forget();PreferencesSyncLedger(this).clear();message="Server scollegato: indirizzo e token rimossi dal telefono.";render()
+            settings.forget();PreferencesSyncLedger(this).clear();remote=null
+            message="Server scollegato: indirizzo e token rimossi dal telefono.";render()
+        }
+    }
+    private fun remoteServer():MoscoRunServer {
+        val url=settings.serverUrl ?: error("Server non configurato.")
+        return MoscoRunServer(url,settings.token() ?: error("Token assente: configurare di nuovo il server."))
+    }
+    private fun <T> unwrap(result:ReadResult<T>):T? = when(result) {
+        is ReadResult.Ok -> result.value
+        is ReadResult.Failed -> { message=result.message;null }
+    }
+    private fun loadRemote() = runTask {
+        message="Lettura degli allenamenti dal server…";render()
+        unwrap(withContext(Dispatchers.IO) { remoteServer().workouts() })?.let {
+            remote=it;message="${it.size} allenamenti sul server."
+        }
+    }
+    private fun openRemote(w:RemoteWorkout) = runTask {
+        val route=if(w.trackPointCount<2) null else {
+            message="Lettura del percorso dal server…";render()
+            unwrap(withContext(Dispatchers.IO) { remoteServer().route(w.id) }) ?: return@runTask
+        }
+        remoteDetail=w to route;message="Allenamento letto dal tuo server."
+    }
+    private fun renderRemote(w:RemoteWorkout,route:RemoteRoute?) {
+        button("← Torna agli allenamenti") { remoteDetail=null;render() }
+        val title="${WorkoutFormat.activity(w.activityType)} · ${WorkoutFormat.dateTime(w.startedAt)}"
+        text(title,22f,true)
+        val c=card()
+        text("Distanza: ${WorkoutFormat.distance(w.distanceM)}\nDurata: ${WorkoutFormat.duration(w.seconds)}" +
+            (if(w.activeDurationSeconds!=null) " (senza pause)" else "") +
+            "\nPasso medio: ${WorkoutFormat.pace(w.seconds,w.distanceM)}\nFC media: ${WorkoutFormat.bpm(w.averageHeartRate)} · max ${WorkoutFormat.bpm(w.maxHeartRate)}",15f,parent=c)
+        text("Percorso",18f,true)
+        if(route==null) { text("Allenamento senza tracciato GPS.",13f);return }
+        root.addView(RouteView(this,route.points),LinearLayout.LayoutParams(-1,dp(240)))
+        val hidden=route.hiddenStartPoints+route.hiddenEndPoints
+        text("${route.points.size} punti mostrati su ${route.totalPoints} salvati. Verde: partenza; arancio: arrivo." +
+            if(hidden>0) " $hidden punti vicino a partenza o arrivo sono nascosti dalle zone private del server." else "",11f)
+        if(canOpenGoogleRouteMap()) button("Apri mappa Google") {
+            AlertDialog.Builder(this).setTitle("Mappa della corsa")
+                .setMessage("Per mostrare la cartografia, MoscoRun richiede a Google le immagini della mappa dell'area. Il tracciato resta sul telefono e viene solo disegnato sopra la mappa.")
+                .setNegativeButton("Resta qui",null)
+                .setPositiveButton("Apri mappa") { _,_ ->
+                    openGoogleRouteMap(this,Workout(w.id,title,w.startedAt,w.endedAt,"server",com.google.gson.JsonNull.INSTANCE,
+                        routeState="dal_server",route=route.points))
+                }.show()
         }
     }
     private fun configureServer() {

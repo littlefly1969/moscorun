@@ -14,6 +14,7 @@ export function Layout() {
           <NavLink to="/" end>
             Forma
           </NavLink>
+          <NavLink to="/allenamenti">Allenamenti</NavLink>
           <NavLink to="/dispositivi">Dispositivi</NavLink>
         </nav>
         <div className="user">

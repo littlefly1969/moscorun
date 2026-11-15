@@ -72,7 +72,9 @@ public sealed record WorkoutSummaryDto(
     BoundsDto? Bounds,
     DateTimeOffset UpdatedAt)
 {
-    public static WorkoutSummaryDto From(Workout w) => new(
+    /// <param name="w">Allenamento.</param>
+    /// <param name="hideBounds">Con zone private attive il riquadro del percorso completo non viene esposto.</param>
+    public static WorkoutSummaryDto From(Workout w, bool hideBounds = false) => new(
         w.Id,
         w.Source,
         w.SourceId,
@@ -87,7 +89,7 @@ public sealed record WorkoutSummaryDto(
         w.AverageHeartRate,
         w.MaxHeartRate,
         w.TrackPointCount,
-        w.Bounds is { } b ? new BoundsDto(b.MinLatitude, b.MinLongitude, b.MaxLatitude, b.MaxLongitude) : null,
+        !hideBounds && w.Bounds is { } b ? new BoundsDto(b.MinLatitude, b.MinLongitude, b.MaxLatitude, b.MaxLongitude) : null,
         w.UpdatedAt);
 }
 
@@ -111,9 +113,12 @@ public sealed record LineStringGeometry(string Type, IReadOnlyList<double[]> Coo
 
 /// <param name="WorkoutId">Allenamento.</param>
 /// <param name="TotalPoints">Punti salvati.</param>
-/// <param name="ReturnedPoints">Punti restituiti dopo la semplificazione.</param>
+/// <param name="ReturnedPoints">Punti restituiti dopo zone private e semplificazione.</param>
+/// <param name="HiddenStartPoints">Punti iniziali nascosti perché in una zona privata.</param>
+/// <param name="HiddenEndPoints">Punti finali nascosti perché in una zona privata.</param>
 /// <param name="Times">Istante di ogni coordinata, in millisecondi Unix.</param>
-public sealed record RouteProperties(Guid WorkoutId, int TotalPoints, int ReturnedPoints, IReadOnlyList<long> Times);
+public sealed record RouteProperties(
+    Guid WorkoutId, int TotalPoints, int ReturnedPoints, int HiddenStartPoints, int HiddenEndPoints, IReadOnlyList<long> Times);
 
 /// <summary>Tracciato come Feature GeoJSON (RFC 7946), utilizzabile da qualunque libreria di mappe.</summary>
 /// <param name="Type">Sempre <c>Feature</c>.</param>

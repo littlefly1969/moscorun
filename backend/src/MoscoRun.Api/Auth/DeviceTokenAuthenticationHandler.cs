@@ -47,6 +47,7 @@ internal sealed partial class DeviceTokenAuthenticationHandler(
             [
                 new Claim(ClaimTypes.NameIdentifier, device.OwnerId.ToString()),
                 new Claim(MoscoRunClaims.DeviceId, device.Id.ToString()),
+                new Claim(MoscoRunClaims.DeviceKind, device.Kind.ToString()),
             ],
             SchemeName);
         return AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identity), SchemeName));

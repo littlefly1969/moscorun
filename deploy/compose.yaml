@@ -26,6 +26,9 @@ services:
       # connessioni del reverse proxy dell'host verso 127.0.0.1:MOSCORUN_PORT. Nessuna intera rete privata è fidata.
       Security__TrustedProxies__0: ${MOSCORUN_GATEWAY:-172.30.85.1}
       DataProtection__CertificateBase64: ${MOSCORUN_DATA_PROTECTION_CERT:-}
+      Maps__Provider: ${MOSCORUN_MAPS_PROVIDER:-}
+      Maps__GoogleApiKey: ${MOSCORUN_GOOGLE_MAPS_API_KEY:-}
+      Privacy__RouteZones: ${MOSCORUN_PRIVACY_ZONES:-}
     # Solo sull'interfaccia locale: la pubblica il reverse proxy dell'host (vedi "moscorun.sh proxy-config").
     ports: ["127.0.0.1:${MOSCORUN_PORT:-8085}:8080"]
     # Per un PostgreSQL pubblicato sull'host usare POSTGRES_HOST=host.docker.internal.

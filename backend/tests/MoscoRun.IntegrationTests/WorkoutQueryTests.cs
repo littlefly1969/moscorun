@@ -155,14 +155,27 @@ public sealed class WorkoutQueryTests(ApiFactory factory)
     }
 
     [Fact]
-    public async Task Device_token_and_anonymous_clients_cannot_read_workouts()
+    public async Task Phone_token_can_read_its_owner_workouts_but_scale_and_anonymous_cannot()
     {
-        var (_, phone, workout) = await SeedAsync(points: 60);
+        var (user, phone, workout) = await SeedAsync(points: 60);
+        var (scale, _) = await factory.CreateDeviceClientAsync(user, "Bilancia", DeviceKind.ScaleAgent);
         var anonymous = factory.CreateClient();
 
-        (await phone.GetAsync("/api/v1/workouts", Ct)).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        (await phone.GetAsync($"/api/v1/workouts/{workout.Id}/route", Ct)).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        (await phone.GetFromJsonAsync<WorkoutList>("/api/v1/workouts", Json.Options, Ct))!.Items.Should().ContainSingle();
+        (await phone.GetAsync($"/api/v1/workouts/{workout.Id}/route", Ct)).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await scale.GetAsync("/api/v1/workouts", Ct)).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        (await phone.GetAsync("/api/v1/weighings", Ct)).StatusCode.Should().Be(HttpStatusCode.Unauthorized, "il telefono legge solo gli allenamenti");
         anonymous.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         (await anonymous.GetAsync("/api/v1/workouts", Ct)).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Phone_token_of_another_person_does_not_see_the_workout()
+    {
+        var (_, _, workout) = await SeedAsync(points: 60);
+        var (otherUser, _) = await factory.CreateUserClientAsync();
+        var (otherPhone, _) = await factory.CreateDeviceClientAsync(otherUser, "Altro", DeviceKind.PhoneBridge);
+
+        (await otherPhone.GetAsync($"/api/v1/workouts/{workout.Id}/route", Ct)).StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }

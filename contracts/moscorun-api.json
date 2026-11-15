@@ -207,6 +207,27 @@
         }
       }
     },
+    "/api/v1/maps/config": {
+      "get": {
+        "tags": [
+          "Mappe"
+        ],
+        "summary": "Configurazione della cartografia per il cruscotto.",
+        "operationId": "GetMapsConfig",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapsConfigDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/weighings": {
       "get": {
         "tags": [
@@ -1004,6 +1025,26 @@
           }
         }
       },
+      "MapsConfigDto": {
+        "required": [
+          "provider",
+          "googleApiKey"
+        ],
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "description": "Fornitore della cartografia: `google` o `none`."
+          },
+          "googleApiKey": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Chiave per il browser, presente solo con Google."
+          }
+        }
+      },
       "RegisterDeviceRequest": {
         "required": [
           "name",
@@ -1081,6 +1122,8 @@
           "workoutId",
           "totalPoints",
           "returnedPoints",
+          "hiddenStartPoints",
+          "hiddenEndPoints",
           "times"
         ],
         "type": "object",
@@ -1097,7 +1140,17 @@
           },
           "returnedPoints": {
             "type": "integer",
-            "description": "Punti restituiti dopo la semplificazione.",
+            "description": "Punti restituiti dopo zone private e semplificazione.",
+            "format": "int32"
+          },
+          "hiddenStartPoints": {
+            "type": "integer",
+            "description": "Punti iniziali nascosti perché in una zona privata.",
+            "format": "int32"
+          },
+          "hiddenEndPoints": {
+            "type": "integer",
+            "description": "Punti finali nascosti perché in una zona privata.",
             "format": "int32"
           },
           "times": {
@@ -1609,6 +1662,9 @@
     },
     {
       "name": "Cruscotto"
+    },
+    {
+      "name": "Mappe"
     },
     {
       "name": "Pesate"
