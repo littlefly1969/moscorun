@@ -16,6 +16,7 @@ Procedura verificata automaticamente in CI su uno stack reale (installazione con
 sudo mkdir -p /opt/moscorun && cd /opt/moscorun
 # Copiare da deploy/: compose.yaml, moscorun.sh, .env.example, proxy/, systemd/
 cp .env.example .env && chmod 600 .env && nano .env
+sudo install -d -m 700 -o "$USER" -g "$USER" /var/backups/moscorun   # cartella dei backup (MOSCORUN_BACKUP_DIR)
 
 # Repository privato: login a GHCR con un token "classic" con il solo permesso read:packages,
 # incollato quando viene chiesta la password (non resta nella cronologia della shell)

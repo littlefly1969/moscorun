@@ -81,11 +81,27 @@ validate_env() {
   done
 }
 
+backup_dir() { printf '%s' "${MOSCORUN_BACKUP_DIR:-/var/backups/moscorun}"; }
+
+# La cartella dei backup (o la prima cartella esistente sopra di essa) deve essere scrivibile dall'utente
+# che esegue lo script: altrimenti update si fermerebbe al primo backup, dopo aver scaricato l'immagine.
+validate_backup_dir() {
+  local dir parent
+  dir="$(backup_dir)"
+  [[ "$dir" == /* ]] || die "MOSCORUN_BACKUP_DIR deve essere un percorso assoluto (ora: $dir)"
+  parent="$dir"
+  while [[ ! -e "$parent" ]]; do parent="$(dirname -- "$parent")"; done
+  [[ -d "$parent" && -w "$parent" ]] ||
+    die "cartella dei backup non scrivibile da $(id -un): $dir
+   crearla con: sudo install -d -m 700 -o $(id -un) -g $(id -gn) $dir   (oppure cambiare MOSCORUN_BACKUP_DIR in .env)"
+}
+
 cmd_check() {
   load_env
+  validate_backup_dir
   local db="PostgreSQL esterno su $POSTGRES_HOST:${POSTGRES_PORT:-5432}"
   has_profile bundled-db && db="PostgreSQL incluso (container db)"
-  log "configurazione valida: $db, app su 127.0.0.1:${MOSCORUN_PORT:-8085}"
+  log "configurazione valida: $db, app su 127.0.0.1:${MOSCORUN_PORT:-8085}, backup in $(backup_dir)"
 }
 
 current_image_id() { docker inspect --format '{{.Image}}' "$(compose ps -q app 2>/dev/null)" 2>/dev/null || true; }
@@ -133,7 +149,9 @@ pg_run() {
 
 cmd_backup() {
   load_env
-  local dir="${MOSCORUN_BACKUP_DIR:-/var/backups/moscorun}" keep="${MOSCORUN_BACKUP_KEEP:-14}" file
+  validate_backup_dir
+  local dir keep="${MOSCORUN_BACKUP_KEEP:-14}" file
+  dir="$(backup_dir)"
   mkdir -p "$dir"
   chmod 700 "$dir"
   file="$dir/moscorun-$(date -u +%Y%m%dT%H%M%SZ).dump"
@@ -152,6 +170,7 @@ cmd_backup() {
 
 cmd_update() {
   load_env
+  validate_backup_dir
   if [[ $# -gt 0 ]]; then export MOSCORUN_VERSION="$1"; fi
   log "aggiornamento a ${MOSCORUN_IMAGE:-ghcr.io/littlefly1969/moscorun}:${MOSCORUN_VERSION:-latest}"
 
