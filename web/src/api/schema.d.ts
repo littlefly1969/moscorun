@@ -125,6 +125,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/maps/config": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Configurazione della cartografia per il cruscotto. */
+    get: operations["GetMapsConfig"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/weighings": {
     parameters: {
       query?: never;
@@ -454,6 +471,12 @@ export interface components {
       email: string;
       password: string;
     };
+    MapsConfigDto: {
+      /** @description Fornitore della cartografia: `google` o `none`. */
+      provider: string;
+      /** @description Chiave per il browser, presente solo con Google. */
+      googleApiKey: null | string;
+    };
     RegisterDeviceRequest: {
       name: string;
       kind: null | components["schemas"]["DeviceKind"];
@@ -488,9 +511,19 @@ export interface components {
       totalPoints: number;
       /**
        * Format: int32
-       * @description Punti restituiti dopo la semplificazione.
+       * @description Punti restituiti dopo zone private e semplificazione.
        */
       returnedPoints: number;
+      /**
+       * Format: int32
+       * @description Punti iniziali nascosti perché in una zona privata.
+       */
+      hiddenStartPoints: number;
+      /**
+       * Format: int32
+       * @description Punti finali nascosti perché in una zona privata.
+       */
+      hiddenEndPoints: number;
       /** @description Istante di ogni coordinata, in millisecondi Unix. */
       times: number[];
     };
@@ -835,6 +868,26 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["DashboardSummary"];
+        };
+      };
+    };
+  };
+  GetMapsConfig: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MapsConfigDto"];
         };
       };
     };

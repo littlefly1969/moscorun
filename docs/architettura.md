@@ -39,6 +39,7 @@ Fonte attuale: Samsung Health Data SDK letto dall'app Android (variante completa
 - **Formato del tracciato:** binario versionato con differenze varint zig-zag; tempo al millisecondo, coordinate a 1e-7 gradi (circa 1 cm), altitudine e precisione al centimetro. Un'ora di corsa a 1 Hz occupa circa 40 KB. Nessuna estensione PostgreSQL richiesta (niente PostGIS), quindi funziona anche su un database esistente.
 - **Idempotenza e aggiornamenti:** stesso contenuto → 200 senza modifiche; `revision` maggiore (data di aggiornamento nella fonte) → sostituzione; contenuto diverso con revisione non successiva → 409. La riga è bloccata durante l'aggiornamento: revisioni concorrenti si applicano in sequenza.
 - **Per la mappa:** il tracciato è servito come GeoJSON semplificato con Douglas-Peucker a classifica: esattamente `maxPoints` punti (predefinito 2000), forma preservata, utilizzabile da Google Maps, MapLibre o altro.
+- **Visualizzazione:** cruscotto web (Google Maps JavaScript se configurato, altrimenti tracciato SVG senza cartografia) e app Android, che rilegge elenco e percorso con il proprio token (criterio `workout-reader`: sessione web oppure token di tipo telefono; un token bilancia riceve 403). Fornitore delle mappe in `Maps:*`, zone private in `Privacy:RouteZones`: vedi [deploy-linux.md](deploy-linux.md#mappe-e-zone-private).
 - **Valori mancanti:** restano mancanti. L'app scarta i campioni fuori dall'intervallo fisico (es. 0 bpm scritto dall'orologio senza contatto) invece di rifiutare l'intero allenamento.
 
 ## Acquisizione diretta della bilancia

@@ -31,7 +31,12 @@ internal static class AuthenticationSetup
             .AddPolicy(Policies.Ingest, p => p
                 .AddAuthenticationSchemes(DeviceTokenAuthenticationHandler.SchemeName)
                 .RequireAuthenticatedUser()
-                .RequireClaim(MoscoRunClaims.DeviceId));
+                .RequireClaim(MoscoRunClaims.DeviceId))
+            .AddPolicy(Policies.WorkoutReader, p => p
+                .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, DeviceTokenAuthenticationHandler.SchemeName)
+                .RequireAuthenticatedUser()
+                .RequireAssertion(ctx => !ctx.User.HasClaim(c => string.Equals(c.Type, MoscoRunClaims.DeviceId, StringComparison.Ordinal))
+                    || ctx.User.HasClaim(MoscoRunClaims.DeviceKind, nameof(Domain.Devices.DeviceKind.PhoneBridge))));
 
         return services;
     }

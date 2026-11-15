@@ -1,6 +1,9 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using MoscoRun.Api.Auth;
 using MoscoRun.Domain.Workouts;
@@ -28,7 +31,7 @@ internal static class WorkoutEndpoints
                 "o se revision è maggiore di quella salvata (aggiornamento); 409 se il contenuto differisce senza revisione maggiore. " +
                 "Il corpo può essere compresso con Content-Encoding: gzip.");
 
-        var workouts = v1.MapGroup("/workouts").RequireAuthorization(Policies.User).WithTags("Allenamenti");
+        var workouts = v1.MapGroup("/workouts").RequireAuthorization(Policies.WorkoutReader).WithTags("Allenamenti");
         workouts.MapGet("/", ListAsync).WithName("ListWorkouts");
         workouts.MapGet("/{id:guid}", GetAsync).WithName("GetWorkout");
         workouts.MapGet("/{id:guid}/route", GetRouteAsync)
@@ -44,6 +47,7 @@ internal static class WorkoutEndpoints
         ClaimsPrincipal principal,
         MoscoRunDbContext db,
         TimeProvider time,
+        IOptions<PrivacyOptions> privacy,
         CancellationToken ct)
     {
         var recording = request.ToRecording();
@@ -68,7 +72,7 @@ internal static class WorkoutEndpoints
             try
             {
                 return await db.Database.CreateExecutionStrategy().ExecuteAsync(
-                    () => StoreAsync(db, content.Value, ownerId, deviceId, now, ct));
+                    () => StoreAsync(db, content.Value, ownerId, deviceId, now, privacy.Value.Zones.Count > 0, ct));
             }
             catch (DbUpdateException ex) when (attempt == 0 && ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
             {
@@ -78,7 +82,7 @@ internal static class WorkoutEndpoints
     }
 
     private static async Task<Results<Created<WorkoutSummaryDto>, Ok<WorkoutSummaryDto>, ValidationProblem, ProblemHttpResult>> StoreAsync(
-        MoscoRunDbContext db, WorkoutContent incoming, Guid ownerId, Guid deviceId, DateTimeOffset now, CancellationToken ct)
+        MoscoRunDbContext db, WorkoutContent incoming, Guid ownerId, Guid deviceId, DateTimeOffset now, bool hideBounds, CancellationToken ct)
     {
         db.ChangeTracker.Clear();
         await using var tx = await db.Database.BeginTransactionAsync(ct);
@@ -96,7 +100,7 @@ internal static class WorkoutEndpoints
             await MarkIngestedAsync(db, deviceId, now, ct);
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
-            var created = WorkoutSummaryDto.From(incoming.Workout);
+            var created = WorkoutSummaryDto.From(incoming.Workout, hideBounds);
             return TypedResults.Created($"/api/v1/workouts/{created.Id}", created);
         }
 
@@ -107,7 +111,7 @@ internal static class WorkoutEndpoints
                 await MarkIngestedAsync(db, deviceId, now, ct);
                 await db.SaveChangesAsync(ct);
                 await tx.CommitAsync(ct);
-                return TypedResults.Ok(WorkoutSummaryDto.From(existing));
+                return TypedResults.Ok(WorkoutSummaryDto.From(existing, hideBounds));
 
             case WorkoutReplay.Newer:
                 var replaced = existing.ReplaceWith(incoming, now);
@@ -117,7 +121,7 @@ internal static class WorkoutEndpoints
                 await MarkIngestedAsync(db, deviceId, now, ct);
                 await db.SaveChangesAsync(ct);
                 await tx.CommitAsync(ct);
-                return TypedResults.Ok(WorkoutSummaryDto.From(existing));
+                return TypedResults.Ok(WorkoutSummaryDto.From(existing, hideBounds));
 
             default:
                 return TypedResults.Problem(
@@ -136,6 +140,7 @@ internal static class WorkoutEndpoints
         ClaimsPrincipal principal,
         MoscoRunDbContext db,
         TimeProvider time,
+        IOptions<PrivacyOptions> privacy,
         DateTimeOffset? from,
         DateTimeOffset? to,
         CancellationToken ct)
@@ -157,11 +162,12 @@ internal static class WorkoutEndpoints
             .Take(MaxListItems)
             .ToListAsync(ct);
 
-        return TypedResults.Ok(new WorkoutList([.. items.Select(WorkoutSummaryDto.From)], start, end));
+        var hide = privacy.Value.Zones.Count > 0;
+        return TypedResults.Ok(new WorkoutList([.. items.Select(w => WorkoutSummaryDto.From(w, hide))], start, end));
     }
 
     internal static async Task<Results<Ok<WorkoutDetailDto>, NotFound>> GetAsync(
-        Guid id, ClaimsPrincipal principal, MoscoRunDbContext db, CancellationToken ct)
+        Guid id, ClaimsPrincipal principal, MoscoRunDbContext db, IOptions<PrivacyOptions> privacy, CancellationToken ct)
     {
         var workout = await FindOwnedAsync(db, id, principal.OwnerId(), ct);
         if (workout is null)
@@ -176,7 +182,7 @@ internal static class WorkoutEndpoints
             .ToListAsync(ct);
 
         return TypedResults.Ok(new WorkoutDetailDto(
-            WorkoutSummaryDto.From(workout),
+            WorkoutSummaryDto.From(workout, privacy.Value.Zones.Count > 0),
             [.. series.Select(s => new SeriesInfoDto(s.Metric, s.Metric.Unit(), s.SampleCount))]));
     }
 
@@ -186,6 +192,7 @@ internal static class WorkoutEndpoints
         ClaimsPrincipal principal,
         MoscoRunDbContext db,
         HttpContext http,
+        IOptions<PrivacyOptions> privacy,
         CancellationToken ct)
     {
         var limit = maxPoints ?? DefaultRoutePoints;
@@ -203,8 +210,11 @@ internal static class WorkoutEndpoints
             return TypedResults.NotFound();
         }
 
-        // Il contenuto cambia solo con una nuova revisione: l'impronta identifica anche la risposta.
-        var etag = new EntityTagHeaderValue($"\"{Convert.ToHexStringLower(workout.ContentHash.AsSpan(0, 12))}-{limit}\"");
+        // La risposta dipende dal contenuto (impronta), dal numero di punti e dalle zone private configurate.
+        var zones = privacy.Value.Zones;
+        var zonesTag = zones.Count == 0 ? "0" : Convert.ToHexStringLower(SHA256.HashData(
+            Encoding.UTF8.GetBytes(privacy.Value.RouteZones ?? string.Empty)).AsSpan(0, 6));
+        var etag = new EntityTagHeaderValue($"\"{Convert.ToHexStringLower(workout.ContentHash.AsSpan(0, 12))}-{limit}-{zonesTag}\"");
         http.Response.Headers.ETag = etag.ToString();
         http.Response.Headers.CacheControl = "private, no-cache";
         if (http.Request.GetTypedHeaders().IfNoneMatch is { Count: > 0 } match && match.Any(m => m.Compare(etag, useStrongComparison: false)))
@@ -214,8 +224,15 @@ internal static class WorkoutEndpoints
 
         var route = await db.WorkoutRoutes.AsNoTracking().SingleAsync(r => r.WorkoutId == id, ct);
         var points = route.Points();
-        var simplified = RouteSimplifier.Simplify(points, limit);
-        var bounds = workout.Bounds!;
+        var visible = RoutePrivacy.Apply(points, zones);
+        if (visible.Points.Count < 2)
+        {
+            // Percorso interamente dentro una zona privata: non c'è nulla da mostrare.
+            return TypedResults.NotFound();
+        }
+
+        var simplified = RouteSimplifier.Simplify(visible.Points, limit);
+        var bounds = GeoBounds.Of(visible.Points)!;
 
         var coordinates = simplified
             .Select(p => p.AltitudeM is { } alt ? new[] { p.Longitude, p.Latitude, alt } : [p.Longitude, p.Latitude])
@@ -224,7 +241,7 @@ internal static class WorkoutEndpoints
             "Feature",
             [bounds.MinLongitude, bounds.MinLatitude, bounds.MaxLongitude, bounds.MaxLatitude],
             new LineStringGeometry("LineString", coordinates),
-            new RouteProperties(id, points.Count, simplified.Count, [.. simplified.Select(p => p.Time.ToUnixTimeMilliseconds())]));
+            new RouteProperties(id, points.Count, simplified.Count, visible.HiddenStart, visible.HiddenEnd, [.. simplified.Select(p => p.Time.ToUnixTimeMilliseconds())]));
         return TypedResults.Ok(feature);
     }
 

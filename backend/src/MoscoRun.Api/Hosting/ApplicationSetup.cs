@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using MoscoRun.Api.Auth;
 using MoscoRun.Api.Features.Dashboard;
 using MoscoRun.Api.Features.Devices;
+using MoscoRun.Api.Features.Maps;
 using MoscoRun.Api.Features.System;
 using MoscoRun.Api.Features.Weighings;
 using MoscoRun.Api.Features.Workouts;
@@ -46,6 +47,11 @@ public static class ApplicationSetup
         services.AddOpenApi(o => o.AddDocumentTransformer<SecuritySchemeTransformer>());
 
         services.AddMoscoRunPersistence(builder.Configuration);
+
+        services.AddOptions<MapsOptions>().BindConfiguration(MapsOptions.Section).ValidateOnStart();
+        services.AddSingleton<Microsoft.Extensions.Options.IValidateOptions<MapsOptions>, MapsOptionsValidation>();
+        services.AddOptions<PrivacyOptions>().BindConfiguration(PrivacyOptions.Section).ValidateOnStart();
+        services.AddSingleton<Microsoft.Extensions.Options.IValidateOptions<PrivacyOptions>, PrivacyOptionsValidation>();
 
         AddIdentityAndSecurity(services, builder.Configuration);
 
@@ -168,6 +174,7 @@ public static class ApplicationSetup
         v1.MapWorkoutEndpoints();
         v1.MapDeviceEndpoints();
         v1.MapDashboardEndpoints();
+        v1.MapMapEndpoints();
 
         // Le rotte /api inesistenti restano 404; tutto il resto è gestito dal router React.
         api.Map("{**path}", () => Results.NotFound()).ExcludeFromDescription();
