@@ -63,10 +63,14 @@ validate_env() {
     [[ "$pw" =~ [[:upper:]] ]] || missing+=("una lettera maiuscola")
     [[ "$pw" =~ [[:lower:]] ]] || missing+=("una lettera minuscola")
     [[ "$pw" =~ [[:digit:]] ]] || missing+=("una cifra")
+    local word
+    for word in password example todo changeme change-me; do
+      [[ "${pw,,}" != *"$word"* ]] || missing+=("nessun segnaposto come \"$word\"")
+    done
     if ((${#missing[@]} > 0)); then
       local list
       printf -v list '%s, ' "${missing[@]}"
-      die "MOSCORUN_ADMIN_PASSWORD deve contenere: ${list%, }"
+      die "MOSCORUN_ADMIN_PASSWORD non rispetta la politica delle password, servono: ${list%, }"
     fi
   fi
   local name value
@@ -176,6 +180,7 @@ cmd_update() {
     0) ;;
     3) die "la release contiene migrazioni che rimuovono struttura del database: nulla è stato modificato.
    Dopo aver letto le note di rilascio: MOSCORUN_ALLOW_CONTRACT_MIGRATIONS=1 $0 update ${MOSCORUN_VERSION:-}" ;;
+    4) die "configurazione rifiutata dall'applicazione (dettagli sopra): database non toccato, correggere .env" ;;
     *) die "migrazioni fallite (codice $status): resta in esecuzione la versione precedente" ;;
   esac
 

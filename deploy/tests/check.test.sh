@@ -76,10 +76,13 @@ MOSCORUN_ADMIN_EMAIL=
 MOSCORUN_ADMIN_PASSWORD="
 expect_error "password senza maiuscola (caso reale del primo update)" "$DB
 $PW
-$(admin senza-maiuscola-9)" "deve contenere: una lettera maiuscola"
+$(admin senza-maiuscola-9)" "servono: una lettera maiuscola"
 expect_error "password corta e senza cifra" "$DB
 $PW
 $(admin Corta)" "almeno 12 caratteri, una cifra"
+expect_error "password con segnaposto (caso reale del primo avvio)" "$DB
+$PW
+$(admin Mia-Password-2026)" 'nessun segnaposto come "password"'
 expect_error "email senza password" "$DB
 $PW
 $(admin '')" "almeno 12 caratteri"

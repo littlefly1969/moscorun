@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using MoscoRun.Api.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -50,6 +53,25 @@ public sealed class StartupTests(ApiFactory factory)
         var start = () => app.CreateClient();
         start.Should().Throw<OptionsValidationException>()
             .Which.Message.Should().Contain("una lettera maiuscola").And.Contain("una cifra");
+    }
+
+    [Theory]
+    [InlineData("Password-Forte-2026")]
+    [InlineData("senza-maiuscola-9")]
+    public async Task Migrate_refuses_a_configuration_the_app_would_reject_without_touching_the_database(string adminPassword)
+    {
+        // Host inesistente: se il comando provasse a migrare fallirebbe con un'eccezione di rete, non con il codice 4.
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Testing" });
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>(StringComparer.Ordinal)
+        {
+            ["ConnectionStrings:MoscoRun"] = "Host=db-inesistente.invalid;Password=s3cret-real",
+            ["Bootstrap:AdminEmail"] = "admin@x.it",
+            ["Bootstrap:AdminPassword"] = adminPassword,
+        });
+        builder.AddMoscoRun();
+        await using var app = builder.Build();
+
+        (await MigrateCommand.RunAsync(app.Services)).Should().Be(MigrateCommand.InvalidConfiguration);
     }
 
     [Fact]
