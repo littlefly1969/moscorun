@@ -10,6 +10,18 @@ import androidx.health.connect.client.units.Length
 import androidx.health.connect.client.records.metadata.Metadata
 
 class JsonTest {
+    @Test fun `long arrays in raw records are replaced by their size`() {
+        val raw=Json.tree(mapOf("route" to List(500) { mapOf("lat" to 41.0) },"log" to listOf(1,2),
+            "nested" to mapOf("samples" to List(21) { it }),"name" to "corsa"))
+
+        val compact=Json.withoutLongArrays(raw).asJsonObject
+
+        assertEquals("500 elementi omessi",compact["route"].asString)
+        assertEquals(2,compact["log"].asJsonArray.size())
+        assertEquals("21 elementi omessi",compact["nested"].asJsonObject["samples"].asString)
+        assertEquals("corsa",compact["name"].asString)
+    }
+
     @Test fun `preserves precision nulls and numeric samples`() {
         val result=Json.tree(mapOf("time" to Instant.parse("2026-01-01T00:00:00.123456Z"),"missing" to null,
             "duration" to Duration.ofMillis(1234),"value" to 137.5)).asJsonObject
