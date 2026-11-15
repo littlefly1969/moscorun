@@ -40,3 +40,9 @@ export async function unwrap<T>(
   }
   return data as T;
 }
+export type WorkoutSummary = Schemas["WorkoutSummaryDto"];
+export type WorkoutList = Schemas["WorkoutList"];
+export type WorkoutDetail = Schemas["WorkoutDetailDto"];
+export type RouteFeature = Schemas["RouteFeature"];
+export type WorkoutSeriesList = Schemas["WorkoutSeriesList"];
+export type MapsConfig = Schemas["MapsConfigDto"];

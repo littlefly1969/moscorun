@@ -100,3 +100,69 @@ test("percorso completo: dispositivo, pesata dall'agente, cruscotto", async ({ p
   await page.getByRole("button", { name: "Esci" }).click();
   await expect(page).toHaveURL(/\/accesso$/);
 });
+
+test("allenamento dal telefono: elenco, dettaglio e percorso senza cartografia", async ({
+  page,
+  request,
+}, testInfo) => {
+  await login(page);
+
+  // 1. Registrazione del ponte Android, che invia gli allenamenti letti da Samsung Health.
+  await page.getByRole("link", { name: "Dispositivi" }).click();
+  await page.getByLabel("Nome").fill(`Telefono E2E ${testInfo.project.name} ${Date.now()}`);
+  await page.getByLabel("Tipo").selectOption({ label: "Telefono Android" });
+  await page.getByRole("button", { name: "Crea e genera token" }).click();
+  const token = (await page.locator("code.token").textContent())?.trim() ?? "";
+  await page.getByRole("button", { name: "Ho salvato il token" }).click();
+
+  // 2. Il telefono invia una corsa con tracciato GPS. La distanza (sotto il km, mostrata in metri)
+  //    rende riconoscibile la riga anche con i progetti desktop e mobile sullo stesso database.
+  const distance = 200 + Math.floor(Math.random() * 790);
+  const start = new Date(Date.now() - 3_600_000);
+  const at = (s: number) => new Date(start.getTime() + s * 1000).toISOString();
+  const body = {
+    source: "samsung-health",
+    sourceId: `e2e-${testInfo.project.name}-${Date.now()}`,
+    revision: 1,
+    activityType: "RUNNING",
+    startedAt: at(0),
+    endedAt: at(300),
+    distanceM: distance,
+    averageHeartRate: 142,
+    maxHeartRate: 168,
+    track: Array.from({ length: 150 }, (_, i) => ({
+      time: at(i * 2),
+      lat: 45.07 + i * 2e-5,
+      lon: 7.68 + Math.sin(i / 20) * 5e-4,
+    })),
+    series: [
+      {
+        metric: "HeartRate",
+        samples: Array.from({ length: 30 }, (_, i) => ({ time: at(i * 10), value: 130 + (i % 7) * 4 })),
+      },
+    ],
+  };
+  const headers = { Authorization: `Bearer ${token}` };
+  expect((await request.post("/api/v1/ingest/workouts", { headers, data: body })).status()).toBe(201);
+  expect((await request.get("/api/v1/workouts", { headers })).status()).toBe(200);
+
+  // 3. Elenco: la riga con la distanza inviata porta al dettaglio.
+  await page.getByRole("link", { name: "Allenamenti" }).click();
+  await expect(page.getByRole("heading", { name: "Allenamenti", level: 1 })).toBeVisible();
+  const row = page.getByRole("row").filter({ hasText: `${distance} m` });
+  await expect(row).toContainText("Corsa");
+  await expectNoA11yViolations(page);
+  await row.getByRole("link").click();
+
+  // 4. Dettaglio: senza chiave Google il percorso è disegnato senza mappa di sfondo.
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Corsa");
+  await expect(
+    page.getByRole("img", { name: "Percorso dell'allenamento (senza mappa di sfondo)" }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Frequenza cardiaca" })).toBeVisible();
+  await expectNoA11yViolations(page);
+  const overflow = await page.evaluate<number>(
+    "document.documentElement.scrollWidth - document.documentElement.clientWidth",
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+});
