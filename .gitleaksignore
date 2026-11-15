@@ -2,3 +2,6 @@
 # generati a ogni esecuzione dei test. Non sono mai state credenziali reali.
 b04dd4ada3729fd2a7dc8fe1ffd09951103acaba:backend/tests/MoscoRun.IntegrationTests/ApiFactory.cs:generic-api-key:27
 b04dd4ada3729fd2a7dc8fe1ffd09951103acaba:backend/tests/MoscoRun.IntegrationTests/ApiFactory.cs:generic-api-key:28
+# Password di prova nel test di "moscorun.sh check" (commit 2c88829), sostituita da una funzione che non
+# espone il valore come assegnazione. Mai stata una credenziale reale.
+2c88829528a82a9e114f0d38bace6640f05af290:deploy/tests/check.test.sh:generic-api-key:79

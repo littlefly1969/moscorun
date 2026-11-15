@@ -65,25 +65,24 @@ $PW" "MOSCORUN_PORT non è una porta valida"
 
 readonly DB='COMPOSE_PROFILES=bundled-db
 POSTGRES_HOST=db'
+# admin <password>: righe dell'amministratore da creare (valori di prova, nessun segreto reale).
+admin() { printf 'MOSCORUN_ADMIN_EMAIL=admin@example.it\nMOSCORUN_ADMIN_%s=%s' PASSWORD "$1"; }
 expect_ok "amministratore con password conforme" "$DB
 $PW
-MOSCORUN_ADMIN_EMAIL=admin@example.it
-MOSCORUN_ADMIN_PASSWORD=Conforme-2026x"
+$(admin Conforme-2026x)"
 expect_ok "amministratore già creato: credenziali svuotate" "$DB
 $PW
 MOSCORUN_ADMIN_EMAIL=
 MOSCORUN_ADMIN_PASSWORD="
 expect_error "password senza maiuscola (caso reale del primo update)" "$DB
 $PW
-MOSCORUN_ADMIN_EMAIL=admin@example.it
-MOSCORUN_ADMIN_PASSWORD=senza-maiuscola-9" "deve contenere: una lettera maiuscola"
+$(admin senza-maiuscola-9)" "deve contenere: una lettera maiuscola"
 expect_error "password corta e senza cifra" "$DB
 $PW
-MOSCORUN_ADMIN_EMAIL=admin@example.it
-MOSCORUN_ADMIN_PASSWORD=Corta" "almeno 12 caratteri, una cifra"
+$(admin Corta)" "almeno 12 caratteri, una cifra"
 expect_error "email senza password" "$DB
 $PW
-MOSCORUN_ADMIN_EMAIL=admin@example.it" "almeno 12 caratteri"
+$(admin '')" "almeno 12 caratteri"
 
 printf '%s\n' "POSTGRES_HOST=db" "COMPOSE_PROFILES=bundled-db" "$PW" >"$WORK/.env"
 chmod 644 "$WORK/.env"
