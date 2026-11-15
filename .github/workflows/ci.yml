@@ -113,6 +113,8 @@ jobs:
         run: docker run --rm -v "$PWD:/repo" -w /repo "$ACTIONLINT_IMAGE" -color
       - name: Test del piano di rilascio
         run: .github/scripts/release-plan.test.sh
+      - name: Test della validazione di .env (moscorun.sh check)
+        run: deploy/tests/check.test.sh
       # CodeQL non è disponibile sui repository privati del piano Free: Semgrep (OSS) copre C#, TypeScript/React,
       # Dockerfile, GitHub Actions e Bash. Blocca la CI su risultati WARNING/ERROR.
       - name: Analisi statica di sicurezza (Semgrep)
