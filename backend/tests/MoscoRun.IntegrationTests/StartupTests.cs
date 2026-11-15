@@ -19,6 +19,9 @@ public sealed class StartupTests(ApiFactory factory)
     [InlineData("not a connection string", null, null)]
     [InlineData("Host=db;Password=s3cret-real", "admin@x.it", "short")]
     [InlineData("Host=db;Password=s3cret-real", "admin@x.it", "password12345")]
+    [InlineData("Host=db;Password=s3cret-real", "admin@x.it", "senza-maiuscola-9")]
+    [InlineData("Host=db;Password=s3cret-real", "admin@x.it", "SENZA-MINUSCOLA-9")]
+    [InlineData("Host=db;Password=s3cret-real", "admin@x.it", "Senza-Cifre-Qui")]
     public void Startup_fails_fast_on_missing_or_weak_secrets(string connection, string? email, string? password)
     {
         using var app = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
@@ -31,6 +34,22 @@ public sealed class StartupTests(ApiFactory factory)
 
         var start = () => app.CreateClient();
         start.Should().Throw<OptionsValidationException>();
+    }
+
+    [Fact]
+    public void Weak_admin_password_is_rejected_at_startup_naming_every_missing_rule()
+    {
+        using var app = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
+        {
+            b.UseEnvironment("Testing");
+            b.UseSetting("ConnectionStrings:MoscoRun", "Host=db;Password=s3cret-real");
+            b.UseSetting("Bootstrap:AdminEmail", "admin@x.it");
+            b.UseSetting("Bootstrap:AdminPassword", "tuttominuscolo");
+        });
+
+        var start = () => app.CreateClient();
+        start.Should().Throw<OptionsValidationException>()
+            .Which.Message.Should().Contain("una lettera maiuscola").And.Contain("una cifra");
     }
 
     [Fact]

@@ -56,6 +56,19 @@ validate_env() {
     localhost | 127.* | ::1 | '[::1]')
       die "POSTGRES_HOST=$POSTGRES_HOST punta al container dell'app, non al server: per un PostgreSQL sull'host usare POSTGRES_HOST=host.docker.internal" ;;
   esac
+  # Stesse regole di Identity nell'app (StartupSettingsValidation): solo se l'amministratore va ancora creato.
+  local pw="${MOSCORUN_ADMIN_PASSWORD:-}" missing=()
+  if [[ -n "${MOSCORUN_ADMIN_EMAIL:-}" ]]; then
+    ((${#pw} >= 12)) || missing+=("almeno 12 caratteri")
+    [[ "$pw" =~ [[:upper:]] ]] || missing+=("una lettera maiuscola")
+    [[ "$pw" =~ [[:lower:]] ]] || missing+=("una lettera minuscola")
+    [[ "$pw" =~ [[:digit:]] ]] || missing+=("una cifra")
+    if ((${#missing[@]} > 0)); then
+      local list
+      printf -v list '%s, ' "${missing[@]}"
+      die "MOSCORUN_ADMIN_PASSWORD deve contenere: ${list%, }"
+    fi
+  fi
   local name value
   for name in POSTGRES_PORT MOSCORUN_PORT; do
     value="${!name:-}"

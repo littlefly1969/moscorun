@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using MoscoRun.Infrastructure;
 using Npgsql;
@@ -21,11 +22,11 @@ public sealed class StartupSettings
 /// <summary>
 /// Fa fallire l'avvio con un messaggio chiaro se mancano segreti o se contengono segnaposto:
 /// meglio un container che non parte di uno che gira con credenziali deboli.
+/// La password dell'amministratore è verificata con le stesse regole di Identity (unica fonte), così un
+/// errore emerge all'avvio e non a migrazioni già applicate.
 /// </summary>
-internal sealed class StartupSettingsValidation : IValidateOptions<StartupSettings>
+internal sealed class StartupSettingsValidation(IOptions<IdentityOptions> identity) : IValidateOptions<StartupSettings>
 {
-    public const int MinAdminPasswordLength = 12;
-
     private static readonly string[] Placeholders = ["change-me", "changeme", "password", "example", "todo"];
 
     public static void Register(IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
@@ -63,11 +64,12 @@ internal sealed class StartupSettingsValidation : IValidateOptions<StartupSettin
 
         if (!string.IsNullOrWhiteSpace(options.AdminEmail))
         {
-            if (string.IsNullOrEmpty(options.AdminPassword) || options.AdminPassword.Length < MinAdminPasswordLength)
+            var policy = PasswordPolicyViolations(options.AdminPassword ?? string.Empty, identity.Value.Password);
+            if (policy.Count > 0)
             {
-                failures.Add($"Bootstrap__AdminPassword deve avere almeno {MinAdminPasswordLength} caratteri.");
+                failures.Add($"Bootstrap__AdminPassword non rispetta la politica delle password: {string.Join(", ", policy)}.");
             }
-            else if (ContainsPlaceholder(options.AdminPassword))
+            else if (ContainsPlaceholder(options.AdminPassword!))
             {
                 failures.Add("Bootstrap__AdminPassword contiene un valore segnaposto.");
             }
@@ -86,6 +88,42 @@ internal sealed class StartupSettingsValidation : IValidateOptions<StartupSettin
         }
 
         return failures.Count == 0 ? ValidateOptionsResult.Success : ValidateOptionsResult.Fail(failures);
+    }
+
+    internal static List<string> PasswordPolicyViolations(string password, PasswordOptions rules)
+    {
+        var violations = new List<string>();
+        if (password.Length < rules.RequiredLength)
+        {
+            violations.Add($"almeno {rules.RequiredLength} caratteri");
+        }
+
+        if (rules.RequireUppercase && !password.Any(char.IsAsciiLetterUpper))
+        {
+            violations.Add("una lettera maiuscola");
+        }
+
+        if (rules.RequireLowercase && !password.Any(char.IsAsciiLetterLower))
+        {
+            violations.Add("una lettera minuscola");
+        }
+
+        if (rules.RequireDigit && !password.Any(char.IsAsciiDigit))
+        {
+            violations.Add("una cifra");
+        }
+
+        if (rules.RequireNonAlphanumeric && password.All(char.IsAsciiLetterOrDigit))
+        {
+            violations.Add("un carattere non alfanumerico");
+        }
+
+        if (password.Distinct().Count() < rules.RequiredUniqueChars)
+        {
+            violations.Add($"almeno {rules.RequiredUniqueChars} caratteri diversi");
+        }
+
+        return violations;
     }
 
     private static bool TryGetPassword(string connectionString, out string? password)

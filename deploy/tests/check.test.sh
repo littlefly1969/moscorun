@@ -63,6 +63,28 @@ expect_error "porta fuori intervallo" "POSTGRES_HOST=host.docker.internal
 MOSCORUN_PORT=70000
 $PW" "MOSCORUN_PORT non è una porta valida"
 
+readonly DB='COMPOSE_PROFILES=bundled-db
+POSTGRES_HOST=db'
+expect_ok "amministratore con password conforme" "$DB
+$PW
+MOSCORUN_ADMIN_EMAIL=admin@example.it
+MOSCORUN_ADMIN_PASSWORD=Conforme-2026x"
+expect_ok "amministratore già creato: credenziali svuotate" "$DB
+$PW
+MOSCORUN_ADMIN_EMAIL=
+MOSCORUN_ADMIN_PASSWORD="
+expect_error "password senza maiuscola (caso reale del primo update)" "$DB
+$PW
+MOSCORUN_ADMIN_EMAIL=admin@example.it
+MOSCORUN_ADMIN_PASSWORD=senza-maiuscola-9" "deve contenere: una lettera maiuscola"
+expect_error "password corta e senza cifra" "$DB
+$PW
+MOSCORUN_ADMIN_EMAIL=admin@example.it
+MOSCORUN_ADMIN_PASSWORD=Corta" "almeno 12 caratteri, una cifra"
+expect_error "email senza password" "$DB
+$PW
+MOSCORUN_ADMIN_EMAIL=admin@example.it" "almeno 12 caratteri"
+
 printf '%s\n' "POSTGRES_HOST=db" "COMPOSE_PROFILES=bundled-db" "$PW" >"$WORK/.env"
 chmod 644 "$WORK/.env"
 if out="$(env -i PATH="$PATH" HOME="$WORK" bash "$WORK/moscorun.sh" check 2>&1)" || [[ "$out" != *"chmod 600"* ]]; then
