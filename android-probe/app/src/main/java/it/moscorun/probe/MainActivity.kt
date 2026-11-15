@@ -23,6 +23,7 @@ import java.time.temporal.ChronoUnit
 class MainActivity:ComponentActivity() {
     private lateinit var hc:HealthConnectProbe
     private lateinit var samsung:SamsungGateway
+    private val settings by lazy { SecureSettings(this) }
     private lateinit var root:LinearLayout
     private var provider="Health Connect"
     private var days=7
@@ -112,7 +113,7 @@ class MainActivity:ComponentActivity() {
         root.requestApplyInsets()
         text("MOSCORUN",12f,true).setTextColor(green)
         text("Esplora i tuoi dati",28f,true)
-        text("Prova locale · sola lettura · nessun invio al server",13f)
+        text(if(serverSyncAvailable()) "Lettura locale · invio al tuo server solo su comando" else "Prova locale · sola lettura · nessun invio al server",13f)
         text(message,14f)
         if(busy) root.addView(ProgressBar(this))
         val detail=selected
@@ -122,11 +123,11 @@ class MainActivity:ComponentActivity() {
         button(if(provider=="Health Connect") "✓ Health Connect" else "Health Connect",tabs) { provider="Health Connect";message="Health Connect selezionato.";render() }
         button(if(provider=="Samsung") "✓ Samsung" else "Samsung diretto",tabs) { provider="Samsung";message=samsung.setupMessage;render() }
         val range=Spinner(this)
-        range.adapter=ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,listOf("Ultimi 7 giorni","Ultimi 30 giorni"))
-        range.setSelection(if(days==7) 0 else 1)
+        range.adapter=ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,listOf("Ultimi 7 giorni","Ultimi 30 giorni","Ultimi 90 giorni"))
+        range.setSelection(when(days) { 7 -> 0; 30 -> 1; else -> 2 })
         range.isEnabled=!busy
         range.onItemSelectedListener=object:AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(p:AdapterView<*>?,v:View?,position:Int,id:Long) { days=if(position==0) 7 else 30 }
+            override fun onItemSelected(p:AdapterView<*>?,v:View?,position:Int,id:Long) { days=when(position) { 0 -> 7; 1 -> 30; else -> 90 } }
             override fun onNothingSelected(p:AdapterView<*>?) {}
         }
         root.addView(range)
@@ -171,6 +172,7 @@ class MainActivity:ComponentActivity() {
             report.notes.forEach { text(it,12f) }
             button("Esporta rapporto JSON") { confirmExport(report) }
         }
+        if(serverSyncAvailable()) renderServer()
         if(provider=="Health Connect") button("Apri Health Connect") {
             try {
                 startActivity(Intent(HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS))
@@ -185,6 +187,45 @@ class MainActivity:ComponentActivity() {
         }
         button("Informazioni sui dati") { startActivity(Intent(this,PrivacyActivity::class.java)) }
         button("Cancella risultati dalla memoria") { reports.clear();selected=null;message="Risultati rimossi dalla memoria dell'app. I dati originali non sono stati modificati.";render() }
+    }
+    private fun renderServer() {
+        val c=card()
+        text("Il tuo server MoscoRun",20f,true,c)
+        text(settings.serverUrl?.let { "Collegato a $it" } ?: "Non configurato. Nel cruscotto web registra questo telefono in Dispositivi e copia il token mostrato.",13f,parent=c)
+        button("Configura server",c) { configureServer() }
+        val workouts=reports["Samsung"]?.workouts.orEmpty()
+        button("Invia allenamenti al server",c,enabled=!busy && settings.configured && workouts.isNotEmpty()) { confirmUpload(workouts) }
+        if(workouts.isEmpty()) text("Leggi prima gli allenamenti con Samsung diretto.",12f,parent=c)
+        if(settings.configured) button("Scollega dal server",c) {
+            settings.forget();PreferencesSyncLedger(this).clear();message="Server scollegato: indirizzo e token rimossi dal telefono.";render()
+        }
+    }
+    private fun configureServer() {
+        val form=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL;setPadding(dp(20),dp(8),dp(20),0) }
+        val url=EditText(this).apply { hint="https://moscorun.example.it";setText(settings.serverUrl.orEmpty());inputType=android.text.InputType.TYPE_TEXT_VARIATION_URI;form.addView(this) }
+        val token=EditText(this).apply { hint="mr1_…";inputType=android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD;form.addView(this) }
+        AlertDialog.Builder(this).setTitle("Server MoscoRun").setView(form)
+            .setMessage("Indirizzo HTTPS del tuo server e token del dispositivo. Il token viene cifrato con una chiave del telefono e non è incluso nei backup.")
+            .setNegativeButton("Annulla",null).setPositiveButton("Salva") { _,_ ->
+                message=try { settings.save(url.text.toString(),token.text.toString());"Server configurato." }
+                    catch(e:IllegalArgumentException) { e.message ?: "Configurazione non valida." }
+                render()
+            }.show()
+    }
+    private fun confirmUpload(workouts:List<Workout>) {
+        AlertDialog.Builder(this).setTitle("Invia al tuo server")
+            .setMessage("${workouts.size} allenamenti, con percorsi GPS precisi e serie (frequenza cardiaca, velocità, cadenza, potenza), saranno inviati a ${settings.serverUrl}. Gli allenamenti già inviati e non modificati vengono saltati.")
+            .setNegativeButton("Annulla",null).setPositiveButton("Invia") { _,_ ->
+                val url=settings.serverUrl ?: return@setPositiveButton
+                runTask {
+                    message="Invio di ${workouts.size} allenamenti…";render()
+                    val report=withContext(Dispatchers.IO) {
+                        val server=MoscoRunServer(url,settings.token() ?: error("Token assente: configurare di nuovo il server."))
+                        WorkoutSync(server::upload,PreferencesSyncLedger(this@MainActivity)).run(workouts)
+                    }
+                    message=report.describe()
+                }
+            }.show()
     }
     private fun renderDetail(w:Workout) {
         button("← Torna alla verifica") { selected=null;render() }

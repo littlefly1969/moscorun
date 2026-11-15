@@ -88,9 +88,9 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     }
 
     /// <summary>Registra un dispositivo per l'utente e restituisce un client autenticato con il suo token.</summary>
-    public async Task<(HttpClient Client, RegisteredDevice Device)> CreateDeviceClientAsync(HttpClient userClient, string name = "Bilancia")
+    public async Task<(HttpClient Client, RegisteredDevice Device)> CreateDeviceClientAsync(HttpClient userClient, string name = "Bilancia", DeviceKind kind = DeviceKind.ScaleAgent)
     {
-        var response = await userClient.PostAsJsonAsync("/api/v1/devices", new { name, kind = DeviceKind.ScaleAgent.ToString() }, TestContext.Current.CancellationToken);
+        var response = await userClient.PostAsJsonAsync("/api/v1/devices", new { name, kind = kind.ToString() }, TestContext.Current.CancellationToken);
         response.EnsureSuccessStatusCode();
         var device = (await response.Content.ReadFromJsonAsync<RegisteredDevice>(Json.Options, TestContext.Current.CancellationToken))!;
         var client = CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });

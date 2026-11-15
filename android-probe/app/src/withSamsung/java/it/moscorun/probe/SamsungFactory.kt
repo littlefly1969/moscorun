@@ -56,11 +56,11 @@ private class DirectSamsungProbe(activity: Activity): SamsungGateway {
                             val sessions=point.getValue(DataType.ExerciseType.SESSIONS).orEmpty()
                             sessions.forEachIndexed { index, session ->
                                 val logs=session.log.orEmpty()
-                                fun metric(name:String,unit:String,value:(com.samsung.android.sdk.health.data.data.entries.ExerciseLog)->Float?):Series {
+                                fun metric(name:String,unit:String,code:String,value:(com.samsung.android.sdk.health.data.data.entries.ExerciseLog)->Float?):Series {
                                     val samples=logs.mapNotNull { log -> value(log)?.let { v ->
                                         Sample(log.timestamp.toString(),v.toDouble(),unit,point.uid,source)
                                     } }
-                                    return Series(name,"letto",samples,"Campioni appartenenti al log della sessione Samsung.")
+                                    return Series(name,"letto",samples,"Campioni appartenenti al log della sessione Samsung.",metric=code)
                                 }
                                 val points=samsungRoutePoints(session.route.orEmpty())
                                 workouts+=Workout("${point.uid}:$index",session.exerciseType.toString(),
@@ -70,8 +70,9 @@ private class DirectSamsungProbe(activity: Activity): SamsungGateway {
                                         "dataSource" to samsungSource(point.dataSource),"zoneOffset" to point.zoneOffset,
                                         "sessionIndex" to index,"session" to session)),
                                     if(routePermission !in allowed) "permesso_negato" else if(points.isEmpty()) "assente" else "disponibile",points,
-                                    listOf(metric("Frequenza cardiaca","bpm") { it.heartRate },metric("Velocità","m/s") { it.speed },
-                                        metric("Cadenza","passi/min") { it.cadence },metric("Potenza","W") { it.power }),true)
+                                    listOf(metric("Frequenza cardiaca","bpm","HeartRate") { it.heartRate },metric("Velocità","m/s","Speed") { it.speed },
+                                        metric("Cadenza","passi/min","Cadence") { it.cadence },metric("Potenza","W","Power") { it.power }),true,
+                                    summary=samsungSummary(session,point),uploadSource="samsung-health")
                             }
                         }
                     }
@@ -115,3 +116,14 @@ internal fun samsungRoutePoints(points:List<com.samsung.android.sdk.health.data.
 
 internal fun samsungSource(source:com.samsung.android.sdk.health.data.data.DataSource?) =
     source?.let { mapOf("appId" to it.appId,"deviceId" to it.deviceId) }
+
+/** Summary declared by Samsung Health; the revision is the record update time, so edits in Samsung Health re-upload. */
+internal fun samsungSummary(session:com.samsung.android.sdk.health.data.data.entries.ExerciseSession, point:HealthDataPoint) =
+    WorkoutSummary(activityType=session.exerciseType.toString(),
+        revision=point.updateTime?.toEpochMilli() ?: 0L,
+        utcOffsetMinutes=point.zoneOffset?.totalSeconds?.div(60),
+        activeDurationSeconds=session.duration?.toMillis()?.div(1000.0),
+        distanceM=session.distance?.toDouble(),
+        energyKcal=session.calories?.toDouble(),
+        averageHeartRate=session.meanHeartRate?.toDouble(),
+        maxHeartRate=session.maxHeartRate?.toDouble())

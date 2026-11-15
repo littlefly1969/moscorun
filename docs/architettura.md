@@ -6,7 +6,7 @@ La base applicativa è ASP.NET Core su .NET 10 LTS con PostgreSQL e un cruscotto
 
 ```
 Agente bilancia ──Bearer mr1_…──▶ POST /api/v1/ingest/weighings ─┐
-App Android    ──Bearer mr1_…──▶ (prossimo incremento)          │   ASP.NET Core (.NET 10)
+App Android    ──Bearer mr1_…──▶ POST /api/v1/ingest/workouts ──┤   ASP.NET Core (.NET 10)
 Browser ──cookie di sessione──▶ /api/auth, /api/v1/* ───────────┼─▶ Domain ─▶ EF Core ─▶ PostgreSQL
         ◀── cruscotto React (file statici, stessa origine) ─────┘
 ```
@@ -26,7 +26,20 @@ API principali:
 | `GET /api/v1/weighings`, `PUT /api/v1/weighings/{id}/attribution` | persona | Elenco e attribuzione (mia / di altri) |
 | `GET/POST/DELETE /api/v1/devices` | persona | Registrazione con token mostrato una volta, revoca |
 | `GET /api/v1/dashboard/summary` | persona | Ultimo peso, tendenze su medie mobili, copertura, freschezza sorgenti |
+| `POST /api/v1/ingest/workouts` | dispositivo | Allenamento svolto con tracciato GPS e serie; idempotente su fonte + `sourceId`, aggiornato da una `revision` maggiore; corpo anche gzip |
+| `GET /api/v1/workouts`, `/{id}`, `/{id}/series` | persona | Elenco, dettaglio e serie temporali (frequenza cardiaca, velocità, cadenza, potenza) |
+| `GET /api/v1/workouts/{id}/route?maxPoints=` | persona | Tracciato come Feature GeoJSON (RFC 7946), semplificato al numero di punti richiesto, con ETag |
 | `GET /health/live`, `/health/ready`, `/api/system/info` | pubblico | Stato e versione |
+
+## Allenamenti e percorsi
+
+Fonte attuale: Samsung Health Data SDK letto dall'app Android (variante completa), con invio esplicito al server dell'utente. Tutti i dati restano nel PostgreSQL dell'installazione; cruscotto web e app li rileggono dal server.
+
+- **Tabelle:** `workouts` (riepilogo, riquadro geografico, impronta SHA-256 del contenuto), `workout_routes` e `workout_series` (dati completi). Gli elenchi non caricano tracciati né serie.
+- **Formato del tracciato:** binario versionato con differenze varint zig-zag; tempo al millisecondo, coordinate a 1e-7 gradi (circa 1 cm), altitudine e precisione al centimetro. Un'ora di corsa a 1 Hz occupa circa 40 KB. Nessuna estensione PostgreSQL richiesta (niente PostGIS), quindi funziona anche su un database esistente.
+- **Idempotenza e aggiornamenti:** stesso contenuto → 200 senza modifiche; `revision` maggiore (data di aggiornamento nella fonte) → sostituzione; contenuto diverso con revisione non successiva → 409. La riga è bloccata durante l'aggiornamento: revisioni concorrenti si applicano in sequenza.
+- **Per la mappa:** il tracciato è servito come GeoJSON semplificato con Douglas-Peucker a classifica: esattamente `maxPoints` punti (predefinito 2000), forma preservata, utilizzabile da Google Maps, MapLibre o altro.
+- **Valori mancanti:** restano mancanti. L'app scarta i campioni fuori dall'intervallo fisico (es. 0 bpm scritto dall'orologio senza contatto) invece di rifiutare l'intero allenamento.
 
 ## Acquisizione diretta della bilancia
 

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MoscoRun.Domain.Devices;
 using MoscoRun.Domain.Measurements;
+using MoscoRun.Domain.Workouts;
 using MoscoRun.Infrastructure.Identity;
 
 namespace MoscoRun.Infrastructure.Persistence;
@@ -14,6 +15,12 @@ public sealed class MoscoRunDbContext(DbContextOptions<MoscoRunDbContext> option
     public DbSet<Weighing> Weighings => Set<Weighing>();
 
     public DbSet<Device> Devices => Set<Device>();
+
+    public DbSet<Workout> Workouts => Set<Workout>();
+
+    public DbSet<WorkoutRoute> WorkoutRoutes => Set<WorkoutRoute>();
+
+    public DbSet<WorkoutSeries> WorkoutSeries => Set<WorkoutSeries>();
 
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
