@@ -6,7 +6,7 @@ namespace MoscoRun.Api.Hosting;
 
 /// <summary>
 /// Readiness funzionale: oltre alla connessione verifica che lo schema corrisponda al modello di questa versione.
-/// Legge al più una riga da ogni tabella usata dall'applicazione selezionando tutte le colonne mappate, quindi una
+/// Legge al più una riga da ogni tabella (FirstOrDefault: nessun avviso EF di Take senza OrderBy a ogni controllo) usata dall'applicazione selezionando tutte le colonne mappate, quindi una
 /// colonna mancante, rinominata o di tipo incompatibile rende l'istanza "non pronta" prima di servire traffico.
 /// Fallisce anche se restano migrazioni non applicate (immagine nuova su schema vecchio).
 /// </summary>
@@ -22,10 +22,10 @@ internal sealed class SchemaHealthCheck(MoscoRunDbContext db) : IHealthCheck
 
         try
         {
-            _ = await db.Weighings.AsNoTracking().Take(1).ToListAsync(cancellationToken);
-            _ = await db.Devices.AsNoTracking().Take(1).ToListAsync(cancellationToken);
-            _ = await db.Users.AsNoTracking().Take(1).ToListAsync(cancellationToken);
-            _ = await db.DataProtectionKeys.AsNoTracking().Take(1).ToListAsync(cancellationToken);
+            _ = await db.Weighings.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
+            _ = await db.Devices.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
+            _ = await db.Users.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
+            _ = await db.DataProtectionKeys.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
         }
         catch (Exception ex) when (ex is Npgsql.PostgresException or InvalidOperationException or InvalidCastException)
         {
