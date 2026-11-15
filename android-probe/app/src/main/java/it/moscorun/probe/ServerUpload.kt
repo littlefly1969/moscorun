@@ -69,7 +69,8 @@ data class UploadResult(val outcome: UploadOutcome, val detail: String? = null)
 /** Minimal HTTPS client for a self-hosted MoscoRun server, authenticated with a device token. */
 class MoscoRunServer(baseUrl: String, private val token: String,
     private val connectTimeoutMs: Int = 15_000, private val readTimeoutMs: Int = 60_000) {
-    private val endpoint: URL = URI(normalizeBaseUrl(baseUrl) + "/api/v1/ingest/workouts").toURL()
+    private val base = normalizeBaseUrl(baseUrl)
+    private val endpoint: URL = URI("$base/api/v1/ingest/workouts").toURL()
 
     init { require(validToken(token)) { "Token del dispositivo non valido." } }
 
@@ -103,6 +104,40 @@ class MoscoRunServer(baseUrl: String, private val token: String,
             else UploadResult(UploadOutcome.FAILED, e.message ?: "HTTP ${e.responseCode()}")
         } catch (e: IOException) {
             UploadResult(UploadOutcome.FAILED, e.message ?: e.javaClass.simpleName)
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    /** Workouts stored on the server in its default window (last 90 days), newest first. */
+    fun workouts(): ReadResult<List<RemoteWorkout>> = get("/api/v1/workouts", ServerReadParser::workouts)
+
+    /** Route as seen by the server, after its privacy zones; at most [maxPoints] points. */
+    fun route(workoutId: String, maxPoints: Int = 5000): ReadResult<RemoteRoute> {
+        require(ServerReadParser.validId(workoutId)) { "Identificativo non valido." }
+        return get("/api/v1/workouts/$workoutId/route?maxPoints=$maxPoints", ServerReadParser::route)
+    }
+
+    private fun <T> get(path: String, parse: (String) -> T): ReadResult<T> {
+        val connection = URI(base + path).toURL().openConnection() as HttpURLConnection
+        return try {
+            connection.connectTimeout = connectTimeoutMs
+            connection.readTimeout = readTimeoutMs
+            connection.instanceFollowRedirects = false
+            connection.setRequestProperty("Authorization", "Bearer $token")
+            connection.setRequestProperty("Accept", "application/json")
+            val code = connection.responseCode
+            val body = (if (code < 400) connection.inputStream else connection.errorStream)?.use { it.readBytes().decodeToString() }
+            when (code) {
+                200 -> try { ReadResult.Ok(parse(body.orEmpty())) }
+                    catch (e: RuntimeException) { ReadResult.Failed("Risposta del server non riconosciuta: ${e.message ?: e.javaClass.simpleName}") }
+                401 -> ReadResult.Failed("Token non valido o revocato: registrare di nuovo il telefono.", unauthorized = true)
+                403 -> ReadResult.Failed("Il token non permette la lettura: registrare il telefono come \"Telefono Android\".", unauthorized = true)
+                404 -> ReadResult.Failed("Non disponibile sul server (o nascosto dalle zone private).")
+                else -> ReadResult.Failed(problemDetail(body) ?: "Risposta HTTP $code")
+            }
+        } catch (e: IOException) {
+            ReadResult.Failed(e.message ?: e.javaClass.simpleName)
         } finally {
             connection.disconnect()
         }

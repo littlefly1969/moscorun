@@ -23,6 +23,8 @@ L'elenco può contenere attività diverse dalla corsa. I titoli mancanti sono mo
 
 Ogni allenamento viaggia compresso (gzip) con tracciato GPS, riepilogo e serie (frequenza cardiaca, velocità, cadenza, potenza). Il server lo salva una sola volta; un allenamento modificato in Samsung Health ha una data di aggiornamento più recente e sostituisce la versione precedente. L'app ricorda l'impronta di ciò che il server ha accettato e non reinvia allenamenti invariati. Un token revocato interrompe l'invio con un messaggio esplicito. **Scollega dal server** rimuove indirizzo, token e registro degli invii dal telefono.
 
+**Allenamenti sul server** rilegge dal server l'elenco degli ultimi 90 giorni; toccando un allenamento si vedono riepilogo e percorso (traccia locale) e, su conferma, la mappa Google. Il percorso arriva dal server già filtrato dalle eventuali zone private configurate lì. Serve un token di tipo "Telefono Android": un token bilancia non può leggere gli allenamenti.
+
 ## Due varianti di compilazione
 
 | Variante | Cosa contiene | Dipendenze aggiuntive |
