@@ -187,6 +187,31 @@
         }
       }
     },
+    "/api/v1/device": {
+      "get": {
+        "tags": [
+          "Dispositivi"
+        ],
+        "summary": "Verifica il token del dispositivo e ne restituisce l'identità.",
+        "description": "Usato dagli agenti per la verifica della connessione: non modifica dati.",
+        "operationId": "GetDeviceIdentity",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceIdentityDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/dashboard/summary": {
       "get": {
         "tags": [
@@ -798,6 +823,36 @@
             "format": "date-time"
           }
         }
+      },
+      "DeviceIdentityDto": {
+        "required": [
+          "deviceId",
+          "name",
+          "kind",
+          "accountId"
+        ],
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "description": "Dispositivo a cui appartiene il token.",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nome scelto alla registrazione."
+          },
+          "kind": {
+            "description": "Tipo di agente.",
+            "$ref": "#/components/schemas/DeviceKind"
+          },
+          "accountId": {
+            "type": "string",
+            "description": "Identificativo stabile della persona proprietaria: permette all'agente di tenere separato lo stato di\nsincronizzazione quando viene collegato a un'altra persona o a un altro server.",
+            "format": "uuid"
+          }
+        },
+        "description": "Identità del dispositivo autenticato con il proprio token."
       },
       "DeviceKind": {
         "enum": [
@@ -1728,6 +1783,9 @@
       "name": "Acquisizione"
     },
     {
+      "name": "Dispositivi"
+    },
+    {
       "name": "Cruscotto"
     },
     {
@@ -1738,9 +1796,6 @@
     },
     {
       "name": "Allenamenti"
-    },
-    {
-      "name": "Dispositivi"
     }
   ]
 }

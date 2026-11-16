@@ -29,6 +29,16 @@ public sealed record RegisterDeviceRequest(
 /// <param name="Token">Credenziale da configurare nell'agente. Viene mostrata solo ora.</param>
 public sealed record RegisteredDevice(DeviceDto Device, string Token);
 
+/// <summary>Identità del dispositivo autenticato con il proprio token.</summary>
+/// <param name="DeviceId">Dispositivo a cui appartiene il token.</param>
+/// <param name="Name">Nome scelto alla registrazione.</param>
+/// <param name="Kind">Tipo di agente.</param>
+/// <param name="AccountId">
+/// Identificativo stabile della persona proprietaria: permette all'agente di tenere separato lo stato di
+/// sincronizzazione quando viene collegato a un'altra persona o a un altro server.
+/// </param>
+public sealed record DeviceIdentityDto(Guid DeviceId, string Name, DeviceKind Kind, Guid AccountId);
+
 internal static class DeviceEndpoints
 {
     public static RouteGroupBuilder MapDeviceEndpoints(this RouteGroupBuilder v1)
@@ -37,7 +47,25 @@ internal static class DeviceEndpoints
         devices.MapGet("/", ListAsync).WithName("ListDevices");
         devices.MapPost("/", RegisterAsync).WithName("RegisterDevice");
         devices.MapDelete("/{id:guid}", RevokeAsync).WithName("RevokeDevice");
+
+        v1.MapGet("/device", IdentityAsync)
+            .RequireAuthorization(Policies.Ingest)
+            .WithTags("Dispositivi")
+            .WithName("GetDeviceIdentity")
+            .WithSummary("Verifica il token del dispositivo e ne restituisce l'identità.")
+            .WithDescription("Usato dagli agenti per la verifica della connessione: non modifica dati.");
         return v1;
+    }
+
+    internal static async Task<Results<Ok<DeviceIdentityDto>, NotFound>> IdentityAsync(
+        ClaimsPrincipal principal, MoscoRunDbContext db, CancellationToken ct)
+    {
+        var deviceId = principal.DeviceId();
+        var ownerId = principal.OwnerId();
+        var device = await db.Devices.AsNoTracking().SingleOrDefaultAsync(d => d.Id == deviceId && d.OwnerId == ownerId, ct);
+        return device is null
+            ? TypedResults.NotFound()
+            : TypedResults.Ok(new DeviceIdentityDto(device.Id, device.Name, device.Kind, device.OwnerId));
     }
 
     internal static async Task<Ok<DeviceDto[]>> ListAsync(ClaimsPrincipal principal, MoscoRunDbContext db, CancellationToken ct)

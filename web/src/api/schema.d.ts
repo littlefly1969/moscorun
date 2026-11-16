@@ -109,6 +109,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/device": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Verifica il token del dispositivo e ne restituisce l'identità.
+     * @description Usato dagli agenti per la verifica della connessione: non modifica dati.
+     */
+    get: operations["GetDeviceIdentity"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/dashboard/summary": {
     parameters: {
       query?: never;
@@ -375,6 +395,24 @@ export interface components {
        * @description Revoca del token, se avvenuta.
        */
       revokedAt: null | string;
+    };
+    /** @description Identità del dispositivo autenticato con il proprio token. */
+    DeviceIdentityDto: {
+      /**
+       * Format: uuid
+       * @description Dispositivo a cui appartiene il token.
+       */
+      deviceId: string;
+      /** @description Nome scelto alla registrazione. */
+      name: string;
+      /** @description Tipo di agente. */
+      kind: components["schemas"]["DeviceKind"];
+      /**
+       * Format: uuid
+       * @description Identificativo stabile della persona proprietaria: permette all'agente di tenere separato lo stato di
+       *     sincronizzazione quando viene collegato a un'altra persona o a un altro server.
+       */
+      accountId: string;
     };
     /**
      * @description Tipo di agente che invia dati al server.
@@ -875,6 +913,33 @@ export interface operations {
         content: {
           "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
         };
+      };
+    };
+  };
+  GetDeviceIdentity: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DeviceIdentityDto"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
