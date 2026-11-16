@@ -2,7 +2,7 @@
 # Immagine unica: API ASP.NET Core + cruscotto React statico. Multi-architettura (amd64/arm64)
 # con compilazione nativa sulla piattaforma di build (niente emulazione QEMU per SDK e Node).
 
-FROM --platform=$BUILDPLATFORM node:22-alpine AS web
+FROM --platform=$BUILDPLATFORM node:26-alpine AS web
 WORKDIR /src/web
 COPY web/package.json web/package-lock.json ./
 RUN npm ci --no-audit --no-fund
