@@ -56,7 +56,7 @@ Sono necessari JDK 17 e `keytool`. Occorre anche l'AAR Samsung (vedi [android/RE
 ## Aggiornamenti
 
 - Conservare `applicationId`, certificato e chiave privata: cambiare uno di questi elementi può impedire un aggiornamento diretto o richiedere nuove restrizioni Google.
-- Ogni esecuzione CI usa il numero progressivo del workflow come `versionCode`; la riesecuzione della stessa run mantiene lo stesso codice. Per pubblicazioni locali specificare `-PmoscorunVersionCode=<numero>` coerente e non inferiore alla versione installata.
+- Ogni esecuzione CI usa come `versionCode` il numero progressivo del workflow più 1000 (il contatore è ripartito con la rinomina del workflow; lo scarto mantiene il codice sopra quello di ogni APK già installato); la riesecuzione della stessa run mantiene lo stesso codice. Per pubblicazioni locali specificare `-PmoscorunVersionCode=<numero>` coerente e non inferiore alla versione installata.
 - I vecchi `it.moscorun.probe*` e `it.littlefly.moscorun.hc` sono app separate, da disinstallare a mano. La prima installazione della nuova identità richiede nuovi consensi Health Connect e, dove previsto, nuova abilitazione Samsung per il pacchetto definitivo. Samsung Health conserva i propri dati originali.
 - L'eventuale futura distribuzione con Play App Signing richiederà verificare il certificato usato da Google Play e autorizzarlo in Maps. Non viene configurata in questo incremento.
 

@@ -17,10 +17,13 @@ jobs:
     defaults:
       run:
         working-directory: android
-    env:
-      MOSCORUN_VERSION_CODE: ${{ github.run_number }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      # The run counter restarted when the workflow file was renamed (the old one had reached 49): the offset
+      # keeps versionCode above every APK already installed, so the update in place is never a downgrade.
+      - name: Calcola versionCode
+        working-directory: .
+        run: echo "MOSCORUN_VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
       - name: Verifica configurazione Google Maps
         env:
           GOOGLE_MAPS_ANDROID_API_KEY: ${{ secrets.GOOGLE_MAPS_ANDROID_API_KEY }}

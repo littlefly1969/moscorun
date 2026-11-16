@@ -3,7 +3,6 @@ package it.moscorun.app.source
 import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.aggregate.AggregateMetric
-import androidx.health.connect.client.feature.ExperimentalFeatureAvailabilityApi
 import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.DistanceRecord
@@ -70,7 +69,6 @@ class HealthConnectSource(context: Context) : WorkoutSource {
      * Permissions worth asking for on this phone: everything already granted is left out, and the ones for
      * background and older data only where this version of Health Connect offers them.
      */
-    @OptIn(ExperimentalFeatureAvailabilityApi::class)
     suspend fun requestable(): Set<String> {
         if (HealthConnectClient.getSdkStatus(appContext) != HealthConnectClient.SDK_AVAILABLE) return emptySet()
         return try {
