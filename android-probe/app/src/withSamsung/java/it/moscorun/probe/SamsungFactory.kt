@@ -68,7 +68,7 @@ private class DirectSamsungProbe(activity: Activity): SamsungGateway {
                                         "recordId" to point.uid,"clientDataId" to point.clientDataId,
                                         "clientVersion" to point.clientVersion,"updateTime" to point.updateTime,
                                         "dataSource" to samsungSource(point.dataSource),"zoneOffset" to point.zoneOffset,
-                                        "sessionIndex" to index,"session" to session)),
+                                        "sessionIndex" to index,"session" to Json.withoutLongArrays(Json.tree(session)))),
                                     if(routePermission !in allowed) "permesso_negato" else if(points.isEmpty()) "assente" else "disponibile",points,
                                     listOf(metric("Frequenza cardiaca","bpm","HeartRate") { it.heartRate },metric("Velocità","m/s","Speed") { it.speed },
                                         metric("Cadenza","passi/min","Cadence") { it.cadence },metric("Potenza","W","Power") { it.power }),true,

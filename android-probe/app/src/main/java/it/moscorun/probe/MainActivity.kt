@@ -32,6 +32,7 @@ class MainActivity:ComponentActivity() {
     private var message="Scegli un collegamento, concedi i permessi e avvia la verifica."
     private val reports=mutableMapOf<String,ProbeReport>()
     private var selected:Workout?=null
+    private var crash:String?=null
     private var remote:List<RemoteWorkout>?=null
     private var remoteDetail:Pair<RemoteWorkout,RemoteRoute?>?=null
     private var pendingRoute:Workout?=null
@@ -64,6 +65,8 @@ class MainActivity:ComponentActivity() {
     override fun onCreate(state:Bundle?) {
         super.onCreate(state)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        CrashLog.install(applicationContext)
+        crash=CrashLog.take(this)
         hc=HealthConnectProbe(this);samsung=samsungGateway(this)
         render()
     }
@@ -89,6 +92,10 @@ class MainActivity:ComponentActivity() {
             busy=true;render()
             try { block() } catch(e:CancellationException) { throw e }
             catch(e:Exception) { message="Operazione non riuscita (${e.javaClass.simpleName}): ${e.message ?: "nessun dettaglio"}" }
+            catch(e:OutOfMemoryError) {
+                reports.clear();selected=null;remote=null;remoteDetail=null
+                message="Memoria del telefono insufficiente per questa operazione: risultati rimossi. Riprova con un intervallo più breve."
+            }
             finally { busy=false;render() }
         }
     }
@@ -117,6 +124,18 @@ class MainActivity:ComponentActivity() {
         text("Esplora i tuoi dati",28f,true)
         text(if(serverSyncAvailable()) "Lettura locale · invio al tuo server solo su comando" else "Prova locale · sola lettura · nessun invio al server",13f)
         text(message,14f)
+        crash?.let { report ->
+            val c=card()
+            text("L'app si è chiusa per un errore",17f,true,c)
+            text("Copia il dettaglio e invialo a chi ti assiste: contiene solo l'errore tecnico, nessun dato di salute.",12f,parent=c)
+            text(report.lineSequence().take(6).joinToString("\n"),11f,parent=c)
+            button("Copia dettaglio errore",c,enabled=true) {
+                val clipboard=getSystemService(android.content.ClipboardManager::class.java)
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Errore MoscoRun",report))
+                Toast.makeText(this,"Dettaglio copiato",Toast.LENGTH_SHORT).show()
+            }
+            button("Chiudi",c,enabled=true) { crash=null;render() }
+        }
         if(busy) root.addView(ProgressBar(this))
         val detail=selected
         if(detail!=null) { renderDetail(detail);return }

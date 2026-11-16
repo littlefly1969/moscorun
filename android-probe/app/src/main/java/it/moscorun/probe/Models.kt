@@ -15,6 +15,17 @@ object Json {
         .registerTypeAdapter(LocalDateTime::class.java, TimeAdapter<LocalDateTime>())
         .registerTypeAdapter(LocalDate::class.java, TimeAdapter<LocalDate>()).create()
     fun tree(value: Any?): JsonElement = gson.toJsonTree(value)
+
+    /**
+     * Replaces long arrays with their size. Raw source records repeat data already kept in typed form (GPS points,
+     * series samples): keeping them as JSON trees for every workout of a 90-day window exhausts the app heap.
+     */
+    fun withoutLongArrays(tree: JsonElement, maxItems: Int = 20): JsonElement = when {
+        tree.isJsonArray && tree.asJsonArray.size() > maxItems -> JsonPrimitive("${tree.asJsonArray.size()} elementi omessi")
+        tree.isJsonArray -> JsonArray().apply { tree.asJsonArray.forEach { add(withoutLongArrays(it, maxItems)) } }
+        tree.isJsonObject -> JsonObject().apply { tree.asJsonObject.entrySet().forEach { (k, v) -> add(k, withoutLongArrays(v, maxItems)) } }
+        else -> tree
+    }
 }
 
 data class CategoryResult(
