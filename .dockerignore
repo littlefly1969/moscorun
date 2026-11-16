@@ -8,7 +8,7 @@
 **/test-results
 .git
 .github
-android-probe
+android
 deploy
 docs
 **/.env

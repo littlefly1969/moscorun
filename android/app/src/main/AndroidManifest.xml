@@ -1,0 +1,47 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <!-- Towards the user's own MoscoRun server (HTTPS only) and Google Maps tiles; also needed by the Samsung SDK. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Health Connect: read-only, and only what an exercise session is made of. -->
+    <uses-permission android:name="android.permission.health.READ_EXERCISE" />
+    <uses-permission android:name="android.permission.health.READ_EXERCISE_ROUTES" />
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
+    <uses-permission android:name="android.permission.health.READ_DISTANCE" />
+    <uses-permission android:name="android.permission.health.READ_SPEED" />
+    <uses-permission android:name="android.permission.health.READ_POWER" />
+    <uses-permission android:name="android.permission.health.READ_STEPS" />
+    <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
+    <!-- Lets the periodic work read Health Connect while the app is closed, and the history before the first consent. -->
+    <uses-permission android:name="android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND" />
+    <uses-permission android:name="android.permission.health.READ_HEALTH_DATA_HISTORY" />
+    <!-- WorkManager declares it for long-running foreground work, which this app never uses. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />
+    <queries>
+        <package android:name="com.google.android.apps.healthdata" />
+        <package android:name="com.sec.android.app.shealth" />
+        <!-- The separate Health Connect app of the previous versions: only to tell the user it can be removed. -->
+        <package android:name="it.littlefly.moscorun.hc" />
+    </queries>
+    <!-- No location, write, storage, notification, exact-alarm or foreground-service permissions. -->
+    <application android:name=".MoscoRunApp" android:theme="@style/AppTheme" android:label="@string/app_name"
+        android:icon="@drawable/ic_launcher" android:allowBackup="false" android:supportsRtl="true"
+        android:usesCleartextTraffic="false">
+        <meta-data android:name="com.google.android.geo.API_KEY" android:value="${GOOGLE_MAPS_ANDROID_API_KEY}" />
+        <activity android:name=".ui.PrivacyActivity" android:exported="true">
+            <intent-filter><action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" /></intent-filter>
+        </activity>
+        <activity-alias android:name="ViewPermissionUsageActivity" android:exported="true"
+            android:targetActivity=".ui.PrivacyActivity" android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
+        <!-- Configuration changes are handled by redrawing: the screens keep their own state. -->
+        <activity android:name=".ui.MainActivity" android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|uiMode|density|fontScale"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity>
+        <activity android:name=".ui.RouteMapActivity" android:exported="false" />
+    </application>
+</manifest>

@@ -1,0 +1,9 @@
+{
+  "name": "MoscoRun",
+  "domain": "littlefly.it",
+  "applicationId": "it.littlefly.moscorun",
+  "keyAlias": "moscorun",
+  "sha1": "EE:9C:07:8D:07:77:F1:8D:FA:42:9B:BA:B8:E7:8B:F0:E5:56:7D:BF",
+  "sha256": "5D:96:9C:4E:B0:ED:0C:28:3A:CE:AB:17:E2:38:C7:CC:6C:2F:BB:B0:AE:15:9E:A8:8A:B7:07:D6:08:B6:55:42",
+  "validUntil": "2066-10-30T15:08:48+00:00"
+}

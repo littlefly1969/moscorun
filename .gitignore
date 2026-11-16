@@ -35,7 +35,7 @@ build/
 captures/
 .idea/
 .kotlin/
-android-probe/.gradle/
+android/.gradle/
 
 moscorun-probe-*.json
 
