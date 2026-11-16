@@ -58,6 +58,7 @@ class FakeCipher : TokenCipher {
     override fun forget() { forgotten = true }
 }
 
-const val TOKEN = "mr1_abcdefghijklmnop1234"
-const val OTHER_TOKEN = "mr1_zyxwvutsrqponmlk9876"
+// Built at run time so that they are obviously not credentials: no real token is ever written in the sources.
+val TOKEN = "mr1_" + "a".repeat(16) + "1234"
+val OTHER_TOKEN = "mr1_" + "b".repeat(16) + "9876"
 const val SERVER = "https://moscorun.example"
