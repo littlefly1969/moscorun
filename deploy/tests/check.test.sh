@@ -11,7 +11,8 @@ failures=0
 
 # run_check <contenuto .env>: stampa l'output, restituisce il codice d'uscita.
 run_check() {
-  printf '%s\n' "$1" >"$WORK/.env"
+  # Cartella dei backup scrivibile per default; i singoli casi possono ridefinirla (in .env vince l'ultima riga).
+  printf 'MOSCORUN_BACKUP_DIR=%s\n%s\n' "$WORK/backups" "$1" >"$WORK/.env"
   chmod 600 "$WORK/.env"
   env -i PATH="$PATH" HOME="$WORK" bash "$WORK/moscorun.sh" check 2>&1
 }
@@ -35,7 +36,8 @@ expect_error() {
 readonly PW='POSTGRES_PASSWORD=segreto-di-prova'
 
 expect_ok "esempio compilato: database incluso" "$(cat "$DEPLOY_DIR/.env.example")
-$PW"
+$PW
+MOSCORUN_BACKUP_DIR=$WORK/backups"
 expect_ok "PostgreSQL sull'host" "POSTGRES_HOST=host.docker.internal
 $PW"
 expect_ok "profilo in lista con altri" "COMPOSE_PROFILES=altro,bundled-db
@@ -86,6 +88,19 @@ $(admin Mia-Password-2026)" 'nessun segnaposto come "password"'
 expect_error "email senza password" "$DB
 $PW
 $(admin '')" "almeno 12 caratteri"
+
+mkdir -p "$WORK/sola-lettura" && chmod 500 "$WORK/sola-lettura"
+expect_ok "cartella dei backup da creare in un percorso scrivibile" "$DB
+$PW
+MOSCORUN_BACKUP_DIR=$WORK/backup/nuova"
+if [[ "$(id -u)" != 0 ]]; then
+  expect_error "cartella dei backup non scrivibile (caso reale del primo aggiornamento)" "$DB
+$PW
+MOSCORUN_BACKUP_DIR=$WORK/sola-lettura/moscorun" "sudo install -d -m 700"
+fi
+expect_error "cartella dei backup relativa" "$DB
+$PW
+MOSCORUN_BACKUP_DIR=backups" "percorso assoluto"
 
 printf '%s\n' "POSTGRES_HOST=db" "COMPOSE_PROFILES=bundled-db" "$PW" >"$WORK/.env"
 chmod 644 "$WORK/.env"
