@@ -325,6 +325,8 @@
         "tags": [
           "Allenamenti"
         ],
+        "summary": "Riepiloghi degli allenamenti, dal più recente; paginati a cursore con pageSize o cursor.",
+        "description": "Senza pageSize né cursor: ultimi 90 giorni (o l'intervallo from/to), al più 1000 elementi, come nelle versioni precedenti. Con pageSize (1-200) o cursor: una pagina ordinata per (startedAt, id) decrescenti su tutto lo storico o sull'intervallo from/to; nextCursor, se presente, va passato come cursor insieme agli stessi from/to per la pagina successiva. Lo scorrimento è stabile: gli allenamenti aggiunti nel frattempo non spostano né ripetono quelli già letti.",
         "operationId": "ListWorkouts",
         "parameters": [
           {
@@ -341,6 +343,21 @@
             "schema": {
               "type": "string",
               "format": "date-time"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -460,6 +477,8 @@
         "tags": [
           "Allenamenti"
         ],
+        "summary": "Serie temporali dell'allenamento; metric ne seleziona una, maxPoints la riduce per i grafici.",
+        "description": "Senza parametri restituisce tutte le serie complete. metric limita la risposta a una grandezza (elenco vuoto se l'allenamento non la contiene). maxPoints riduce ogni serie conservando minimi e massimi reali di ogni intervallo; totalSamples indica quanti campioni sono salvati.",
         "operationId": "GetWorkoutSeries",
         "parameters": [
           {
@@ -469,6 +488,21 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SeriesMetric"
+            }
+          },
+          {
+            "name": "maxPoints",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
             }
           }
         ],
@@ -485,6 +519,16 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -1191,32 +1235,42 @@
           "metric",
           "unit",
           "times",
-          "values"
+          "values",
+          "totalSamples"
         ],
         "type": "object",
         "properties": {
           "metric": {
+            "description": "Grandezza.",
             "$ref": "#/components/schemas/SeriesMetric"
           },
           "unit": {
-            "type": "string"
+            "type": "string",
+            "description": "Unità di misura."
           },
           "times": {
             "type": "array",
             "items": {
               "type": "integer",
               "format": "int64"
-            }
+            },
+            "description": "Istanti dei campioni restituiti, in millisecondi Unix."
           },
           "values": {
             "type": "array",
             "items": {
               "type": "number",
               "format": "double"
-            }
+            },
+            "description": "Valori dei campioni restituiti."
+          },
+          "totalSamples": {
+            "type": "integer",
+            "description": "Campioni salvati; maggiore dei restituiti quando è stato richiesto `maxPoints`.",
+            "format": "int32"
           }
         },
-        "description": "Serie completa: `times` in millisecondi Unix e `values` allineati per indice."
+        "description": "Serie: `times` in millisecondi Unix e `values` allineati per indice."
       },
       "SeriesInfoDto": {
         "required": [
@@ -1500,15 +1554,28 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/WorkoutSummaryDto"
-            }
+            },
+            "description": "Riepiloghi, dal più recente."
           },
           "from": {
-            "type": "string",
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Limite inferiore applicato; assente se la lista paginata scorre tutto lo storico.",
             "format": "date-time"
           },
           "to": {
             "type": "string",
+            "description": "Limite superiore applicato.",
             "format": "date-time"
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Presente solo nelle liste paginate quando esistono altri elementi: va passato come `cursor`."
           }
         }
       },

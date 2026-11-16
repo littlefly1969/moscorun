@@ -15,6 +15,8 @@ namespace MoscoRun.Api.Features.Workouts;
 internal static class WorkoutEndpoints
 {
     public const int MaxListItems = 1000;
+    public const int MaxPageSize = 200;
+    public const int DefaultPageSize = 50;
     public const int DefaultRoutePoints = 2000;
     public const int MaxRoutePoints = Workout.MaxTrackPoints;
     public static readonly TimeSpan DefaultRange = TimeSpan.FromDays(90);
@@ -32,12 +34,25 @@ internal static class WorkoutEndpoints
                 "Il corpo può essere compresso con Content-Encoding: gzip.");
 
         var workouts = v1.MapGroup("/workouts").RequireAuthorization(Policies.WorkoutReader).WithTags("Allenamenti");
-        workouts.MapGet("/", ListAsync).WithName("ListWorkouts");
+        workouts.MapGet("/", ListAsync)
+            .WithName("ListWorkouts")
+            .WithSummary("Riepiloghi degli allenamenti, dal più recente; paginati a cursore con pageSize o cursor.")
+            .WithDescription(
+                "Senza pageSize né cursor: ultimi 90 giorni (o l'intervallo from/to), al più 1000 elementi, come nelle versioni precedenti. " +
+                "Con pageSize (1-200) o cursor: una pagina ordinata per (startedAt, id) decrescenti su tutto lo storico o sull'intervallo from/to; " +
+                "nextCursor, se presente, va passato come cursor insieme agli stessi from/to per la pagina successiva. " +
+                "Lo scorrimento è stabile: gli allenamenti aggiunti nel frattempo non spostano né ripetono quelli già letti.");
         workouts.MapGet("/{id:guid}", GetAsync).WithName("GetWorkout");
         workouts.MapGet("/{id:guid}/route", GetRouteAsync)
             .WithName("GetWorkoutRoute")
             .WithSummary("Tracciato come Feature GeoJSON, semplificato a maxPoints punti conservandone la forma.");
-        workouts.MapGet("/{id:guid}/series", GetSeriesAsync).WithName("GetWorkoutSeries");
+        workouts.MapGet("/{id:guid}/series", GetSeriesAsync)
+            .WithName("GetWorkoutSeries")
+            .WithSummary("Serie temporali dell'allenamento; metric ne seleziona una, maxPoints la riduce per i grafici.")
+            .WithDescription(
+                "Senza parametri restituisce tutte le serie complete. metric limita la risposta a una grandezza (elenco vuoto se " +
+                "l'allenamento non la contiene). maxPoints riduce ogni serie conservando minimi e massimi reali di ogni intervallo; " +
+                "totalSamples indica quanti campioni sono salvati.");
 
         return v1;
     }
@@ -143,28 +158,73 @@ internal static class WorkoutEndpoints
         IOptions<PrivacyOptions> privacy,
         DateTimeOffset? from,
         DateTimeOffset? to,
+        int? pageSize,
+        string? cursor,
         CancellationToken ct)
     {
+        var paged = pageSize is not null || cursor is not null;
         var end = (to ?? time.GetUtcNow()).ToUniversalTime();
-        var start = (from ?? end - DefaultRange).ToUniversalTime();
+
+        // La finestra predefinita di 90 giorni vale solo per la forma storica della richiesta: una lista paginata
+        // deve poter scorrere tutto lo storico.
+        var start = from?.ToUniversalTime() ?? (paged ? (DateTimeOffset?)null : end - DefaultRange);
         if (start > end)
         {
-            return TypedResults.ValidationProblem(new Dictionary<string, string[]>(StringComparer.Ordinal)
+            return Invalid("from", "'from' deve precedere 'to'.");
+        }
+
+        var size = pageSize ?? DefaultPageSize;
+        if (size is < 1 or > MaxPageSize)
+        {
+            return Invalid("pageSize", $"pageSize deve essere compreso tra 1 e {MaxPageSize}.");
+        }
+
+        WorkoutCursor? after = null;
+        if (cursor is not null)
+        {
+            if (!WorkoutCursor.TryParse(cursor, out var parsed))
             {
-                ["from"] = ["'from' deve precedere 'to'."],
-            });
+                return Invalid("cursor", "cursor non valido: ripartire dalla prima pagina.");
+            }
+
+            after = parsed;
         }
 
         var ownerId = principal.OwnerId();
-        var items = await db.Workouts.AsNoTracking()
-            .Where(w => w.OwnerId == ownerId && w.StartedAt >= start && w.StartedAt <= end)
+        var query = db.Workouts.AsNoTracking().Where(w => w.OwnerId == ownerId && w.StartedAt <= end);
+        if (start is { } lower)
+        {
+            query = query.Where(w => w.StartedAt >= lower);
+        }
+
+        if (after is { } position)
+        {
+            // Paginazione a chiave: la pagina successiva riparte dopo l'ultimo elemento letto, quindi inserimenti
+            // e cancellazioni concorrenti non fanno saltare né ripetere righe.
+            query = query.Where(w => w.StartedAt < position.StartedAt
+                || (w.StartedAt == position.StartedAt && w.Id.CompareTo(position.Id) < 0));
+        }
+
+        var take = paged ? size + 1 : MaxListItems;
+        var items = await query
             .OrderByDescending(w => w.StartedAt)
-            .Take(MaxListItems)
+            .ThenByDescending(w => w.Id)
+            .Take(take)
             .ToListAsync(ct);
 
+        string? next = null;
+        if (paged && items.Count > size)
+        {
+            items.RemoveAt(size);
+            next = new WorkoutCursor(items[^1].StartedAt, items[^1].Id).ToString();
+        }
+
         var hide = privacy.Value.Zones.Count > 0;
-        return TypedResults.Ok(new WorkoutList([.. items.Select(w => WorkoutSummaryDto.From(w, hide))], start, end));
+        return TypedResults.Ok(new WorkoutList([.. items.Select(w => WorkoutSummaryDto.From(w, hide))], start, end, next));
     }
+
+    private static ValidationProblem Invalid(string field, string message) =>
+        TypedResults.ValidationProblem(new Dictionary<string, string[]>(StringComparer.Ordinal) { [field] = [message] });
 
     internal static async Task<Results<Ok<WorkoutDetailDto>, NotFound>> GetAsync(
         Guid id, ClaimsPrincipal principal, MoscoRunDbContext db, IOptions<PrivacyOptions> privacy, CancellationToken ct)
@@ -198,10 +258,7 @@ internal static class WorkoutEndpoints
         var limit = maxPoints ?? DefaultRoutePoints;
         if (limit is < 2 or > MaxRoutePoints)
         {
-            return TypedResults.ValidationProblem(new Dictionary<string, string[]>(StringComparer.Ordinal)
-            {
-                ["maxPoints"] = [$"maxPoints deve essere compreso tra 2 e {MaxRoutePoints}."],
-            });
+            return Invalid("maxPoints", $"maxPoints deve essere compreso tra 2 e {MaxRoutePoints}.");
         }
 
         var workout = await FindOwnedAsync(db, id, principal.OwnerId(), ct);
@@ -245,24 +302,42 @@ internal static class WorkoutEndpoints
         return TypedResults.Ok(feature);
     }
 
-    internal static async Task<Results<Ok<WorkoutSeriesList>, NotFound>> GetSeriesAsync(
-        Guid id, ClaimsPrincipal principal, MoscoRunDbContext db, CancellationToken ct)
+    internal static async Task<Results<Ok<WorkoutSeriesList>, NotFound, ValidationProblem>> GetSeriesAsync(
+        Guid id, SeriesMetric? metric, int? maxPoints, ClaimsPrincipal principal, MoscoRunDbContext db, CancellationToken ct)
     {
+        if (maxPoints is < SeriesDownsampler.MinPoints or > Workout.MaxSeriesSamples)
+        {
+            return Invalid("maxPoints", $"maxPoints deve essere compreso tra {SeriesDownsampler.MinPoints} e {Workout.MaxSeriesSamples}.");
+        }
+
+        if (metric is { } requested && !Enum.IsDefined(requested))
+        {
+            return Invalid("metric", "Grandezza sconosciuta.");
+        }
+
         var workout = await FindOwnedAsync(db, id, principal.OwnerId(), ct);
         if (workout is null)
         {
             return TypedResults.NotFound();
         }
 
-        var series = await db.WorkoutSeries.AsNoTracking().Where(s => s.WorkoutId == id).OrderBy(s => s.Metric).ToListAsync(ct);
+        var query = db.WorkoutSeries.AsNoTracking().Where(s => s.WorkoutId == id);
+        if (metric is { } only)
+        {
+            query = query.Where(s => s.Metric == only);
+        }
+
+        var series = await query.OrderBy(s => s.Metric).ToListAsync(ct);
         return TypedResults.Ok(new WorkoutSeriesList([.. series.Select(s =>
         {
-            var samples = s.Samples();
+            var all = s.Samples();
+            var samples = maxPoints is { } limit ? SeriesDownsampler.Downsample(all, limit) : all;
             return new SeriesDto(
                 s.Metric,
                 s.Metric.Unit(),
                 [.. samples.Select(x => x.Time.ToUnixTimeMilliseconds())],
-                [.. samples.Select(x => x.Value)]);
+                [.. samples.Select(x => x.Value)],
+                all.Count);
         })]));
     }
 
