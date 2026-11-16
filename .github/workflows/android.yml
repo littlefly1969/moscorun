@@ -1,19 +1,14 @@
-name: Android Probe APK
+name: Android MoscoRun APK
 on:
   push:
-    paths: ["android-probe/**", ".github/workflows/android-probe.yml"]
+    paths: ["android/**", ".github/workflows/android.yml"]
   pull_request:
-    paths: ["android-probe/**", ".github/workflows/android-probe.yml"]
+    paths: ["android/**", ".github/workflows/android.yml"]
   workflow_dispatch:
-    inputs:
-      with_samsung:
-        description: "Compila anche Samsung diretto (richiede AAR nella release privata samsung-sdk-local)"
-        type: boolean
-        default: true
 permissions:
   contents: read
 concurrency:
-  group: android-probe-${{ github.event.pull_request.head.ref || github.ref_name }}
+  group: android-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
 jobs:
   build:
@@ -21,13 +16,12 @@ jobs:
     timeout-minutes: 25
     defaults:
       run:
-        working-directory: android-probe
+        working-directory: android
     env:
       MOSCORUN_VERSION_CODE: ${{ github.run_number }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Verifica configurazione Google Maps
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.with_samsung }}
         env:
           GOOGLE_MAPS_ANDROID_API_KEY: ${{ secrets.GOOGLE_MAPS_ANDROID_API_KEY }}
         run: |
@@ -50,52 +44,58 @@ jobs:
       - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
       - name: Installa piattaforma Android
         run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
-      - name: Verifica ripristino firma
+      - name: Test degli script di firma e di verifica APK
         run: python3 -m unittest discover -s scripts/tests -v
-      - name: Test e analisi Health Connect
-        run: bash gradlew testConnectOnlyDebugUnitTest lintConnectOnlyDebug --no-daemon
+      - name: Senza l'SDK Samsung la build si ferma con una diagnostica esplicita
+        run: |
+          if bash gradlew :app:preBuild --no-daemon > "$RUNNER_TEMP/senza-sdk.log" 2>&1; then
+            echo "::error::La build deve fallire quando manca l'AAR Samsung."; exit 1
+          fi
+          grep -q "Manca il Samsung Health Data SDK" "$RUNNER_TEMP/senza-sdk.log" \
+            || { echo "::error::Diagnostica dell'AAR mancante non trovata."; tail -n 40 "$RUNNER_TEMP/senza-sdk.log"; exit 1; }
       - name: Scarica SDK Samsung privato
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.with_samsung }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p app/libs
           gh release download samsung-sdk-local --repo "$GITHUB_REPOSITORY" --pattern samsung-health-data-api.aar --dir app/libs
           echo 'f5d3d83cf00b97d0bb1b1db4da076e861eb1c3e6e704d89a34e68909d2f38654  app/libs/samsung-health-data-api.aar' | sha256sum --check
-      - name: Test e analisi Samsung
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.with_samsung }}
-        run: bash gradlew testWithSamsungDebugUnitTest lintWithSamsungDebug --no-daemon
+      - name: Test e analisi statica
+        run: bash gradlew testDebugUnitTest lintDebug --no-daemon
       - name: Ripristina firma stabile
         env:
           MOSCORUN_SIGNING_BUNDLE: ${{ secrets.MOSCORUN_SIGNING_BUNDLE }}
         run: |
           python3 scripts/restore-signing.py --directory "$RUNNER_TEMP/moscorun-signing"
           echo "MOSCORUN_SIGNING_PROPERTIES=$RUNNER_TEMP/moscorun-signing/signing.properties" >> "$GITHUB_ENV"
-      - name: Compila APK Health Connect con firma stabile
-        run: bash gradlew assembleConnectOnlyDebug --no-daemon
-      - name: Compila APK Samsung con firma stabile
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.with_samsung }}
+      - name: Compila l'APK MoscoRun con firma stabile
         env:
           GOOGLE_MAPS_ANDROID_API_KEY: ${{ secrets.GOOGLE_MAPS_ANDROID_API_KEY }}
-        run: bash gradlew assembleWithSamsungDebug --no-daemon
-      - name: Verifica firme, identificativi e versioni APK
+        run: bash gradlew assembleDebug --no-daemon
+      - name: Verifica che l'APK sia uno solo, con firma, identificativo, etichetta e versione attesi
         run: python3 scripts/verify-apks.py
+      - name: Prepara l'artefatto con il solo APK
+        run: |
+          mkdir -p "$RUNNER_TEMP/apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/apk/MoscoRun-${MOSCORUN_VERSION_CODE}.apk"
+          test "$(find "$RUNNER_TEMP/apk" -type f | wc -l)" -eq 1
+      # The artifact holds the APK and nothing else: the Samsung AAR, the signing material and the reports stay out.
       - name: Pubblica APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: moscorun-probe-apk-${{ github.run_number }}-${{ github.run_attempt }}
-          path: android-probe/app/build/outputs/apk/**/debug/*.apk
+          name: MoscoRun-apk-${{ github.run_number }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/apk/*.apk
           if-no-files-found: error
           retention-days: 7
       - name: Pubblica risultati dei controlli
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: moscorun-probe-checks-${{ github.run_number }}-${{ github.run_attempt }}
+          name: MoscoRun-controlli-${{ github.run_number }}-${{ github.run_attempt }}
           path: |
-            android-probe/app/build/reports/tests/
-            android-probe/app/build/reports/lint-results-*.html
-            android-probe/app/build/reports/signing/
+            android/app/build/reports/tests/
+            android/app/build/reports/lint-results-*.html
+            android/app/build/reports/signing/
           if-no-files-found: ignore
           retention-days: 7
       - name: Rimuovi materiale di firma dal runner
