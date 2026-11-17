@@ -1,0 +1,593 @@
+{
+  "schemaVersion": 1,
+  "metrics": [
+    {
+      "metric": "heartRate",
+      "unit": "bpm",
+      "category": "cardiovascular",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "restingHeartRate",
+      "unit": "bpm",
+      "category": "cardiovascular",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "rrInterval",
+      "unit": "ms",
+      "category": "cardiovascular",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "hrvRmssd",
+      "unit": "ms",
+      "category": "cardiovascular",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "hrvSdnn",
+      "unit": "ms",
+      "category": "cardiovascular",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "spo2",
+      "unit": "%",
+      "category": "cardiovascular",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "respirationRate",
+      "unit": "1/min",
+      "category": "cardiovascular",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "skinTemperature",
+      "unit": "Cel",
+      "category": "cardiovascular",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "speed",
+      "unit": "m/s",
+      "category": "locomotion",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "distance",
+      "unit": "m",
+      "category": "locomotion",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "cadence",
+      "unit": "1/min",
+      "category": "locomotion",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "power",
+      "unit": "W",
+      "category": "locomotion",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "altitude",
+      "unit": "m",
+      "category": "locomotion",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "grade",
+      "unit": "%",
+      "category": "locomotion",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "groundContactTime",
+      "unit": "ms",
+      "category": "locomotion",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "groundContactBalance",
+      "unit": "%",
+      "category": "locomotion",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "verticalOscillation",
+      "unit": "m",
+      "category": "locomotion",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "verticalRatio",
+      "unit": "%",
+      "category": "locomotion",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "stepLength",
+      "unit": "m",
+      "category": "locomotion",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "strideLength",
+      "unit": "m",
+      "category": "locomotion",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "stepSpeedLoss",
+      "unit": "m",
+      "category": "locomotion",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "stepSpeedLossPercent",
+      "unit": "%",
+      "category": "locomotion",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "accelerationX",
+      "unit": "m/s2",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "accelerationY",
+      "unit": "m/s2",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "accelerationZ",
+      "unit": "m/s2",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "angularVelocityX",
+      "unit": "rad/s",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "angularVelocityY",
+      "unit": "rad/s",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "angularVelocityZ",
+      "unit": "rad/s",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "ppg",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "ecg",
+      "unit": "mV",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "eda",
+      "unit": "uS",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "muscleOxygenSaturation",
+      "unit": "%",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "steps",
+      "unit": "1",
+      "category": "daily",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "sleepDuration",
+      "unit": "s",
+      "category": "daily",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "sleepEfficiency",
+      "unit": "%",
+      "category": "daily",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "sleepStageDuration",
+      "unit": "s",
+      "category": "daily",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "napDuration",
+      "unit": "s",
+      "category": "daily",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "sedentaryDuration",
+      "unit": "s",
+      "category": "daily",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "activeDuration",
+      "unit": "s",
+      "category": "daily",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "vo2max",
+      "unit": "mL/kg/min",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "provider_estimate"
+    },
+    {
+      "metric": "lactateThresholdHeartRate",
+      "unit": "bpm",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "provider_estimate"
+    },
+    {
+      "metric": "lactateThresholdSpeed",
+      "unit": "m/s",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "provider_estimate"
+    },
+    {
+      "metric": "aerobicTrainingEffect",
+      "unit": "native",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "provider_estimate"
+    },
+    {
+      "metric": "anaerobicTrainingEffect",
+      "unit": "native",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "provider_estimate"
+    },
+    {
+      "metric": "trainingLoad",
+      "unit": "native",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "provider_estimate"
+    },
+    {
+      "metric": "recoveryTime",
+      "unit": "s",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "provider_estimate"
+    },
+    {
+      "metric": "bodyBattery",
+      "unit": "native",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "provider_estimate"
+    },
+    {
+      "metric": "stress",
+      "unit": "native",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "provider_estimate"
+    },
+    {
+      "metric": "sleepScore",
+      "unit": "native",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "provider_estimate"
+    },
+    {
+      "metric": "energyExpenditure",
+      "unit": "kcal",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "provider_estimate"
+    },
+    {
+      "metric": "restingEnergyExpenditure",
+      "unit": "kcal",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "provider_estimate"
+    },
+    {
+      "metric": "sweatLoss",
+      "unit": "mL",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "provider_estimate"
+    },
+    {
+      "metric": "enduranceScore",
+      "unit": "native",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "provider_estimate"
+    },
+    {
+      "metric": "hillScore",
+      "unit": "native",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "provider_estimate"
+    },
+    {
+      "metric": "weight",
+      "unit": "kg",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "impedance",
+      "unit": "ohm",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "fatMass",
+      "unit": "kg",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "fatPercentage",
+      "unit": "%",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "fatFreeMass",
+      "unit": "kg",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "muscleMass",
+      "unit": "kg",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "bodyWater",
+      "unit": "kg",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "bodyWaterPercentage",
+      "unit": "%",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "boneMass",
+      "unit": "kg",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "visceralFat",
+      "unit": "native",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "energyIntake",
+      "unit": "kcal",
+      "category": "nutrition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "carbohydrateIntake",
+      "unit": "g",
+      "category": "nutrition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "proteinIntake",
+      "unit": "g",
+      "category": "nutrition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "fatIntake",
+      "unit": "g",
+      "category": "nutrition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "fluidIntake",
+      "unit": "mL",
+      "category": "nutrition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "sodiumIntake",
+      "unit": "mg",
+      "category": "nutrition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "caffeineIntake",
+      "unit": "mg",
+      "category": "nutrition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "airTemperature",
+      "unit": "Cel",
+      "category": "environment",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "humidity",
+      "unit": "%",
+      "category": "environment",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "windSpeed",
+      "unit": "m/s",
+      "category": "environment",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "barometricPressure",
+      "unit": "hPa",
+      "category": "environment",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "rpe",
+      "unit": "0-10",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "fatigue",
+      "unit": "0-10",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "stressPerceived",
+      "unit": "0-10",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "soreness",
+      "unit": "0-10",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "pain",
+      "unit": "0-10",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "sleepQuality",
+      "unit": "0-10",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "hunger",
+      "unit": "0-10",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "gastrointestinalDiscomfort",
+      "unit": "0-10",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "motivation",
+      "unit": "0-10",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    }
+  ]
+}

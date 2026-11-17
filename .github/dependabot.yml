@@ -32,6 +32,17 @@ updates:
       runtime:
         dependency-type: production
 
+  # Librerie Node di supporto (tools/*): stessa cadenza della parte web.
+  - package-ecosystem: npm
+    directories: ["/tools/*"]
+    schedule: { interval: weekly, day: monday, time: "06:00", timezone: Europe/Rome }
+    commit-message: { prefix: deps }
+    groups:
+      tools-tooling:
+        dependency-type: development
+      tools-runtime:
+        dependency-type: production
+
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly, day: monday, time: "06:00", timezone: Europe/Rome }
