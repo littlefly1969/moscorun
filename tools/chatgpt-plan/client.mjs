@@ -169,7 +169,7 @@ export async function* respond(connection, { ownerId, model, input, instructions
 
 export function seal(connection, key) {
   if (!Buffer.isBuffer(key) || key.length !== 32 || !text(connection.ownerId)) fail("invalid_encryption_key");
-  const iv = randomBytes(12), cipher = createCipheriv("aes-256-gcm", key, iv);
+  const iv = randomBytes(12), cipher = createCipheriv("aes-256-gcm", key, iv, { authTagLength: 16 });
   cipher.setAAD(Buffer.from(connection.ownerId));
   const data = Buffer.concat([cipher.update(JSON.stringify(connection)), cipher.final()]);
   return { version: 1, iv: iv.toString("base64url"), tag: cipher.getAuthTag().toString("base64url"), data: data.toString("base64url") };
@@ -178,8 +178,10 @@ export function seal(connection, key) {
 export function unseal(envelope, key, ownerId) {
   try {
     if (envelope.version !== 1 || !text(ownerId)) fail("invalid_envelope");
-    const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(envelope.iv, "base64url"));
-    decipher.setAAD(Buffer.from(ownerId)); decipher.setAuthTag(Buffer.from(envelope.tag, "base64url"));
+    const iv = Buffer.from(envelope.iv, "base64url"), tag = Buffer.from(envelope.tag, "base64url");
+    if (!Buffer.isBuffer(key) || key.length !== 32 || iv.length !== 12 || tag.length !== 16) fail("invalid_envelope");
+    const decipher = createDecipheriv("aes-256-gcm", key, iv, { authTagLength: 16 });
+    decipher.setAAD(Buffer.from(ownerId)); decipher.setAuthTag(tag);
     const record = JSON.parse(Buffer.concat([decipher.update(Buffer.from(envelope.data, "base64url")), decipher.final()]));
     if (record.ownerId !== ownerId) fail("account_mismatch");
     return record;

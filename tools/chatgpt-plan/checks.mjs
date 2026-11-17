@@ -61,5 +61,8 @@ export async function runChecks() {
     fetchImpl: async () => ({ ok: true, body: events('data: {"type":"response.output_text.delta","delta":"partial"}\n\n') }) })) void e; }); checks++;
   await assert.rejects(async () => { for await (const e of respond(connection, { ownerId, model: "test-model", input: [],
     fetchImpl: async () => ({ ok: true, body: events('data: {"type":"response.failed","response":{"error":{"code":"subscription_sharing_usage_limit_exceeded"}}}\n\n') }) })) void e; }); checks++;
+  ok(() => assert.throws(() => unseal({...encrypted,tag:Buffer.from(encrypted.tag,"base64url").subarray(0,4).toString("base64url")},key,ownerId)));
+  ok(() => assert.throws(() => unseal({...encrypted,iv:Buffer.alloc(8).toString("base64url")},key,ownerId)));
+  ok(() => assert.throws(() => unseal(encrypted,randomBytes(32),ownerId)));
   return { checks, status: "passed" };
 }
