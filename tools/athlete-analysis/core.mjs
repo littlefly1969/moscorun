@@ -83,7 +83,7 @@ export function buildContext(dataset, { ownerId, asOf, maxWorkouts=20, maxObserv
   const eligible=all.filter(w=>available(w)&&finite(stamp(w.endedAt))&&stamp(w.endedAt)<=at).sort((a,b)=>stamp(b.startedAt)-stamp(a.startedAt));
   const selected=eligible.slice(0,maxWorkouts);
   const workouts=selected.map(w=>({id:w.id,revision:w.revision,source:w.source,startedAt:w.startedAt,endedAt:w.endedAt,
-    series:(w.series??[]).filter(s=>available(s)).map(s=>({metric:s.metric,unit:s.unit,source:s.source??w.source,
+    series:(w.series??[]).filter(s=>available(s)&&units.has(s.metric)&&units.get(s.metric)===s.unit).map(s=>({metric:s.metric,unit:s.unit,source:s.source??w.source,
       quality:auditSeries(s.samples.filter(p=>stamp(p.time)<=at),{start:w.startedAt,end:w.endedAt})}))}));
   const eligibleObservations=observations.filter(o=>available(o)&&stamp(o.time)<=at&&units.has(o.metric));
   const eligibleFeedback=feedback.filter(f=>available(f)&&stamp(f.time)<=at);

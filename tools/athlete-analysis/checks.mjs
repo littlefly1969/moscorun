@@ -39,5 +39,7 @@ export async function runChecks(){
   check(()=>assert.equal(JSON.stringify(privateContext).includes("privateToken"),false));
   check(()=>assert.equal(JSON.stringify(privateContext).includes("latitude"),false));
   check(()=>assert.equal(causalAlign(Array.from({length:10000},(_,i)=>({time:i*1000,value:i})),[9999000])[0].value,9999));
+  const withCoordinates=buildContext({...dataset,workouts:[{...workout,series:[...workout.series,{...workout.series[0],metric:"latitude",unit:"deg"}]}]},{ownerId:"a",asOf:"2026-01-02"});
+  check(()=>assert.equal(withCoordinates.workouts[0].series.length,1));
   return {checks,status:"passed"};
 }
