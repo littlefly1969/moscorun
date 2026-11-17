@@ -5,7 +5,7 @@ b04dd4ada3729fd2a7dc8fe1ffd09951103acaba:backend/tests/MoscoRun.IntegrationTests
 # Password di prova nel test di "moscorun.sh check" (commit 2c88829), sostituita da una funzione che non
 # espone il valore come assegnazione. Mai stata una credenziale reale.
 2c88829528a82a9e114f0d38bace6640f05af290:deploy/tests/check.test.sh:generic-api-key:79
-# Token sintetici dei test Android del ramo app definitiva (FakeCipher, server moscorun.example).
-# Esclusioni limitate alle due occorrenze storiche verificate; nessuna regola o percorso disabilitato.
+# Token di prova fittizi nei test dell'app Android (commit 950723c), sostituiti da valori composti a
+# tempo di esecuzione. Mai stati credenziali reali.
 950723c45af79662ee3d0cb252ad29a7111032a8:android/app/src/test/java/it/moscorun/app/settings/MemoryPreferences.kt:generic-api-key:61
 950723c45af79662ee3d0cb252ad29a7111032a8:android/app/src/test/java/it/moscorun/app/settings/MemoryPreferences.kt:generic-api-key:62
