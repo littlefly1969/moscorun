@@ -1,7 +1,7 @@
 name: Garmin Personal client
 on:
   pull_request:
-    paths: ['tools/garmin-personal/**', '.github/workflows/garmin-personal.yml']
+    paths: ['.gitleaksignore', 'tools/garmin-personal/**', '.github/workflows/garmin-personal.yml']
   workflow_dispatch:
 permissions:
   contents: read
