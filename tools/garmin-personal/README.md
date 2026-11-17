@@ -3,6 +3,7 @@
 Client personale Node 22 per API ufficiale Garmin, senza scraping e senza login con password. La chiave del titolare viene passata solo al costruttore e non viene salvata o stampata dal modulo.
 
 ## Presente
+
 - Chiave personale → access token, cache e rinnovo dopo scadenza/401.
 - Finestra di attività paginata, deduplicazione e errore esplicito se la lettura è incompleta.
 - Dettaglio, download del file originale e lettura iniziale di categorie giornaliere; readHealth copre esplicitamente i 19 endpoint Health del catalogo pubblico verificato (sonno, HRV, peso, idratazione, passi, stress, nutrizione, Body Battery e altri payload disponibili). I payload rimangono nativi finché non esiste una conversione verificata.
@@ -11,10 +12,16 @@ Client personale Node 22 per API ufficiale Garmin, senza scraping e senza login 
 - Serie normalizzate iniziali e campi nativi con unità proprie: nessuna promessa di risoluzione a un secondo o disponibilità di ogni metrica.
 
 ## Verifica
-`cd tools/garmin-personal && npm ci && npm test`
+
+```sh
+cd tools/garmin-personal && npm ci && npm run lint && npm run format:check && npm test
+```
+
+Test con `node:test` e soglie di copertura (righe 90%, rami 80%, funzioni 90%). In CI li esegue il workflow `tools.yml`, che scansiona anche le dipendenze con Trivy.
 Provider HTTP simulato, dati sintetici e file FIT minimo ufficiale. Nessuna credenziale o corsa personale nelle fixture.
 
 ## Integrazione applicativa e accettazione
+
 - [ ] Creazione amministrativa del secondo utente con Identity e test di accesso incrociato.
 - [ ] Associazione verificata Garmin → owner MoscoRun; le chiavi non vanno condivise fra atleti.
 - [ ] Archivio cifrato delle credenziali, chiave separata e scadenza/revoca visibili.
@@ -25,9 +32,14 @@ Provider HTTP simulato, dati sintetici e file FIT minimo ufficiale. Nessuna cred
 - [ ] Verifica live di attività, sonno, HRV e altre categorie disponibili sull’account scelto; confronto campioni e unità con Garmin.
 - [ ] UI di collegamento, stato e disconnessione; sincronizzazione automatica solo dopo prova manuale.
 
-Questa è una libreria eseguibile e testata, non ancora un servizio schedulato o una schermata nel cruscotto. PR draft fino all’integrazione e al test reale. Le API personali riguardano i dati propri; per un servizio multiutente va adottato il canale Business appropriato.
+Questa è una libreria eseguibile e testata, non ancora un servizio schedulato o una schermata nel cruscotto. PR draft fino all’integrazione e al test reale. MoscoRun è un'applicazione self-hosted personale: ogni installazione usa la chiave Personal API del proprio atleta, coerentemente con l'uso personale previsto da Garmin.
+
+## Ruolo nell'architettura
+
+Prototipo di riferimento eseguibile: fissa protocollo, limiti e conservazione dei dati con test. Il connettore di produzione andrà nel backend .NET (o nell'agente di sincronizzazione), portando questi stessi casi di test; la libreria Node non viene distribuita nell'immagine.
 
 ## Fonti ufficiali (17 novembre 2026)
+
 - https://developer.garmin.com/gc-developer-program/personal/personal-api/
 - https://developer.garmin.com/gc-developer-program/personal/personal-faq
 - https://developer.garmin.com/gc-developer-program/personal/swagger-docs

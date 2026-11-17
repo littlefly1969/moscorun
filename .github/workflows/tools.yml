@@ -1,0 +1,40 @@
+# Librerie Node di supporto in tools/<nome>: ogni cartella con package.json viene verificata con
+# installazione da lock file, lint, formattazione, test con soglie di copertura e scansione delle dipendenze.
+name: Tools (Node)
+on:
+  pull_request:
+    paths: ['tools/**', '.github/workflows/tools.yml']
+  push:
+    branches: [main]
+    paths: ['tools/**', '.github/workflows/tools.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: tools-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+env:
+  TRIVY_IMAGE: ghcr.io/aquasecurity/trivy:0.76.2
+jobs:
+  tools:
+    name: Tools (Node 22)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+      - name: Lint, formattazione e test
+        run: |
+          set -euo pipefail
+          for manifest in tools/*/package.json; do
+            dir="$(dirname "$manifest")"
+            echo "::group::$dir"
+            (cd "$dir" && npm ci --no-audit --no-fund && npm run lint && npm run format:check && npm test)
+            echo "::endgroup::"
+          done
+      - name: Vulnerabilità delle dipendenze (Trivy, blocca HIGH/CRITICAL risolvibili)
+        run: >-
+          docker run --rm -v "$PWD/tools:/src:ro" "$TRIVY_IMAGE"
+          fs --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --skip-dirs "**/node_modules" /src
