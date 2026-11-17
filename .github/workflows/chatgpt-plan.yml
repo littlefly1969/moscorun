@@ -1,7 +1,7 @@
 name: ChatGPT plan client
 on:
   pull_request:
-    paths: ['tools/chatgpt-plan/**', '.github/workflows/chatgpt-plan.yml']
+    paths: ['.gitleaksignore', 'tools/chatgpt-plan/**', '.github/workflows/chatgpt-plan.yml']
   workflow_dispatch:
 permissions:
   contents: read
