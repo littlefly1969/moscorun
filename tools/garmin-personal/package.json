@@ -1,0 +1,15 @@
+{
+  "name": "moscorun-garmin-personal",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node run-checks.mjs"
+  },
+  "dependencies": {
+    "@garmin/fitsdk": "21.221.0"
+  }
+}
