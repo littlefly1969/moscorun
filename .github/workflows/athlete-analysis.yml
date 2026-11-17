@@ -1,7 +1,7 @@
 name: Athlete analysis foundations
 on:
   pull_request:
-    paths: ['tools/athlete-analysis/**', 'docs/ricerca/**', 'docs/piano-ai-allenamento.md', '.github/workflows/athlete-analysis.yml']
+    paths: ['.gitleaksignore', 'tools/athlete-analysis/**', 'docs/ricerca/**', 'docs/piano-ai-allenamento.md', '.github/workflows/athlete-analysis.yml']
   workflow_dispatch:
 permissions:
   contents: read
