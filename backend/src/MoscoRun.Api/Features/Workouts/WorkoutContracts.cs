@@ -93,7 +93,11 @@ public sealed record WorkoutSummaryDto(
         w.UpdatedAt);
 }
 
-public sealed record WorkoutList(IReadOnlyList<WorkoutSummaryDto> Items, DateTimeOffset From, DateTimeOffset To);
+/// <param name="Items">Riepiloghi, dal più recente.</param>
+/// <param name="From">Limite inferiore applicato; assente se la lista paginata scorre tutto lo storico.</param>
+/// <param name="To">Limite superiore applicato.</param>
+/// <param name="NextCursor">Presente solo nelle liste paginate quando esistono altri elementi: va passato come <c>cursor</c>.</param>
+public sealed record WorkoutList(IReadOnlyList<WorkoutSummaryDto> Items, DateTimeOffset? From, DateTimeOffset To, string? NextCursor = null);
 
 /// <param name="Metric">Grandezza.</param>
 /// <param name="Unit">Unità di misura.</param>
@@ -103,8 +107,13 @@ public sealed record SeriesInfoDto(SeriesMetric Metric, string Unit, int SampleC
 /// <summary>Dettaglio: riepilogo più l'elenco delle serie disponibili.</summary>
 public sealed record WorkoutDetailDto(WorkoutSummaryDto Summary, IReadOnlyList<SeriesInfoDto> Series);
 
-/// <summary>Serie completa: <c>times</c> in millisecondi Unix e <c>values</c> allineati per indice.</summary>
-public sealed record SeriesDto(SeriesMetric Metric, string Unit, IReadOnlyList<long> Times, IReadOnlyList<double> Values);
+/// <summary>Serie: <c>times</c> in millisecondi Unix e <c>values</c> allineati per indice.</summary>
+/// <param name="Metric">Grandezza.</param>
+/// <param name="Unit">Unità di misura.</param>
+/// <param name="Times">Istanti dei campioni restituiti, in millisecondi Unix.</param>
+/// <param name="Values">Valori dei campioni restituiti.</param>
+/// <param name="TotalSamples">Campioni salvati; maggiore dei restituiti quando è stato richiesto <c>maxPoints</c>.</param>
+public sealed record SeriesDto(SeriesMetric Metric, string Unit, IReadOnlyList<long> Times, IReadOnlyList<double> Values, int TotalSamples);
 
 public sealed record WorkoutSeriesList(IReadOnlyList<SeriesDto> Items);
 

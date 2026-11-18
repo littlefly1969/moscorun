@@ -16,4 +16,4 @@ sdk_exit=${PIPESTATUS[1]}
 set -o pipefail
 [[ "$sdk_exit" -eq 0 ]]
 "$sdk_path/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$sdk_path" 'platforms;android-36' 'build-tools;36.0.0'
-printf 'Ambiente pronto. Compila con: cd android-probe && bash gradlew assembleConnectOnlyDebug\n'
+printf 'Ambiente pronto. Compila con: cd android && bash gradlew assembleDebug (serve l'AAR Samsung: vedi android/README.md)\n'

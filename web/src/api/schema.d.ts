@@ -109,6 +109,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/device": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Verifica il token del dispositivo e ne restituisce l'identità.
+     * @description Usato dagli agenti per la verifica della connessione: non modifica dati.
+     */
+    get: operations["GetDeviceIdentity"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/dashboard/summary": {
     parameters: {
       query?: never;
@@ -181,6 +201,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
+    /**
+     * Riepiloghi degli allenamenti, dal più recente; paginati a cursore con pageSize o cursor.
+     * @description Senza pageSize né cursor: ultimi 90 giorni (o l'intervallo from/to), al più 1000 elementi, come nelle versioni precedenti. Con pageSize (1-200) o cursor: una pagina ordinata per (startedAt, id) decrescenti su tutto lo storico o sull'intervallo from/to; nextCursor, se presente, va passato come cursor insieme agli stessi from/to per la pagina successiva. Lo scorrimento è stabile: gli allenamenti aggiunti nel frattempo non spostano né ripetono quelli già letti.
+     */
     get: operations["ListWorkouts"];
     put?: never;
     post?: never;
@@ -230,6 +254,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
+    /**
+     * Serie temporali dell'allenamento; metric ne seleziona una, maxPoints la riduce per i grafici.
+     * @description Senza parametri restituisce tutte le serie complete. metric limita la risposta a una grandezza (elenco vuoto se l'allenamento non la contiene). maxPoints riduce ogni serie conservando minimi e massimi reali di ogni intervallo; totalSamples indica quanti campioni sono salvati.
+     */
     get: operations["GetWorkoutSeries"];
     put?: never;
     post?: never;
@@ -367,6 +395,24 @@ export interface components {
        * @description Revoca del token, se avvenuta.
        */
       revokedAt: null | string;
+    };
+    /** @description Identità del dispositivo autenticato con il proprio token. */
+    DeviceIdentityDto: {
+      /**
+       * Format: uuid
+       * @description Dispositivo a cui appartiene il token.
+       */
+      deviceId: string;
+      /** @description Nome scelto alla registrazione. */
+      name: string;
+      /** @description Tipo di agente. */
+      kind: components["schemas"]["DeviceKind"];
+      /**
+       * Format: uuid
+       * @description Identificativo stabile della persona proprietaria: permette all'agente di tenere separato lo stato di
+       *     sincronizzazione quando viene collegato a un'altra persona o a un altro server.
+       */
+      accountId: string;
     };
     /**
      * @description Tipo di agente che invia dati al server.
@@ -533,12 +579,21 @@ export interface components {
       /** Format: double */
       value: null | number;
     };
-    /** @description Serie completa: `times` in millisecondi Unix e `values` allineati per indice. */
+    /** @description Serie: `times` in millisecondi Unix e `values` allineati per indice. */
     SeriesDto: {
+      /** @description Grandezza. */
       metric: components["schemas"]["SeriesMetric"];
+      /** @description Unità di misura. */
       unit: string;
+      /** @description Istanti dei campioni restituiti, in millisecondi Unix. */
       times: number[];
+      /** @description Valori dei campioni restituiti. */
       values: number[];
+      /**
+       * Format: int32
+       * @description Campioni salvati; maggiore dei restituiti quando è stato richiesto `maxPoints`.
+       */
+      totalSamples: number;
     };
     SeriesInfoDto: {
       /** @description Grandezza. */
@@ -639,11 +694,20 @@ export interface components {
       series: components["schemas"]["SeriesInfoDto"][];
     };
     WorkoutList: {
+      /** @description Riepiloghi, dal più recente. */
       items: components["schemas"]["WorkoutSummaryDto"][];
-      /** Format: date-time */
-      from: string;
-      /** Format: date-time */
+      /**
+       * Format: date-time
+       * @description Limite inferiore applicato; assente se la lista paginata scorre tutto lo storico.
+       */
+      from: null | string;
+      /**
+       * Format: date-time
+       * @description Limite superiore applicato.
+       */
       to: string;
+      /** @description Presente solo nelle liste paginate quando esistono altri elementi: va passato come `cursor`. */
+      nextCursor?: null | string;
     };
     WorkoutSeriesList: {
       items: components["schemas"]["SeriesDto"][];
@@ -852,6 +916,33 @@ export interface operations {
       };
     };
   };
+  GetDeviceIdentity: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DeviceIdentityDto"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   GetDashboardSummary: {
     parameters: {
       query?: never;
@@ -962,6 +1053,8 @@ export interface operations {
       query?: {
         from?: string;
         to?: string;
+        pageSize?: number;
+        cursor?: string;
       };
       header?: never;
       path?: never;
@@ -1060,7 +1153,10 @@ export interface operations {
   };
   GetWorkoutSeries: {
     parameters: {
-      query?: never;
+      query?: {
+        metric?: components["schemas"]["SeriesMetric"];
+        maxPoints?: number;
+      };
       header?: never;
       path: {
         id: string;
@@ -1076,6 +1172,15 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["WorkoutSeriesList"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
         };
       };
       /** @description Not Found */

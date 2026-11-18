@@ -178,4 +178,221 @@ public sealed class WorkoutQueryTests(ApiFactory factory)
 
         (await otherPhone.GetAsync($"/api/v1/workouts/{workout.Id}/route", Ct)).StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
+
+    private async Task<(HttpClient User, HttpClient Phone, List<Guid> NewestFirst)> SeedManyAsync(int count)
+    {
+        var (user, _) = await factory.CreateUserClientAsync();
+        var (phone, _) = await factory.CreateDeviceClientAsync(user, "Telefono", DeviceKind.PhoneBridge);
+        var ids = new List<Guid>();
+        for (var i = 0; i < count; i++)
+        {
+            // Dal più recente al più vecchio, anche oltre i 90 giorni della finestra storica.
+            ids.Add(await IngestAsync(phone, factory.Time.GetUtcNow().AddDays(-1 - (i * 20)), $"many:{i}"));
+        }
+
+        return (user, phone, ids);
+    }
+
+    private static async Task<Guid> IngestAsync(HttpClient phone, DateTimeOffset start, string sourceId)
+    {
+        var response = await phone.PostAsJsonAsync("/api/v1/ingest/workouts", new
+        {
+            source = "samsung-health",
+            sourceId,
+            revision = 1,
+            activityType = "RUNNING",
+            startedAt = start,
+            endedAt = start.AddMinutes(30),
+        }, Ct);
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<WorkoutSummaryDto>(Json.Options, Ct))!.Id;
+    }
+
+    private static async Task<List<Guid>> ReadAllPagesAsync(HttpClient client, string query, Func<int, Task>? betweenPages = null)
+    {
+        var ids = new List<Guid>();
+        string? cursor = null;
+        for (var page = 0; page < 100; page++)
+        {
+            var url = $"/api/v1/workouts?{query}{(cursor is null ? string.Empty : $"&cursor={cursor}")}";
+            var list = (await client.GetFromJsonAsync<WorkoutList>(url, Json.Options, Ct))!;
+            ids.AddRange(list.Items.Select(w => w.Id));
+            cursor = list.NextCursor;
+            if (cursor is null)
+            {
+                return ids;
+            }
+
+            if (betweenPages is not null)
+            {
+                await betweenPages(page);
+            }
+        }
+
+        throw new InvalidOperationException("La paginazione non termina.");
+    }
+
+    [Fact]
+    public async Task Paged_list_walks_the_whole_history_in_stable_order()
+    {
+        var (user, _, ids) = await SeedManyAsync(7);
+
+        var first = (await user.GetFromJsonAsync<WorkoutList>("/api/v1/workouts?pageSize=3", Json.Options, Ct))!;
+        var all = await ReadAllPagesAsync(user, "pageSize=3");
+
+        first.Items.Select(w => w.Id).Should().Equal(ids.Take(3));
+        first.NextCursor.Should().NotBeNullOrEmpty();
+        first.From.Should().BeNull("la lista paginata non applica la finestra di 90 giorni");
+        all.Should().Equal(ids, "sette allenamenti su 121 giorni, tutti e nell'ordine dal più recente");
+    }
+
+    [Fact]
+    public async Task Last_page_has_no_cursor_even_when_exactly_full()
+    {
+        var (user, _, ids) = await SeedManyAsync(4);
+
+        var first = (await user.GetFromJsonAsync<WorkoutList>("/api/v1/workouts?pageSize=2", Json.Options, Ct))!;
+        var second = (await user.GetFromJsonAsync<WorkoutList>($"/api/v1/workouts?pageSize=2&cursor={first.NextCursor}", Json.Options, Ct))!;
+
+        second.Items.Select(w => w.Id).Should().Equal(ids.Skip(2));
+        second.NextCursor.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Workouts_added_or_removed_while_scrolling_do_not_shift_the_pages()
+    {
+        var (user, phone, ids) = await SeedManyAsync(6);
+        var added = new List<Guid>();
+
+        var all = await ReadAllPagesAsync(user, "pageSize=2", async page =>
+        {
+            // Uno più recente di tutti (prima della posizione corrente) e uno in mezzo a quelli ancora da leggere.
+            added.Add(await IngestAsync(phone, factory.Time.GetUtcNow().AddHours(-1 - page), $"newer:{page}"));
+            if (page == 0)
+            {
+                added.Add(await IngestAsync(phone, factory.Time.GetUtcNow().AddDays(-70), "middle:0"));
+            }
+        });
+
+        all.Should().OnlyHaveUniqueItems();
+        all.Should().Contain(ids, "nessun allenamento presente all'inizio viene saltato");
+        all.Should().Contain(added[1], "quello inserito più avanti nello scorrimento viene incontrato");
+        all.Where(ids.Contains).Should().Equal(ids);
+    }
+
+    [Fact]
+    public async Task Workouts_starting_at_the_same_instant_are_neither_skipped_nor_repeated()
+    {
+        var (user, _) = await factory.CreateUserClientAsync();
+        var (phone, _) = await factory.CreateDeviceClientAsync(user, "Telefono", DeviceKind.PhoneBridge);
+        var start = factory.Time.GetUtcNow().AddDays(-3);
+        var ids = new List<Guid>();
+        for (var i = 0; i < 5; i++)
+        {
+            ids.Add(await IngestAsync(phone, start, $"same:{i}"));
+        }
+
+        var all = await ReadAllPagesAsync(user, "pageSize=2");
+
+        all.Should().BeEquivalentTo(ids);
+        all.Should().OnlyHaveUniqueItems();
+    }
+
+    [Fact]
+    public async Task Paged_list_honours_from_and_to()
+    {
+        var (user, _, ids) = await SeedManyAsync(6);
+        var from = Uri.EscapeDataString(factory.Time.GetUtcNow().AddDays(-70).ToString("O"));
+        var to = Uri.EscapeDataString(factory.Time.GetUtcNow().AddDays(-10).ToString("O"));
+
+        var all = await ReadAllPagesAsync(user, $"pageSize=1&from={from}&to={to}");
+
+        all.Should().Equal(ids.Skip(1).Take(3), "allenamenti a 21, 41 e 61 giorni");
+    }
+
+    [Fact]
+    public async Task List_without_paging_parameters_keeps_the_previous_contract()
+    {
+        var (user, _, ids) = await SeedManyAsync(6);
+
+        var list = (await user.GetFromJsonAsync<WorkoutList>("/api/v1/workouts", Json.Options, Ct))!;
+
+        list.Items.Select(w => w.Id).Should().Equal(ids.Take(5), "finestra predefinita di 90 giorni");
+        list.NextCursor.Should().BeNull();
+        list.From.Should().Be(list.To.AddDays(-90));
+    }
+
+    [Theory]
+    [InlineData("pageSize=0")]
+    [InlineData("pageSize=201")]
+    [InlineData("pageSize=-1")]
+    [InlineData("cursor=")]
+    [InlineData("cursor=abc")]
+    [InlineData("pageSize=10&cursor=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA%3D")]
+    public async Task Invalid_paging_parameters_are_rejected(string query)
+    {
+        var (user, _) = await factory.CreateUserClientAsync();
+
+        (await user.GetAsync($"/api/v1/workouts?{query}", Ct)).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Cursor_of_another_person_never_reveals_their_workouts()
+    {
+        var (owner, _, _) = await SeedManyAsync(3);
+        var cursor = (await owner.GetFromJsonAsync<WorkoutList>("/api/v1/workouts?pageSize=1", Json.Options, Ct))!.NextCursor;
+        var (stranger, _) = await factory.CreateUserClientAsync();
+        var (strangerPhone, _) = await factory.CreateDeviceClientAsync(stranger, "Altro", DeviceKind.PhoneBridge);
+
+        var list = (await strangerPhone.GetFromJsonAsync<WorkoutList>($"/api/v1/workouts?pageSize=50&cursor={cursor}", Json.Options, Ct))!;
+
+        list.Items.Should().BeEmpty();
+        list.NextCursor.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Phone_token_can_page_through_workouts()
+    {
+        var (_, phone, ids) = await SeedManyAsync(3);
+
+        (await ReadAllPagesAsync(phone, "pageSize=2")).Should().Equal(ids);
+    }
+
+    [Fact]
+    public async Task Single_metric_can_be_requested_and_reduced_for_charts()
+    {
+        var (user, _, workout) = await SeedAsync(points: 3600);
+        var url = $"/api/v1/workouts/{workout.Id}/series";
+
+        var hr = (await user.GetFromJsonAsync<WorkoutSeriesList>($"{url}?metric=HeartRate&maxPoints=300", Json.Options, Ct))!;
+        var full = (await user.GetFromJsonAsync<WorkoutSeriesList>($"{url}?metric=HeartRate", Json.Options, Ct))!;
+        var absent = (await user.GetFromJsonAsync<WorkoutSeriesList>($"{url}?metric=Power", Json.Options, Ct))!;
+        var everything = (await user.GetFromJsonAsync<WorkoutSeriesList>($"{url}?maxPoints=100", Json.Options, Ct))!;
+
+        var reduced = hr.Items.Should().ContainSingle().Subject;
+        reduced.Metric.Should().Be(SeriesMetric.HeartRate);
+        reduced.TotalSamples.Should().Be(3600);
+        reduced.Times.Count.Should().BeLessThanOrEqualTo(300).And.Be(reduced.Values.Count);
+        reduced.Times.Should().BeInAscendingOrder();
+        reduced.Values.Max().Should().Be(full.Items[0].Values.Max(), "il massimo reale resta visibile nel grafico");
+        reduced.Values.Min().Should().Be(full.Items[0].Values.Min());
+        reduced.Times[0].Should().Be(full.Items[0].Times[0]);
+        reduced.Times[^1].Should().Be(full.Items[0].Times[^1]);
+        full.Items[0].Values.Should().HaveCount(3600);
+        full.Items[0].TotalSamples.Should().Be(3600);
+        absent.Items.Should().BeEmpty();
+        everything.Items.Should().HaveCount(2).And.OnlyContain(s => s.Values.Count <= 100 && s.TotalSamples == 3600);
+    }
+
+    [Theory]
+    [InlineData("maxPoints=1")]
+    [InlineData("maxPoints=100001")]
+    [InlineData("metric=Sleep")]
+    [InlineData("metric=99")]
+    public async Task Invalid_series_parameters_are_rejected(string query)
+    {
+        var (user, _, workout) = await SeedAsync(points: 60);
+
+        (await user.GetAsync($"/api/v1/workouts/{workout.Id}/series?{query}", Ct)).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
 }

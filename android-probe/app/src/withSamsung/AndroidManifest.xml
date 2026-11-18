@@ -1,8 +1,0 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.INTERNET" />
-    <application>
-        <meta-data android:name="com.google.android.geo.API_KEY"
-            android:value="${GOOGLE_MAPS_ANDROID_API_KEY}" />
-        <activity android:name=".RouteMapActivity" android:exported="false" />
-    </application>
-</manifest>

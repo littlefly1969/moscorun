@@ -2,11 +2,11 @@
 
 Assistente personale per allenamenti e forma fisica: raccoglie peso e allenamenti e confronta il lavoro svolto con quello programmato. La prima applicazione è il percorso Roma–Ostia e Berlino; le entità del prodotto restano indipendenti dalle gare.
 
-**Stato (14 novembre 2026):** primo incremento unito in main. Backend, cruscotto web, pipeline e script di installazione sono testati in CI su uno stack reale; l'installazione sul server di casa non è ancora stata validata. **Non implementati:** agente Bluetooth della bilancia e sincronizzazione Android → server (prossime fasi, sotto). Repository privato: [littlefly1969/moscorun](https://github.com/littlefly1969/moscorun).
+**Stato (14 novembre 2026):** primo incremento unito in main. Backend, cruscotto web, pipeline e script di installazione sono testati in CI su uno stack reale; l'installazione sul server di casa non è ancora stata validata. **Non implementato:** agente Bluetooth della bilancia (prossime fasi, sotto). La sincronizzazione Android → server è implementata e in prova sul telefono. Repository privato: [littlefly1969/moscorun](https://github.com/littlefly1969/moscorun).
 
 ## App Android — MoscoRun
 
-[App di verifica e istruzioni](android-probe/README.md): Kotlin, lettura in primo piano di Health Connect e variante completa con Samsung Health Data SDK e Google Maps. La versione completa permette anche una prova della mappa senza caricare allenamenti. Nessun invio al server. Il workflow **Android Probe APK** compila su GitHub e pubblica un APK di debug scaricabile dagli artefatti. La configurazione Codespaces consente lo sviluppo dal browser. Il nome definitivo è **MoscoRun**, dominio di riferimento `littlefly.it`, identificativo Android `it.littlefly.moscorun`; la variante solo Health Connect usa `it.littlefly.moscorun.hc`. [Firma stabile e aggiornamenti](docs/firma-android.md).
+[App e istruzioni](android/README.md): un'unica app Kotlin, `it.littlefly.moscorun`, che sincronizza gli allenamenti verso il proprio server e li mostra rileggendoli dal server. Sorgente selezionabile nelle impostazioni (Samsung Health Data SDK, predefinita, oppure Health Connect); server e token configurati una sola volta e cifrati; sincronizzazione in background con WorkManager, a blocchi e con ripresa automatica; storico iniziale da 1 a 5 anni o completo. Il workflow **Android MoscoRun APK** compila su GitHub e pubblica un solo APK firmato con il certificato stabile. Dettagli di firma in [docs/firma-android.md](docs/firma-android.md).
 
 ## Cosa c'è
 
@@ -17,7 +17,7 @@ Assistente personale per allenamenti e forma fisica: raccoglie peso e allenament
 | Contratto API | OpenAPI 3.1 generato in build ([contracts/](contracts/)) | I tipi TypeScript del cruscotto sono generati dal contratto e verificati in CI |
 | Distribuzione | Un'immagine container multi-arch su GHCR, Docker Compose | Aggiornamento con un comando, backup e rollback automatici |
 | Agente bilancia | Python, Bleak/BlueZ | **Non implementato**: all'installazione cercherà e abbinerà da solo la bilancia Xiaomi |
-| Ponte Android | Kotlin, Health Connect | **Sincronizzazione verso il server non implementata**; prototipo in sola lettura in [android-probe](android-probe/README.md) |
+| App Android | Kotlin, Samsung Health Data SDK, Health Connect, WorkManager | Sincronizzazione durevole degli allenamenti verso il server e consultazione dal server: [android](android/README.md). Prove sul telefono reale in corso |
 
 ## Prossime fasi
 
