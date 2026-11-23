@@ -39,7 +39,7 @@ services:
   # COMPOSE_PROFILES=bundled-db e POSTGRES_HOST=db in .env
   db:
     profiles: [bundled-db]
-    image: postgres:17-alpine
+    image: postgres:19-alpine
     restart: unless-stopped
     security_opt: ["no-new-privileges:true"]
     logging: *logging
