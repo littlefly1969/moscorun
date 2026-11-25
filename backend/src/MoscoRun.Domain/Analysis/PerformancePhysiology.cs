@@ -19,7 +19,8 @@ public static class PerformancePhysiology
             .GroupBy(effort => Math.Round(effort.DurationSeconds, 3))
             .Select(group => group.MaxBy(effort => effort.DistanceMeters))
             .ToArray();
-        if (eligible.Length < 3 || eligible.Max(effort => effort.DurationSeconds) /\n            eligible.Min(effort => effort.DurationSeconds) < MinimumDurationRatio)
+        if (eligible.Length < 3 || eligible.Max(effort => effort.DurationSeconds) /
+            eligible.Min(effort => effort.DurationSeconds) < MinimumDurationRatio)
         {
             return null;
         }
