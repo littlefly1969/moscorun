@@ -82,6 +82,19 @@ public sealed class ScientificObservationTests
         action.Should().Throw<ArgumentException>();
     }
 
+    [Fact]
+    public void Replay_accepts_equal_availability_chain_independently_of_input_order()
+    {
+        var raw = NewObservation(140);
+        var first = new ScientificObservation(Guid.NewGuid(), Owner, "heartRate", "bpm", 140, Now, Now,
+            "moscorun", ObservationMethod.Derived, derivationVersion: "1", inputIds: [raw.Id]);
+        var second = new ScientificObservation(Guid.NewGuid(), Owner, "heartRate", "bpm", 140, Now, Now,
+            "moscorun", ObservationMethod.Derived, derivationVersion: "1", inputIds: [first.Id]);
+        var ordered = ScientificSnapshot.Select(Owner, Now, [raw, first, second]);
+        ordered.Should().HaveCount(3);
+        ScientificSnapshot.Select(Owner, Now, [second, first, raw]).Should().Equal(ordered);
+    }
+
     private static ScientificObservation NewObservation(double? value, DateTimeOffset? availableAt = null) =>
         new(Guid.NewGuid(), Owner, "heartRate", "bpm", value, Now, availableAt ?? Now, "samsung", ObservationMethod.Measured);
 }

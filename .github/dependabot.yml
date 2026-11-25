@@ -1,4 +1,4 @@
-# Aggiornamenti automatici delle dipendenze (gratuito anche per repository privati).
+# Aggiornamenti automatici delle dipendenze.
 # Raggruppati per ridurre il rumore: una PR settimanale per ecosistema, sicurezza subito.
 version: 2
 updates:
@@ -60,3 +60,8 @@ updates:
     directory: /deploy
     schedule: { interval: weekly, day: monday, time: "06:00", timezone: Europe/Rome }
     commit-message: { prefix: deps }
+    ignore:
+      # Una major di PostgreSQL non legge la cartella dati della precedente: serve una migrazione
+      # esplicita (dump/restore o pg_upgrade) con backup verificato, mai un aggiornamento automatico.
+      - dependency-name: "postgres"
+        update-types: ["version-update:semver-major"]
