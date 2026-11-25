@@ -2,11 +2,11 @@
 
 Assistente personale per allenamenti e forma fisica: raccoglie peso e allenamenti e confronta il lavoro svolto con quello programmato. La prima applicazione è il percorso Roma–Ostia e Berlino; le entità del prodotto restano indipendenti dalle gare.
 
-**Stato (14 novembre 2026):** primo incremento unito in main. Backend, cruscotto web, pipeline e script di installazione sono testati in CI su uno stack reale; l'installazione sul server di casa non è ancora stata validata. **Non implementato:** agente Bluetooth della bilancia (prossime fasi, sotto). La sincronizzazione Android → server è implementata e in prova sul telefono. Repository privato: [littlefly1969/moscorun](https://github.com/littlefly1969/moscorun).
+**Stato (14 novembre 2026):** primo incremento unito in main. Backend, cruscotto web, pipeline e script di installazione sono testati in CI su uno stack reale; l'installazione sul server di casa non è ancora stata validata. **Non implementato:** agente Bluetooth della bilancia (prossime fasi, sotto). La sincronizzazione Android → server è implementata e in prova sul telefono. Sorgenti: [littlefly1969/moscorun](https://github.com/littlefly1969/moscorun); SDK Samsung, firma e APK ufficiale restano in un repository privato separato ([docs/github.md](docs/github.md)).
 
 ## App Android — MoscoRun
 
-[App e istruzioni](android/README.md): un'unica app Kotlin, `it.littlefly.moscorun`, che sincronizza gli allenamenti verso il proprio server e li mostra rileggendoli dal server. Sorgente selezionabile nelle impostazioni (Samsung Health Data SDK, predefinita, oppure Health Connect); server e token configurati una sola volta e cifrati; sincronizzazione in background con WorkManager, a blocchi e con ripresa automatica; storico iniziale da 1 a 5 anni o completo. Il workflow **Android MoscoRun APK** compila su GitHub e pubblica un solo APK firmato con il certificato stabile. Dettagli di firma in [docs/firma-android.md](docs/firma-android.md).
+[App e istruzioni](android/README.md): un'unica app Kotlin, `it.littlefly.moscorun`, che sincronizza gli allenamenti verso il proprio server e li mostra rileggendoli dal server. Sorgente selezionabile nelle impostazioni (Samsung Health Data SDK, predefinita, oppure Health Connect); server e token configurati una sola volta e cifrati; sincronizzazione in background con WorkManager, a blocchi e con ripresa automatica; storico iniziale da 1 a 5 anni o completo. L'APK ufficiale, firmato con il certificato stabile, è compilato dal repository privato a partire da uno SHA approvato di questo main; qui la CI esegue solo controlli senza segreti. Dettagli di firma in [docs/firma-android.md](docs/firma-android.md).
 
 ## Cosa c'è
 

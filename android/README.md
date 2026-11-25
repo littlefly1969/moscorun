@@ -66,11 +66,17 @@ bash gradlew assembleDebug                         # app/build/outputs/apk/debug
 python3 scripts/verify-apks.py                     # un solo APK, firma, identificativo, etichetta, permessi
 ```
 
-Dopo il cutover ibrido, il workflow del sorgente esegue soltanto i test Python con materiale sintetico. Test JVM/Lint e APK firmato vengono prodotti esclusivamente dal repository privato, secondo il [runbook di migrazione](../docs/hybrid-public-readiness.md).
+Senza l'AAR Samsung (per esempio in una PR da fork) si possono comunque compilare il codice, eseguire i test JVM e Lint:
+
+```bash
+bash gradlew -Pmoscorun.withoutSamsungSdk=true testDebugUnitTest lintDebug
+```
+
+In questa configurazione la sorgente Samsung è sostituita da `src/samsungStub` (risponde sempre "non disponibile") e la build rifiuta di impacchettare un APK: l'app installabile contiene sempre l'SDK. È ciò che esegue il workflow `android.yml` del repository sorgente, senza segreti. L'APK firmato viene prodotto esclusivamente dal repository privato, secondo il [runbook di migrazione](../docs/hybrid-public-readiness.md).
 
 ## Rilascio e ritorno alla versione precedente
 
-1. CI verde sul ramo; scaricare `MoscoRun-apk-<n>` e installare l'APK sopra la versione presente (aggiornamento in place).
+1. CI verde sul main sorgente; avviare il workflow privato con quello SHA e un `versionCode` maggiore dell'ultimo distribuito, scaricare `MoscoRun-apk-<n>` e installare l'APK sopra la versione presente (aggiornamento in place).
 2. Verificare in Impostazioni che il server risulti configurato, poi **Sincronizza ora**.
 3. Per tornare indietro: Android non installa un `versionCode` inferiore sopra uno superiore. Disinstallare l'app (si perdono configurazione e registro locali, **non** i dati sul server) e installare l'APK precedente; al primo avvio reinserire indirizzo e token. Il server riconosce gli allenamenti già presenti e non li duplica.
 
