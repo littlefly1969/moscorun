@@ -14,7 +14,7 @@ jobs:
   public-checks:
     name: Android - controlli senza segreti
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     defaults:
       run:
         working-directory: android
@@ -26,5 +26,28 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+        with:
+          cmdline-tools-version: '13114758'
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      # Verifica anche l'integrità del Gradle wrapper; nessuna cache condivisa con le PR da fork.
+      - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
+        with:
+          cache-disabled: true
+      - name: Installa piattaforma Android
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
       - name: Test script con materiale sintetico
         run: python3 -m unittest discover -s scripts/tests -v
+      # Senza l'AAR Samsung proprietario: compila con la sorgente sostitutiva, esegue test JVM (anche
+      # Robolectric) e Lint. Nessun segreto, nessuna firma, nessun APK.
+      - name: Test JVM e Lint senza SDK Samsung
+        run: bash gradlew -Pmoscorun.withoutSamsungSdk=true testDebugUnitTest lintDebug --no-daemon
+      - name: Anche in questa configurazione nessun APK viene impacchettato
+        run: |
+          if bash gradlew -Pmoscorun.withoutSamsungSdk=true :app:assembleDebug --continue --no-daemon > "$RUNNER_TEMP/assemble.log" 2>&1; then
+            echo "::error::Senza SDK Samsung la build non deve produrre un APK."; exit 1
+          fi
+          grep -q "Manca il Samsung Health Data SDK" "$RUNNER_TEMP/assemble.log" \
+            || { echo "::error::Diagnostica dell'AAR mancante non trovata."; tail -n 40 "$RUNNER_TEMP/assemble.log"; exit 1; }
+          test -z "$(find app/build/outputs -name '*.apk' 2>/dev/null)"

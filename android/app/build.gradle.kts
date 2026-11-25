@@ -95,21 +95,31 @@ tasks.configureEach {
     }
 }
 val samsungSdk = file("libs/samsung-health-data-api.aar")
-val requireSamsungSdk by tasks.registering {
-    doLast {
-        check(samsungSdk.isFile) {
-            """
-            Manca il Samsung Health Data SDK: ${samsungSdk.relativeTo(rootDir)} non esiste.
-            L'app MoscoRun è unica e lo include sempre; l'AAR è proprietario e non fa parte del repository.
-            - In locale: scaricare Samsung Health Data SDK 1.1.0 dal portale Samsung Developer con il proprio account,
-              accettarne la licenza e copiare l'AAR in android/app/libs/samsung-health-data-api.aar.
-            - APK ufficiale: il workflow del repository privato MoscoRun-private lo scarica dalla sua release samsung-sdk-local e ne verifica l'impronta.
-            Dettagli in android/README.md.
-            """.trimIndent()
-        }
-    }
+val hasSamsungSdk = samsungSdk.isFile
+// Public CI only: compile, test and lint without the proprietary AAR. Never produces an installable APK.
+val withoutSamsungSdk = providers.gradleProperty("moscorun.withoutSamsungSdk").orNull == "true"
+val samsungSdkMissingMessage = """
+    Manca il Samsung Health Data SDK: ${samsungSdk.relativeTo(rootDir)} non esiste.
+    L'app MoscoRun è unica e lo include sempre; l'AAR è proprietario e non fa parte del repository.
+    - In locale: scaricare Samsung Health Data SDK 1.1.0 dal portale Samsung Developer con il proprio account,
+      accettarne la licenza e copiare l'AAR in android/app/libs/samsung-health-data-api.aar.
+    - APK ufficiale: il workflow del repository privato MoscoRun-private lo scarica dalla sua release samsung-sdk-local e ne verifica l'impronta.
+    - Solo compilazione, test e Lint senza AAR: -Pmoscorun.withoutSamsungSdk=true (nessun APK viene prodotto).
+    Dettagli in android/README.md.
+    """.trimIndent()
+android.sourceSets {
+    // The real source when the AAR is present; otherwise a stand-in that reports the source as unavailable.
+    getByName("main").java.srcDir(if (hasSamsungSdk) "src/samsung/java" else "src/samsungStub/java")
+    if (!hasSamsungSdk) getByName("test").java.srcDir("src/testSamsungStub/java")
 }
-tasks.named("preBuild") { dependsOn(requireSamsungSdk) }
+val requireSamsungSdk by tasks.registering {
+    doLast { check(hasSamsungSdk) { samsungSdkMissingMessage } }
+}
+if (!withoutSamsungSdk) tasks.named("preBuild") { dependsOn(requireSamsungSdk) }
+tasks.configureEach {
+    // Even in the public configuration an APK without the Samsung source must never be packaged.
+    if (name.matches(Regex("(?:package|assemble|bundle|install).*(?:Debug|Release)$"))) dependsOn(requireSamsungSdk)
+}
 dependencies {
     implementation("androidx.activity:activity-ktx:1.10.1")
     implementation("androidx.health.connect:connect-client:1.1.0")
@@ -117,7 +127,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     implementation("com.google.code.gson:gson:2.13.1")
     // Proprietary, supplied privately at build time (see requireSamsungSdk): never published with the sources.
-    implementation(files(samsungSdk))
+    if (hasSamsungSdk) implementation(files(samsungSdk))
     implementation("com.google.android.gms:play-services-maps:20.0.0")
     // Maps brings an old Fragment transitively; Activity Result requires a modern version.
     implementation("androidx.fragment:fragment-ktx:1.8.9")
