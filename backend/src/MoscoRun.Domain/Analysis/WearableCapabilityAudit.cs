@@ -13,7 +13,8 @@ public static class WearableCapabilityAudit
         ArgumentException.ThrowIfNullOrWhiteSpace(source);
         ArgumentException.ThrowIfNullOrWhiteSpace(metric);
         var matching = ScientificSnapshot.Select(ownerId, asOf, observations)
-            .Where(observation => observation.Source == source && observation.Metric == metric)
+            .Where(observation => string.Equals(observation.Source, source, StringComparison.Ordinal) &&
+                string.Equals(observation.Metric, metric, StringComparison.Ordinal))
             .ToArray();
 
         if (matching.Any(observation => observation.Value.HasValue))

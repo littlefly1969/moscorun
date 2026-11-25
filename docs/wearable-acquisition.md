@@ -8,7 +8,7 @@ La capability audit distingue mai osservato, valore mancante e valore presente, 
 
 | Gruppo | Sorgente da verificare |
 | --- | --- |
-| RR/IBI e HRV | Garmin FIT / HRV API, Samsung/Health Connect, eventuale fascia compatibile |
+| RR/IBI e HRV | File FIT Garmin; dati HRV del produttore; Samsung; Health Connect; fascia compatibile |
 | Dinamiche di corsa | FIT e dispositivi Garmin compatibili; Samsung dove effettivamente disponibile |
 | VO2max e soglie | Stime provider separate dalle misure e con algoritmo/provenienza |
 | Sonno e recupero | Health endpoints Garmin e permessi Samsung/Health Connect |
