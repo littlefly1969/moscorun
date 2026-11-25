@@ -1,6 +1,11 @@
 # GitHub nel piano gratuito
 
-Il repository resta **privato** (decisione del 12/11/2026): la release `samsung-sdk-local` e un oggetto Git orfano contengono l'SDK Samsung, che non può essere ridistribuito. Le funzioni di sicurezza a pagamento per i repository privati sono sostituite da controlli equivalenti in CI.
+Il progetto usa due repository (divisione del 25/11/2026, dettagli in [hybrid-public-readiness.md](hybrid-public-readiness.md)):
+
+- `littlefly1969/moscorun`: tutti i sorgenti, destinato a diventare pubblico dopo i gate di pubblicazione. Non contiene l'SDK Samsung, non riceve segreti Android e non produce APK.
+- `littlefly1969/MoscoRun-private`: SDK Samsung (release `samsung-sdk-local`, non ridistribuibile), Secrets di firma e chiave Maps, workflow manuale che compila e firma l'APK ufficiale da uno SHA approvato del main sorgente.
+
+Finché il sorgente resta privato, le funzioni di sicurezza a pagamento sono sostituite da controlli equivalenti in CI.
 
 ## Cosa fa GitHub
 
