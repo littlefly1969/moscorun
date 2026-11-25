@@ -3,18 +3,23 @@ namespace MoscoRun.Domain.Analysis;
 /// <summary>Baseline descrittiva distanza-tempo. Non produce una misura diretta del VO2max o delle soglie.</summary>
 public static class PerformancePhysiology
 {
-    public const string MethodVersion = "distance-time-ols-v1";
+    public const string MethodVersion = "distance-time-ols-v2";
+
+    public const double MinimumDurationSeconds = 120;
+    public const double MaximumDurationSeconds = 1200;
+    public const double MinimumDurationRatio = 2;
+    public const double DurationToleranceSeconds = 0.001;
 
     public static CriticalSpeedFit? FitCriticalSpeed(IEnumerable<PerformanceEffort> efforts)
     {
         ArgumentNullException.ThrowIfNull(efforts);
         var eligible = efforts.Where(effort => effort.IsMaximal &&
             double.IsFinite(effort.DurationSeconds) && double.IsFinite(effort.DistanceMeters) &&
-            effort.DurationSeconds > 0 && effort.DistanceMeters > 0)
-            .GroupBy(effort => effort.DurationSeconds)
+            effort.DurationSeconds >= MinimumDurationSeconds && effort.DurationSeconds <= MaximumDurationSeconds && effort.DistanceMeters > 0)
+            .GroupBy(effort => Math.Round(effort.DurationSeconds, 3))
             .Select(group => group.MaxBy(effort => effort.DistanceMeters))
             .ToArray();
-        if (eligible.Length < 3)
+        if (eligible.Length < 3 || eligible.Max(effort => effort.DurationSeconds) /\n            eligible.Min(effort => effort.DurationSeconds) < MinimumDurationRatio)
         {
             return null;
         }
@@ -62,9 +67,9 @@ public static class PerformancePhysiology
         }
 
         // Solo finestre della durata richiesta; non ricavare prestazioni brevi da medie di sforzi lunghi.
-        return efforts.Where(effort => effort.DurationSeconds.Equals(durationSeconds) &&
+        return efforts.Where(effort => Math.Abs(effort.DurationSeconds - durationSeconds) <= DurationToleranceSeconds &&
             double.IsFinite(effort.DistanceMeters) && effort.DistanceMeters > 0)
-            .Select(effort => effort.DistanceMeters / durationSeconds)
+            .Select(effort => effort.DistanceMeters / effort.DurationSeconds)
             .Where(double.IsFinite)
             .Select(speed => (double?)speed)
             .Max();

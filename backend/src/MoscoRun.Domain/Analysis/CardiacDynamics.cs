@@ -3,6 +3,11 @@ namespace MoscoRun.Domain.Analysis;
 /// <summary>Analisi descrittiva della frequenza cardiaca e di intervalli RR consecutivi validati.</summary>
 public static class CardiacDynamics
 {
+    public const string HrvMethodVersion = "rr-summary-v2";
+    public const double MinimumRrMilliseconds = 300;
+    public const double MaximumRrMilliseconds = 2000;
+    public const double MaximumRelativeRrChange = 0.25;
+
     public static double? HeartRateRecovery(double endBpm, double recoveryBpm)
     {
         if (!Positive(endBpm) || !Positive(recoveryBpm))
@@ -16,8 +21,7 @@ public static class CardiacDynamics
     public static HrvSummary? SummarizeRr(IReadOnlyList<double> intervalsMilliseconds)
     {
         ArgumentNullException.ThrowIfNull(intervalsMilliseconds);
-        if (intervalsMilliseconds.Count < 3 ||
-            intervalsMilliseconds.Any(interval => !Positive(interval)))
+        if (ValidateRr(intervalsMilliseconds) is not null)
         {
             return null;
         }
@@ -36,6 +40,32 @@ public static class CardiacDynamics
         return double.IsFinite(mean) && double.IsFinite(rmssd) && double.IsFinite(sdnn)
             ? new HrvSummary(intervalsMilliseconds.Count, mean, rmssd, sdnn)
             : null;
+    }
+
+    public static string? ValidateRr(IReadOnlyList<double> intervalsMilliseconds)
+    {
+        ArgumentNullException.ThrowIfNull(intervalsMilliseconds);
+        if (intervalsMilliseconds.Count < 3)
+        {
+            return "insufficient-intervals";
+        }
+
+        for (var index = 0; index < intervalsMilliseconds.Count; index++)
+        {
+            var current = intervalsMilliseconds[index];
+            if (!double.IsFinite(current) || current < MinimumRrMilliseconds || current > MaximumRrMilliseconds)
+            {
+                return "rr-out-of-range";
+            }
+
+            if (index > 0 && Math.Abs(current - intervalsMilliseconds[index - 1]) /
+                intervalsMilliseconds[index - 1] > MaximumRelativeRrChange)
+            {
+                return "rr-abrupt-change";
+            }
+        }
+
+        return null;
     }
 
     public static double? FirstOrderResponse(double initialBpm, double equilibriumBpm, double elapsedSeconds, double timeConstantSeconds)

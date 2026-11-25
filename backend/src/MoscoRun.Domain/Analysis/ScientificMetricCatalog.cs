@@ -93,6 +93,8 @@ public static class ScientificMetricCatalog
 
     public const int SchemaVersion = 1;
 
+    public static int MetricCount => Units.Count;
+
     public static bool IsKnown(string metric) => Units.ContainsKey(metric);
 
     public static bool AcceptsUnit(string metric, string unit) =>

@@ -215,13 +215,13 @@ La CI verifica lo script su un runner Ubuntu amd64 con PostgreSQL incluso. Sul s
 
 Per un'installazione nuova bastano: distribuzione e architettura, RAM e spazio, porte e siti già presenti nel proxy, eventuale PostgreSQL esistente e versione, Bluetooth LE (per l'agente bilancia). Non includere password o token: bastano le informazioni descrittive. Il modello della bilancia non serve, perché l'agente lo rileva da solo durante l'installazione (#3).
 
-Server attuale (rilevato il 2026-11-13):
+Esempio di inventario compilato:
 - **Sistema e risorse:** Ubuntu 26.04.1 LTS, x86_64 a 16 thread, 30 GiB di RAM, Docker 29.1 con Compose 2.40.
 - **Proxy:** nginx 1.28 sulla porta 80, oggi dietro un Apache di frontiera.
-- **Applicazione già presente:** nubarca, su 127.0.0.1:8080/8081, con il proprio PostgreSQL in container. Nessun PostgreSQL di sistema.
+- **Applicazione già presente:** un'altra applicazione su 127.0.0.1:8080/8081, con il proprio PostgreSQL in container. Nessun PostgreSQL di sistema.
 - **Scelte per MoscoRun:**
   - `MOSCORUN_PORT=8085`, che è libera;
   - database incluso;
   - prima configurazione dietro la frontiera, poi TLS su nginx.
 - **Bluetooth:** adattatore Realtek USB presente ma controller non visibile a BlueZ (da sistemare con l'agente, #3).
-- **Frontiera:** Apache su 192.168.1.105 (`MOSCORUN_EDGE_PROXIES=192.168.1.105`) finché il TLS non passa a nginx.
+- **Frontiera:** Apache su un altro host della rete locale (es. `MOSCORUN_EDGE_PROXIES=192.0.2.10`) finché il TLS non passa a nginx.
