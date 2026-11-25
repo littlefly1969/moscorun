@@ -17,18 +17,7 @@ public sealed class ScientificObservation
         string? derivationVersion = null,
         IEnumerable<Guid>? inputIds = null)
     {
-        if (id == Guid.Empty || ownerId == Guid.Empty)
-        {
-            throw new ArgumentException("Identità dell'osservazione e dell'atleta obbligatorie.");
-        }
-
-        ArgumentException.ThrowIfNullOrWhiteSpace(metric);
-        ArgumentException.ThrowIfNullOrWhiteSpace(unit);
-        ArgumentException.ThrowIfNullOrWhiteSpace(source);
-        if (metric.Length > 200 || unit.Length > 200 || source.Length > 200)
-        {
-            throw new ArgumentException("Metadati troppo lunghi.");
-        }
+        ValidateMetadata(id, ownerId, metric, unit, source);
 
         if (time == default || availableAt < time)
         {
@@ -79,6 +68,37 @@ public sealed class ScientificObservation
         ProviderAlgorithm = providerAlgorithm;
         DerivationVersion = derivationVersion;
         InputIds = Array.AsReadOnly(inputs);
+    }
+
+    private static void ValidateMetadata(Guid id, Guid ownerId, string metric, string unit, string source)
+    {
+        if (id == Guid.Empty)
+        {
+            throw new ArgumentException("Identità dell'osservazione obbligatoria.", nameof(id));
+        }
+
+        if (ownerId == Guid.Empty)
+        {
+            throw new ArgumentException("Identità dell'atleta obbligatoria.", nameof(ownerId));
+        }
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(metric);
+        ArgumentException.ThrowIfNullOrWhiteSpace(unit);
+        ArgumentException.ThrowIfNullOrWhiteSpace(source);
+        if (metric.Length > 200)
+        {
+            throw new ArgumentException("Metrica troppo lunga.", nameof(metric));
+        }
+
+        if (unit.Length > 200)
+        {
+            throw new ArgumentException("Unità troppo lunga.", nameof(unit));
+        }
+
+        if (source.Length > 200)
+        {
+            throw new ArgumentException("Sorgente troppo lunga.", nameof(source));
+        }
     }
 
     public Guid Id { get; }
