@@ -3,7 +3,7 @@ namespace MoscoRun.Domain.Analysis;
 /// <summary>Disaccoppiamento descrittivo per due finestre comparabili della stessa seduta e metrica.</summary>
 public static class DurabilityEngine
 {
-    public const string MethodVersion = "paired-window-efficiency-loss-v1";
+    public const string MethodVersion = "paired-window-efficiency-loss-v2";
 
     public static DurabilityComparison? Compare(
         DurabilityWindow early, DurabilityWindow late, double minimumCoverage)
@@ -13,7 +13,8 @@ public static class DurabilityEngine
             throw new ArgumentOutOfRangeException(nameof(minimumCoverage));
         }
 
-        if (early.End > late.Start || !IsValid(early, minimumCoverage) || !IsValid(late, minimumCoverage))
+        if (early.SessionId != late.SessionId || early.ExternalLoadMetric != late.ExternalLoadMetric ||
+            early.End > late.Start || !IsValid(early, minimumCoverage) || !IsValid(late, minimumCoverage))
         {
             return null;
         }
@@ -33,6 +34,8 @@ public static class DurabilityEngine
         window.PairedDuration.TotalSeconds / (window.End - window.Start).TotalSeconds;
 
     private static bool IsValid(DurabilityWindow window, double minimumCoverage) =>
+        window.SessionId != Guid.Empty &&
+        window.ExternalLoadMetric is ExternalLoadMetric.Speed or ExternalLoadMetric.Power &&
         window.End > window.Start && window.PairedDuration > TimeSpan.Zero &&
         window.PairedDuration <= window.End - window.Start &&
         double.IsFinite(window.MeanExternalLoad) && window.MeanExternalLoad > 0 &&
