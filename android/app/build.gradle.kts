@@ -103,7 +103,7 @@ val requireSamsungSdk by tasks.registering {
             L'app MoscoRun è unica e lo include sempre; l'AAR è proprietario e non fa parte del repository.
             - In locale: scaricare Samsung Health Data SDK 1.1.0 dal portale Samsung Developer con il proprio account,
               accettarne la licenza e copiare l'AAR in android/app/libs/samsung-health-data-api.aar.
-            - Su GitHub: il workflow lo scarica dalla release privata samsung-sdk-local e ne verifica l'impronta.
+            - APK ufficiale: il workflow del repository privato MoscoRun-private lo scarica dalla sua release samsung-sdk-local e ne verifica l'impronta.
             Dettagli in android/README.md.
             """.trimIndent()
         }

@@ -2,7 +2,7 @@
 
 ## Informazioni da raccogliere
 
-- Repository privato: `littlefly1969/moscorun`.
+- Repository sorgente: `littlefly1969/moscorun`; build Android ufficiale e materiale non ridistribuibile in `littlefly1969/MoscoRun-private`.
 - Modello esatto della bilancia, preferibilmente il codice sull'etichetta inferiore.
 - Server Linux condiviso con stack LAMP e applicazioni .NET; PostgreSQL già presente in container e MariaDB disponibile. Restano da rilevare distribuzione/versione, architettura CPU, risorse, Bluetooth LE, versione PostgreSQL e configurazione di rete.
 - Modello Galaxy Watch e telefono, versione Android e Samsung Health.
