@@ -9,4 +9,6 @@ public readonly record struct DurabilityWindow(
     DateTimeOffset End,
     TimeSpan PairedDuration,
     double MeanExternalLoad,
-    double MeanHeartRateBpm);
+    double MeanHeartRateBpm,
+    Guid SessionId,
+    ExternalLoadMetric ExternalLoadMetric);

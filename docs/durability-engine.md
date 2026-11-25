@@ -5,3 +5,5 @@ D01/D02: confronto della perdita relativa di efficienza tra due finestre. E = ca
 Entrambe le medie devono essere calcolate sul medesimo supporto temporale accoppiato, nella stessa seduta, con lo stesso canale esterno (velocità in m/s o potenza in W). Copertura minima configurabile e nessuna imputazione delle finestre mancanti. Il motore rifiuta finestre sovrapposte, supporto impossibile e valori non fisici. Prima del confronto escludere pause, riscaldamento e condizioni non confrontabili; grade, temperatura, intensità e rifornimento sono confondenti.
 
 Restano da sviluppare costruzione automatica delle finestre accoppiate a partire dalle serie, D03 onset e D04 pendenza del deterioramento, test di ripetibilità e normalizzazione ambientale. L'output è descrittivo, non diagnosi né misura diretta della fatica. Nessuna modifica DB/API.
+
+La versione v2 richiede identificativo non vuoto della stessa seduta e identica metrica del carico esterno (Speed in m/s oppure Power in W); confronti incompatibili restituiscono null.

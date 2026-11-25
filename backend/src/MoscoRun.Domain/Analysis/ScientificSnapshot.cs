@@ -25,31 +25,64 @@ public static class ScientificSnapshot
             throw new ArgumentException("Identificativi duplicati nel dataset.", nameof(observations));
         }
 
-        // Una derivazione non entra nel replay prima della disponibilità di tutti gli ingressi.
         var available = all.Where(observation => observation.IsAvailableAt(asOf)).ToDictionary(observation => observation.Id);
-        var accepted = new HashSet<Guid>();
-        var pending = available.Values.OrderBy(observation => observation.AvailableAt).ThenBy(observation => observation.Id).ToArray();
-        bool changed;
-        do
-        {
-            changed = false;
-            foreach (var observation in pending)
-            {
-                if (!accepted.Contains(observation.Id) &&
-                    observation.InputIds.All(input => accepted.Contains(input) &&
-                        available[input].AvailableAt <= observation.AvailableAt))
-                {
-                    changed |= accepted.Add(observation.Id);
-                }
-            }
-        }
-        while (changed);
+        var accepted = ResolveLineage(available);
 
-        return Array.AsReadOnly(pending
+        return Array.AsReadOnly(available.Values
             .Where(observation => accepted.Contains(observation.Id))
             .OrderBy(observation => observation.Time)
             .ThenBy(observation => observation.AvailableAt)
             .ThenBy(observation => observation.Id)
             .ToArray());
+    }
+
+    private static HashSet<Guid> ResolveLineage(Dictionary<Guid, ScientificObservation> available)
+    {
+        var remaining = new Dictionary<Guid, int>();
+        var dependents = new Dictionary<Guid, List<Guid>>();
+        var ready = new Queue<Guid>();
+        foreach (var observation in available.Values)
+        {
+            if (!observation.InputIds.All(input => available.TryGetValue(input, out var source) &&
+                source.AvailableAt <= observation.AvailableAt))
+            {
+                continue;
+            }
+
+            remaining.Add(observation.Id, observation.InputIds.Count);
+            if (observation.InputIds.Count == 0)
+            {
+                ready.Enqueue(observation.Id);
+            }
+
+            foreach (var input in observation.InputIds)
+            {
+                if (!dependents.TryGetValue(input, out var targets))
+                {
+                    targets = [];
+                    dependents.Add(input, targets);
+                }
+
+                targets.Add(observation.Id);
+            }
+        }
+
+        var accepted = new HashSet<Guid>();
+        while (ready.TryDequeue(out var id))
+        {
+            accepted.Add(id);
+            if (dependents.TryGetValue(id, out var targets))
+            {
+                foreach (var target in targets)
+                {
+                    if (--remaining[target] == 0)
+                    {
+                        ready.Enqueue(target);
+                    }
+                }
+            }
+        }
+
+        return accepted;
     }
 }

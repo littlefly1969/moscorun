@@ -6,6 +6,8 @@ public sealed class DurabilityEngineTests
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 25, 12, 0, 0, TimeSpan.Zero);
 
+    private static readonly Guid Session = Guid.NewGuid();
+
     [Theory]
     [InlineData(4, 160, 3.6, 160, 10)]
     [InlineData(250, 150, 225, 150, 10)]
@@ -14,7 +16,10 @@ public sealed class DurabilityEngineTests
     public void Compares_efficiency_for_speed_or_power(
         double earlyLoad, double earlyHr, double lateLoad, double lateHr, double expected)
     {
-        var result = DurabilityEngine.Compare(Window(0, earlyLoad, earlyHr), Window(10, lateLoad, lateHr), 0.8);
+        var metric = earlyLoad > 100 ? ExternalLoadMetric.Power : ExternalLoadMetric.Speed;
+        var result = DurabilityEngine.Compare(
+            Window(0, earlyLoad, earlyHr) with { ExternalLoadMetric = metric },
+            Window(10, lateLoad, lateHr) with { ExternalLoadMetric = metric }, 0.8);
         result.Should().NotBeNull();
         result!.EfficiencyLossPercent.Should().BeApproximately(expected, 0.000001);
     }
@@ -45,6 +50,20 @@ public sealed class DurabilityEngineTests
         DurabilityEngine.Compare(Window(0, 4, 150), late, 0.8).Should().BeNull();
     }
 
+    [Fact]
+    public void Different_sessions_are_not_comparable()
+    {
+        var late = Window(10, 4, 160) with { SessionId = Guid.NewGuid() };
+        DurabilityEngine.Compare(Window(0, 4, 150), late, 0.8).Should().BeNull();
+    }
+
+    [Fact]
+    public void Different_external_load_metrics_are_not_comparable()
+    {
+        var late = Window(10, 250, 160) with { ExternalLoadMetric = ExternalLoadMetric.Power };
+        DurabilityEngine.Compare(Window(0, 4, 150), late, 0.8).Should().BeNull();
+    }
+
     private static DurabilityWindow Window(int offset, double load, double hr) =>
-        new(Now.AddMinutes(offset), Now.AddMinutes(offset + 10), TimeSpan.FromMinutes(10), load, hr);
+        new(Now.AddMinutes(offset), Now.AddMinutes(offset + 10), TimeSpan.FromMinutes(10), load, hr, Session, ExternalLoadMetric.Speed);
 }

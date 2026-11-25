@@ -51,4 +51,32 @@ public sealed class PerformancePhysiologyTests
         PerformancePhysiology.ObservedBestSpeed(efforts, 180).Should().Be(5);
         PerformancePhysiology.ObservedBestSpeed(efforts, 90).Should().BeNull();
     }
+
+    [Fact]
+    public void Out_of_domain_efforts_do_not_distort_fit()
+    {
+        PerformanceEffort[] efforts = [new(30, 250, true), new(180, 920, true), new(360, 1640, true),
+            new(720, 3080, true), new(3600, 10000, true)];
+        var fit = PerformancePhysiology.FitCriticalSpeed(efforts);
+        fit.Should().NotBeNull();
+        fit!.CriticalSpeedMetersPerSecond.Should().BeApproximately(4, 0.000001);
+        fit.DistanceReserveMeters.Should().BeApproximately(200, 0.000001);
+        fit.EffortCount.Should().Be(3);
+    }
+
+    [Fact]
+    public void Narrow_duration_range_is_rejected()
+    {
+        PerformancePhysiology.FitCriticalSpeed([new(180, 920, true), new(200, 1000, true), new(220, 1080, true)])
+            .Should().BeNull();
+    }
+
+    [Fact]
+    public void Nearly_equal_durations_do_not_count_twice()
+    {
+        PerformancePhysiology.FitCriticalSpeed([new(180, 920, true), new(179.99999, 910, true), new(360, 1640, true)])
+            .Should().BeNull();
+        PerformancePhysiology.ObservedBestSpeed([new(179.99999, 900, true)], 180)!.Value
+            .Should().BeApproximately(5, 0.000001);
+    }
 }
