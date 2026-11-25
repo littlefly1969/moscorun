@@ -46,4 +46,13 @@ public sealed class CardiacDynamicsTests
             .Should().BeApproximately(137.927234, 0.000001);
         CardiacDynamics.FirstOrderResponse(100, 160, 30, 0).Should().BeNull();
     }
+
+    [Fact]
+    public void Implausible_rr_is_rejected_with_reason()
+    {
+        CardiacDynamics.SummarizeRr([800, 5, 800]).Should().BeNull();
+        CardiacDynamics.ValidateRr([800, 5, 800]).Should().Be("rr-out-of-range");
+        CardiacDynamics.SummarizeRr([800, 1200, 800]).Should().BeNull();
+        CardiacDynamics.ValidateRr([800, 1200, 800]).Should().Be("rr-abrupt-change");
+    }
 }

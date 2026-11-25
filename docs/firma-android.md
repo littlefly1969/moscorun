@@ -24,16 +24,18 @@ L'app integra Maps SDK for Android per la visualizzazione dei percorsi. La chiav
 
 Il materiale privato è nel backup riservato consegnato al proprietario; il repository contiene soltanto certificato pubblico e impronte attese. Non rigenerare il backup ad ogni compilazione.
 
-1. Aprire il repository `littlefly1969/moscorun` su GitHub.
+I Secrets di firma vivono **solo** nel repository privato `littlefly1969/MoscoRun-private`, mai nel repository sorgente (che diventerà pubblico e riceve PR da fork).
+
+1. Aprire il repository `littlefly1969/MoscoRun-private` su GitHub.
 2. **Settings → Secrets and variables → Actions → New repository secret**.
 3. Nome: `MOSCORUN_SIGNING_BUNDLE`.
 4. Valore: contenuto completo di `MOSCORUN_SIGNING_BUNDLE.txt` estratto dal backup riservato.
-5. Salvare e rieseguire il workflow **Android MoscoRun APK** già collegato alla PR.
+5. Salvare e avviare il workflow **MoscoRun - APK ufficiale privato** indicando lo SHA del main sorgente approvato e il `versionCode`.
 
 Alternativa con GitHub CLI autenticata:
 
 ```bash
-gh secret set MOSCORUN_SIGNING_BUNDLE --repo littlefly1969/moscorun < MOSCORUN_SIGNING_BUNDLE.txt
+gh secret set MOSCORUN_SIGNING_BUNDLE --repo littlefly1969/MoscoRun-private < MOSCORUN_SIGNING_BUNDLE.txt
 ```
 
 Il file contiene la chiave privata cifrata e le informazioni per usarla: conservarlo come credenziale riservata. Non caricarlo nei sorgenti, negli artefatti delle Actions o negli issue. Conservare una copia di backup controllata dal proprietario; GitHub non consente di rileggere il valore del secret.
@@ -56,7 +58,7 @@ Sono necessari JDK 17 e `keytool`. Occorre anche l'AAR Samsung (vedi [android/RE
 ## Aggiornamenti
 
 - Conservare `applicationId`, certificato e chiave privata: cambiare uno di questi elementi può impedire un aggiornamento diretto o richiedere nuove restrizioni Google.
-- Ogni esecuzione CI usa come `versionCode` il numero progressivo del workflow più 1000 (il contatore è ripartito con la rinomina del workflow; lo scarto mantiene il codice sopra quello di ogni APK già installato); la riesecuzione della stessa run mantiene lo stesso codice. Per pubblicazioni locali specificare `-PmoscorunVersionCode=<numero>` coerente e non inferiore alla versione installata.
+- Il `versionCode` dell'APK ufficiale è un input esplicito del workflow privato: deve essere maggiore di quello di ogni APK già distribuito (la verifica della monotonicità è manuale, registrare SHA e codice a ogni rilascio). Per compilazioni locali specificare `-PmoscorunVersionCode=<numero>` coerente e non inferiore alla versione installata.
 - I vecchi `it.moscorun.probe*` e `it.littlefly.moscorun.hc` sono app separate, da disinstallare a mano. La prima installazione della nuova identità richiede nuovi consensi Health Connect e, dove previsto, nuova abilitazione Samsung per il pacchetto definitivo. Samsung Health conserva i propri dati originali.
 - L'eventuale futura distribuzione con Play App Signing richiederà verificare il certificato usato da Google Play e autorizzarlo in Maps. Non viene configurata in questo incremento.
 
