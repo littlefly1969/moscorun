@@ -7,10 +7,7 @@ public static class SignalProcessing
         IEnumerable<SignalSample> samples, DateTimeOffset start, DateTimeOffset end, TimeSpan maxGap)
     {
         ArgumentNullException.ThrowIfNull(samples);
-        if (end <= start)
-        {
-            throw new ArgumentOutOfRangeException(nameof(end));
-        }
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(end, start);
 
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(maxGap, TimeSpan.Zero);
         var all = samples.ToArray();
