@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\..\src\MoscoRun.Api\MoscoRun.Api.csproj" />
+    <None Include="../../../tools/athlete-analysis/catalog.json" Link="scientific-catalog.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

@@ -39,7 +39,7 @@ Tutti i 56 moduli A e B (37 A, 19 B). D10, D11, P10, M06 (categoria C) rinviati.
 
 ## Step 01: primo incremento
 
-Contratto di dominio .NET senza dipendenze nuove: catalogo v1, osservazioni immutabili, distinzione dei metodi, valori mancanti, selezione as-of e controllo della derivazione. Le metriche sconosciute sono conservabili ma non canonizzate. Il catalogo C# deriva da `tools/athlete-analysis/catalog.json`; mantenere sincronizzate le due rappresentazioni (test automatico di parità da aggiungere).
+Contratto di dominio .NET senza dipendenze nuove: catalogo v1, osservazioni immutabili, distinzione dei metodi, valori mancanti, selezione as-of e controllo della derivazione. Le metriche sconosciute sono conservabili ma non canonizzate. Il catalogo C# deriva da `tools/athlete-analysis/catalog.json`; mantenere sincronizzate le due rappresentazioni (test automatico di parità incluso).
 
 Restano da completare nello Step 01: persistenza EF e migrazioni generate, feedback, profilo/obiettivi, revisioni di allenamento, prescrizioni/segmenti, risultati analitici e test d'isolamento a livello di database/API. Il selettore in memoria non è un confine di autorizzazione. La risoluzione della lineage richiede il dataset degli ingressi, che dovrà essere caricato dal repository autorizzato. Nessun endpoint pubblico o cambiamento dello schema in questo primo incremento.
 
