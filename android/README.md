@@ -66,7 +66,7 @@ bash gradlew assembleDebug                         # app/build/outputs/apk/debug
 python3 scripts/verify-apks.py                     # un solo APK, firma, identificativo, etichetta, permessi
 ```
 
-Su GitHub il workflow **Android MoscoRun APK** esegue gli stessi passi, scarica l'AAR dalla release privata `samsung-sdk-local` verificandone l'impronta e pubblica due artefatti: `MoscoRun-apk-<n>` con **un solo file APK**, e `MoscoRun-controlli-<n>` con i rapporti di test, Lint e firma (nessun APK, nessun dato). Nei log e negli artefatti non finiscono segreti, tracciati o database.
+Dopo il cutover ibrido, il workflow del sorgente esegue soltanto i test Python con materiale sintetico. Test JVM/Lint e APK firmato vengono prodotti esclusivamente dal repository privato, secondo il [runbook di migrazione](../docs/hybrid-public-readiness.md).
 
 ## Rilascio e ritorno alla versione precedente
 
