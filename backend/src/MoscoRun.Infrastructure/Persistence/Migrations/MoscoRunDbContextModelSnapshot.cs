@@ -23,6 +23,79 @@ namespace MoscoRun.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("MoscoRun.Infrastructure.Persistence.ScientificObservationRow", b =>
+                {
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedNever()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Metric")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("metric");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("unit");
+
+                    b.Property<double?>("Value")
+                        .HasColumnType("double precision")
+                        .HasColumnName("value");
+
+                    b.Property<DateTimeOffset>("Time")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("time");
+
+                    b.Property<DateTimeOffset>("AvailableAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("available_at");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("method");
+
+                    b.Property<string>("ProviderAlgorithm")
+                        .HasColumnType("text")
+                        .HasColumnName("provider_algorithm");
+
+                    b.Property<string>("DerivationVersion")
+                        .HasColumnType("text")
+                        .HasColumnName("derivation_version");
+
+                    b.Property<Guid[]>("InputIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("input_ids");
+
+                    b.HasKey("OwnerId", "Id")
+                        .HasName("pk_scientific_observations");
+
+                    b.HasIndex("OwnerId", "Time", "AvailableAt")
+                        .HasDatabaseName("ix_scientific_observations_owner_id_time_available_at");
+
+                    b.ToTable("scientific_observations", "moscorun", t =>
+                        {
+                            t.HasCheckConstraint("ck_scientific_observations_time", "available_at >= time");
+
+                            t.HasCheckConstraint("ck_scientific_observations_value", "value IS NULL OR (value > '-Infinity'::double precision AND value < 'Infinity'::double precision)");
+                        });
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
                 {
                     b.Property<int>("Id")
@@ -700,6 +773,16 @@ namespace MoscoRun.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_workout_series_workouts_workout_id");
                 });
+            modelBuilder.Entity("MoscoRun.Infrastructure.Persistence.ScientificObservationRow", b =>
+                {
+                    b.HasOne("MoscoRun.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_scientific_observations_asp_net_users_owner_id");
+                });
+
 #pragma warning restore 612, 618
         }
     }

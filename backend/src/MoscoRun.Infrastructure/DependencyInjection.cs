@@ -20,6 +20,7 @@ public static class DependencyInjection
                 .EnableRetryOnFailure(maxRetryCount: 3))
             .UseSnakeCaseNamingConvention());
 
+        services.AddScoped<ScientificObservationStore>();
         return services;
     }
 }
