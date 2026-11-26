@@ -187,6 +187,80 @@
         }
       }
     },
+    "/api/v1/science/daily": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetDailyScience",
+        "parameters": [
+          {
+            "name": "metric",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "baselineDays",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "asOf",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyMetricReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/device": {
       "get": {
         "tags": [
@@ -694,80 +768,6 @@
           },
           "404": {
             "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/api/v1/science/daily": {
-      "get": {
-        "tags": [
-          "Cruscotto"
-        ],
-        "operationId": "GetDailyScience",
-        "parameters": [
-          {
-            "name": "metric",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "source",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "day",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "date"
-            }
-          },
-          {
-            "name": "baselineDays",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "asOf",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "date-time"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DailyMetricReport"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
-                }
-              }
-            }
           }
         }
       }
@@ -2526,10 +2526,10 @@
       "name": "Acquisizione"
     },
     {
-      "name": "Dispositivi"
+      "name": "Cruscotto"
     },
     {
-      "name": "Cruscotto"
+      "name": "Dispositivi"
     },
     {
       "name": "Mappe"
