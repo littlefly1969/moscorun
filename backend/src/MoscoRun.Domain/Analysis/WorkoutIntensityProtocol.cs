@@ -28,9 +28,12 @@ public sealed record WorkoutIntensityProtocol(
             return true;
         }
 
-        return Metric == SeriesMetric.HeartRate && Positive(RestingBpm) && Positive(MaximumBpm) &&
-            MaximumBpm > RestingBpm &&
-            ((TrimpA is null && TrimpB is null) || (Positive(TrimpA) && Positive(TrimpB)));
+        if (Metric != SeriesMetric.HeartRate || !Positive(RestingBpm) || !Positive(MaximumBpm) || MaximumBpm <= RestingBpm)
+        {
+            return false;
+        }
+
+        return (TrimpA is null && TrimpB is null) || (Positive(TrimpA) && Positive(TrimpB));
     }
 
     private static bool Positive(double? value) => value is { } number && double.IsFinite(number) && number > 0;

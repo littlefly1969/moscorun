@@ -8,7 +8,7 @@ public sealed class ScientificMetricCatalogTests
     [Fact]
     public void Catalog_matches_research_json()
     {
-        using var document = JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "scientific-catalog.json")));
+        using var document = JsonDocument.Parse(File.ReadAllText(Path.Join(AppContext.BaseDirectory, "scientific-catalog.json")));
         var root = document.RootElement;
         root.GetProperty("schemaVersion").GetInt32().Should().Be(ScientificMetricCatalog.SchemaVersion);
         var metrics = root.GetProperty("metrics").EnumerateArray().ToDictionary(

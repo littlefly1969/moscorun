@@ -29,7 +29,7 @@ public sealed class AttestedRaceEngineTests
         report.Interval.UpperSeconds.Should().BeApproximately(500 * Math.Pow(2, 0.1) + 10, 1e-6);
         report.Evidence.Single(row => string.Equals(row.Role, "late-training", StringComparison.Ordinal))
             .AbsoluteErrorSeconds.Should().BeNull();
-        report.Evidence.Single(row => row.DistanceMeters == 8000).PredictedSeconds.Should().BeNull();
+        report.Evidence.Single(row => row.DistanceMeters.Equals(8000)).PredictedSeconds.Should().BeNull();
         AttestedRaceEngine.Build(Owner, "test", Start, Split, End, End, 8000, rows)!.Prediction.Should().BeNull();
     }
 

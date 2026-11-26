@@ -38,12 +38,27 @@ public static class ResearchBenchmark
     }
 
     private static bool Valid(BenchmarkPrediction row, DateTimeOffset cutoff, DateTimeOffset asOf) =>
-        row.OwnerId != Guid.Empty && row.SessionId != Guid.Empty && row.IssuedAt > cutoff &&
-        row.IssuedAt < row.TargetAt && row.TargetAt <= row.TargetAvailableAt && row.TargetAvailableAt <= asOf &&
-        double.IsFinite(row.Observed) && double.IsFinite(row.Model) && double.IsFinite(row.Baseline) &&
-        ((!row.Lower.HasValue && !row.Upper.HasValue) ||
-        (row.Lower is { } lower && row.Upper is { } upper && double.IsFinite(lower) &&
-            double.IsFinite(upper) && lower <= upper && double.IsFinite(upper - lower)));
+        row.OwnerId != Guid.Empty && row.SessionId != Guid.Empty && IsCausal(row, cutoff, asOf) &&
+        IsFinite(row) && HasValidInterval(row);
+
+    /// <summary>Emessa dopo il cutoff, prima del bersaglio, e bersaglio noto entro l'as-of.</summary>
+    private static bool IsCausal(BenchmarkPrediction row, DateTimeOffset cutoff, DateTimeOffset asOf) =>
+        row.IssuedAt > cutoff && row.IssuedAt < row.TargetAt && row.TargetAt <= row.TargetAvailableAt &&
+        row.TargetAvailableAt <= asOf;
+
+    private static bool IsFinite(BenchmarkPrediction row) =>
+        double.IsFinite(row.Observed) && double.IsFinite(row.Model) && double.IsFinite(row.Baseline);
+
+    /// <summary>Intervallo assente, oppure con estremi finiti e ordinati (ampiezza finita implica estremi finiti).</summary>
+    private static bool HasValidInterval(BenchmarkPrediction row)
+    {
+        if (!row.Lower.HasValue && !row.Upper.HasValue)
+        {
+            return true;
+        }
+
+        return row.Lower is { } lower && row.Upper is { } upper && lower <= upper && double.IsFinite(upper - lower);
+    }
 
     private static BenchmarkScore? Score(IEnumerable<double> residuals)
     {

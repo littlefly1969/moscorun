@@ -31,7 +31,7 @@ public static class WorkoutCardiacRecoveryEngine
                 .GroupBy(item => item.Time).Select(SignalProcessing.Resolve).OrderBy(item => item.Time).ToArray()
             : [];
         var initial = At(samples, end, workout.EndedAt);
-        var points = Offsets.Select(offset => Point(samples, end, workout.EndedAt, initial?.Value, offset)).ToArray();
+        var points = Offsets.Select(offset => Point(samples, end, workout.EndedAt, initial is { } first ? first.Value : null, offset)).ToArray();
         var status = !protocol.Confirmed ? "unconfirmed-protocol" : channel is null ? "missing-channel" :
             initial is null ? "missing-end-heart-rate" : points.Skip(1).All(point => point.DropFromEndBpm.HasValue)
                 ? "observed" : "partial-support";
@@ -64,11 +64,11 @@ public static class WorkoutCardiacRecoveryEngine
         DateTimeOffset workoutEnd, double? initial, int offset)
     {
         var target = end.AddSeconds(offset);
-        var sample = At(samples, target, workoutEnd);
-        var value = sample?.Value;
+        var (time, value) = At(samples, target, workoutEnd) is { } sample
+            ? ((DateTimeOffset?)sample.Time, sample.Value) : (null, null);
         var drop = offset > 0 && initial is { } start && value is { } bpm
             ? CardiacDynamics.HeartRateRecovery(start, bpm) : null;
-        return new CardiacRecoveryPoint(offset, target, sample?.Time, value, drop);
+        return new CardiacRecoveryPoint(offset, target, time, value, drop);
     }
 
     private static (CardiacResponseFit? Fit, string Status) Fit(SignalSample[] samples, DateTimeOffset end,

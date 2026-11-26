@@ -71,14 +71,17 @@ public static class ScientificSnapshot
         while (ready.TryDequeue(out var id))
         {
             accepted.Add(id);
-            if (dependents.TryGetValue(id, out var targets))
+            if (!dependents.TryGetValue(id, out var targets))
             {
-                foreach (var target in targets)
+                continue;
+            }
+
+            foreach (var target in targets)
+            {
+                remaining[target]--;
+                if (remaining[target] == 0)
                 {
-                    if (--remaining[target] == 0)
-                    {
-                        ready.Enqueue(target);
-                    }
+                    ready.Enqueue(target);
                 }
             }
         }

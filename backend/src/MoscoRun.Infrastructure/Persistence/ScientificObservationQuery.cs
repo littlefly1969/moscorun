@@ -29,10 +29,12 @@ public sealed class ScientificObservationQuery(MoscoRunDbContext db)
 
         if (after is not null)
         {
+            // Paginazione keyset con confronto di riga PostgreSQL: (time, available_at, id) > cursore.
             var time = after.Time.ToUniversalTime();
             var available = after.AvailableAt.ToUniversalTime();
-            query = query.Where(o => o.Time > time || (o.Time == time &&
-                (o.AvailableAt > available || (o.AvailableAt == available && o.Id.CompareTo(after.Id) > 0))));
+            var id = after.Id;
+            query = query.Where(o => EF.Functions.GreaterThan(
+                ValueTuple.Create(o.Time, o.AvailableAt, o.Id), ValueTuple.Create(time, available, id)));
         }
 
         var rows = await query.OrderBy(o => o.Time).ThenBy(o => o.AvailableAt).ThenBy(o => o.Id)

@@ -20,7 +20,7 @@ public sealed class WorkoutDurabilityEngineTests
         report.ContentSha256.Should().Be(Convert.ToHexStringLower(content.Workout.ContentHash));
         report.Protocol.Should().Be(Protocol);
         report.Windows.Should().HaveCount(3);
-        report.Windows.Should().OnlyContain(window => window.Coverage == 1);
+        report.Windows.Select(window => window.Coverage).Should().AllBeEquivalentTo(1.0);
         report.Profile.Should().NotBeNull();
         report.Profile!.LossPercent[2].Should().BeApproximately(10, 0.000001);
         report.Profile.Onset.Should().Be(Start.AddSeconds(30));
