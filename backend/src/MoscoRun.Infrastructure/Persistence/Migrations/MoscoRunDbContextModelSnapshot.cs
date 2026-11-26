@@ -82,8 +82,52 @@ namespace MoscoRun.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid[]")
                         .HasColumnName("input_ids");
 
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("external_id");
+
+                    b.Property<string>("ExternalRevision")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("external_revision");
+
+                    b.Property<long?>("ExternalRevisionOrder")
+                        .HasColumnType("bigint")
+                        .HasColumnName("external_revision_order");
+
+                    b.Property<Guid?>("ImportDeviceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("import_device_id");
+
+                    b.Property<Guid?>("WorkoutId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("workout_id");
+
+                    b.Property<string>("NativeMetric")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("native_metric");
+
+                    b.Property<string>("NativeUnit")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("native_unit");
+
+                    b.Property<double?>("NativeValue")
+                        .HasColumnType("double precision")
+                        .HasColumnName("native_value");
+
+                    b.Property<string>("MappingVersion")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("mapping_version");
+
                     b.HasKey("OwnerId", "Id")
                         .HasName("pk_scientific_observations");
+
+                    b.HasIndex("OwnerId", "Source", "ExternalId", "Metric")
+                        .HasDatabaseName("ix_scientific_observations_external_lookup");
 
                     b.HasIndex("OwnerId", "Time", "AvailableAt")
                         .HasDatabaseName("ix_scientific_observations_owner_id_time_available_at");
@@ -93,6 +137,100 @@ namespace MoscoRun.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("ck_scientific_observations_time", "available_at >= time");
 
                             t.HasCheckConstraint("ck_scientific_observations_value", "value IS NULL OR (value > '-Infinity'::double precision AND value < 'Infinity'::double precision)");
+                        });
+                });
+
+            modelBuilder.Entity("MoscoRun.Infrastructure.Persistence.ScientificSyncCheckpointRow", b =>
+                {
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<string>("Source")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Stream")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("stream");
+
+                    b.Property<string>("Cursor")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("cursor");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("OwnerId", "Source", "Stream")
+                        .HasName("pk_scientific_sync_checkpoints");
+
+                    b.ToTable("scientific_sync_checkpoints", "moscorun");
+                });
+
+            modelBuilder.Entity("MoscoRun.Infrastructure.Persistence.AthleteFeedbackEntryRow", b =>
+                {
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedNever()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("EntryId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("entry_id");
+
+                    b.Property<string>("Revision")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("revision");
+
+                    b.Property<long?>("RevisionOrder")
+                        .HasColumnType("bigint")
+                        .HasColumnName("revision_order");
+
+                    b.Property<DateTimeOffset>("Time")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("time");
+
+                    b.Property<DateTimeOffset>("AvailableAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("available_at");
+
+                    b.Property<Guid?>("WorkoutId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("workout_id");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("note");
+
+                    b.Property<Guid[]>("ObservationIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("observation_ids");
+
+                    b.HasKey("OwnerId", "Id")
+                        .HasName("pk_scientific_feedback_entries");
+
+                    b.HasIndex("OwnerId", "EntryId", "AvailableAt")
+                        .HasDatabaseName("ix_scientific_feedback_entries_owner_id_entry_id_available_at");
+
+                    b.ToTable("scientific_feedback_entries", "moscorun", t =>
+                        {
+                            t.HasCheckConstraint("ck_scientific_feedback_time", "available_at >= time");
                         });
                 });
 
@@ -781,6 +919,26 @@ namespace MoscoRun.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_scientific_observations_asp_net_users_owner_id");
+                });
+
+            modelBuilder.Entity("MoscoRun.Infrastructure.Persistence.ScientificSyncCheckpointRow", b =>
+                {
+                    b.HasOne("MoscoRun.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_scientific_sync_checkpoints_asp_net_users_owner_id");
+                });
+
+            modelBuilder.Entity("MoscoRun.Infrastructure.Persistence.AthleteFeedbackEntryRow", b =>
+                {
+                    b.HasOne("MoscoRun.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_scientific_feedback_entries_asp_net_users_owner_id");
                 });
 
 #pragma warning restore 612, 618
