@@ -18,6 +18,7 @@ import { WorkoutDurabilityPanel } from "./WorkoutDurabilityPanel";
 import { WorkoutIntensityPanel } from "./WorkoutIntensityPanel";
 import { RunningStepPanel } from "./RunningStepPanel";
 import { ExtendedBiomechanicsPanel } from "./ExtendedBiomechanicsPanel";
+import { WorkoutEnvironmentPanel } from "./WorkoutEnvironmentPanel";
 import { CardiacRecoveryPanel } from "./CardiacRecoveryPanel";
 import { WorkoutReservePanel } from "./WorkoutReservePanel";
 import { CalibratedTwinPanel } from "./CalibratedTwinPanel";
@@ -82,6 +83,7 @@ export function WorkoutDetailPage() {
         <>
           <RunningStepPanel key={`${w.id}:${w.revision}:steps`} workoutId={w.id} />
           <ExtendedBiomechanicsPanel key={`${w.id}:${w.revision}:biomechanics`} workoutId={w.id} />
+          <WorkoutEnvironmentPanel key={`${w.id}:${w.revision}:environment`} workoutId={w.id} />
         </>
       )}
       <WorkoutDurabilityPanel

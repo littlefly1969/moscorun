@@ -1755,6 +1755,60 @@
         }
       }
     },
+    "/api/v1/workouts/{id}/science/environment": {
+      "post": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetWorkoutEnvironment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkoutEnvironmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutEnvironmentReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/devices": {
       "get": {
         "tags": [
@@ -3134,6 +3188,61 @@
           }
         },
         "description": "Profilo descrittivo del deterioramento, con onset e trend sullo stesso protocollo di finestre."
+      },
+      "EnvironmentalExposure": {
+        "required": [
+          "observedMinutes",
+          "aboveThresholdMinutes",
+          "degreeMinutes"
+        ],
+        "type": "object",
+        "properties": {
+          "observedMinutes": {
+            "type": "number",
+            "format": "double"
+          },
+          "aboveThresholdMinutes": {
+            "type": "number",
+            "format": "double"
+          },
+          "degreeMinutes": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "EnvironmentalMetricSummary": {
+        "required": [
+          "metric",
+          "unit",
+          "supportedSeconds",
+          "coverage",
+          "weightedMean"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "supportedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "coverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "weightedMean": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
       },
       "ExtendedBiomechanicsReport": {
         "required": [
@@ -5397,6 +5506,47 @@
           }
         }
       },
+      "TerrainSummary": {
+        "required": [
+          "supportedSeconds",
+          "horizontalDistanceMeters",
+          "netGradePercent",
+          "rawAscentMeters",
+          "rawDescentMeters"
+        ],
+        "type": "object",
+        "properties": {
+          "supportedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "horizontalDistanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "netGradePercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "rawAscentMeters": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "rawDescentMeters": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "TrackPointInput": {
         "required": [
           "time",
@@ -5962,6 +6112,167 @@
               "number"
             ],
             "format": "double"
+          }
+        }
+      },
+      "WorkoutEnvironmentAnalysis": {
+        "required": [
+          "methodVersion",
+          "durationSeconds",
+          "metrics",
+          "heatExposure",
+          "terrain"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "durationSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EnvironmentalMetricSummary"
+            }
+          },
+          "heatExposure": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EnvironmentalExposure"
+              }
+            ]
+          },
+          "terrain": {
+            "$ref": "#/components/schemas/TerrainSummary"
+          }
+        }
+      },
+      "WorkoutEnvironmentProtocol": {
+        "required": [
+          "heatThresholdCelsius",
+          "maximumWeatherGapSeconds",
+          "maximumGpsGapSeconds",
+          "maximumHorizontalAccuracyMeters",
+          "minimumHorizontalDistanceMeters",
+          "weatherRepresentative",
+          "windDirectionIsFrom"
+        ],
+        "type": "object",
+        "properties": {
+          "heatThresholdCelsius": {
+            "type": "number",
+            "format": "double"
+          },
+          "maximumWeatherGapSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "maximumGpsGapSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "maximumHorizontalAccuracyMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "minimumHorizontalDistanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "weatherRepresentative": {
+            "type": "boolean"
+          },
+          "windDirectionIsFrom": {
+            "type": "boolean"
+          }
+        }
+      },
+      "WorkoutEnvironmentReport": {
+        "required": [
+          "workoutId",
+          "workoutRevision",
+          "workoutContentSha256",
+          "asOf",
+          "source",
+          "weatherStatus",
+          "protocol",
+          "truncated",
+          "chunks",
+          "selected",
+          "analysis"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workoutRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "workoutContentSha256": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string"
+          },
+          "weatherStatus": {
+            "type": "string"
+          },
+          "protocol": {
+            "$ref": "#/components/schemas/WorkoutEnvironmentProtocol"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "chunks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BiomechanicsChunkMetadata"
+            }
+          },
+          "selected": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BiomechanicsChunkMetadata"
+            }
+          },
+          "analysis": {
+            "$ref": "#/components/schemas/WorkoutEnvironmentAnalysis"
+          }
+        }
+      },
+      "WorkoutEnvironmentRequest": {
+        "required": [
+          "source",
+          "chunkIds",
+          "protocol"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "chunkIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "protocol": {
+            "$ref": "#/components/schemas/WorkoutEnvironmentProtocol"
           }
         }
       },

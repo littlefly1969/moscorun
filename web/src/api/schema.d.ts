@@ -539,6 +539,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/workouts/{id}/science/environment": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["GetWorkoutEnvironment"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/devices": {
     parameters: {
       query?: never;
@@ -994,6 +1010,24 @@ export interface components {
       lossPercentagePointsPerHour: number;
       /** Format: double */
       medianAbsoluteResidualPercentagePoints: number;
+    };
+    EnvironmentalExposure: {
+      /** Format: double */
+      observedMinutes: number;
+      /** Format: double */
+      aboveThresholdMinutes: number;
+      /** Format: double */
+      degreeMinutes: number;
+    };
+    EnvironmentalMetricSummary: {
+      metric: string;
+      unit: string;
+      /** Format: double */
+      supportedSeconds: number;
+      /** Format: double */
+      coverage: number;
+      /** Format: double */
+      weightedMean: null | number;
     };
     ExtendedBiomechanicsReport: {
       /** Format: uuid */
@@ -1686,6 +1720,18 @@ export interface components {
     SystemInfo: {
       version: string;
     };
+    TerrainSummary: {
+      /** Format: double */
+      supportedSeconds: number;
+      /** Format: double */
+      horizontalDistanceMeters: number;
+      /** Format: double */
+      netGradePercent: null | number;
+      /** Format: double */
+      rawAscentMeters: null | number;
+      /** Format: double */
+      rawDescentMeters: null | number;
+    };
     TrackPointInput: {
       /**
        * Format: date-time
@@ -1870,6 +1916,49 @@ export interface components {
       meanExternalLoad: null | number;
       /** Format: double */
       meanHeartRateBpm: null | number;
+    };
+    WorkoutEnvironmentAnalysis: {
+      methodVersion: string;
+      /** Format: double */
+      durationSeconds: number;
+      metrics: components["schemas"]["EnvironmentalMetricSummary"][];
+      heatExposure: null | components["schemas"]["EnvironmentalExposure"];
+      terrain: components["schemas"]["TerrainSummary"];
+    };
+    WorkoutEnvironmentProtocol: {
+      /** Format: double */
+      heatThresholdCelsius: number;
+      /** Format: double */
+      maximumWeatherGapSeconds: number;
+      /** Format: double */
+      maximumGpsGapSeconds: number;
+      /** Format: double */
+      maximumHorizontalAccuracyMeters: number;
+      /** Format: double */
+      minimumHorizontalDistanceMeters: number;
+      weatherRepresentative: boolean;
+      windDirectionIsFrom: boolean;
+    };
+    WorkoutEnvironmentReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      workoutRevision: number;
+      workoutContentSha256: string;
+      /** Format: date-time */
+      asOf: string;
+      source: string;
+      weatherStatus: string;
+      protocol: components["schemas"]["WorkoutEnvironmentProtocol"];
+      truncated: boolean;
+      chunks: components["schemas"]["BiomechanicsChunkMetadata"][];
+      selected: components["schemas"]["BiomechanicsChunkMetadata"][];
+      analysis: components["schemas"]["WorkoutEnvironmentAnalysis"];
+    };
+    WorkoutEnvironmentRequest: {
+      source: string;
+      chunkIds: string[];
+      protocol: components["schemas"]["WorkoutEnvironmentProtocol"];
     };
     WorkoutIntensityProtocol: {
       metric: components["schemas"]["SeriesMetric"];
@@ -3132,6 +3221,48 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ExtendedBiomechanicsReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetWorkoutEnvironment: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["WorkoutEnvironmentRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutEnvironmentReport"];
         };
       };
       /** @description Bad Request */
