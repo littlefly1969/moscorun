@@ -7,6 +7,7 @@ public static class WorkoutScientificEngine
 {
     public const string MethodVersion = "workout-channel-quality-v2";
     private static readonly TimeSpan MaxGap = TimeSpan.FromSeconds(5);
+    private static readonly int[] CurveDurations = [5, 15, 30, 60, 120, 180, 300, 600, 720, 1200, 1800, 3600];
 
     public static WorkoutScienceReport? Build(
         Guid ownerId, Workout workout, IReadOnlyList<WorkoutSeries> series, DateTimeOffset asOf)
@@ -23,6 +24,7 @@ public static class WorkoutScientificEngine
 
         var byMetric = series.ToDictionary(item => item.Metric);
         var channels = new List<WorkoutChannelReport>();
+        var curves = new List<ObservedPerformanceCurve>();
         foreach (var metric in Enum.GetValues<SeriesMetric>())
         {
             if (!byMetric.TryGetValue(metric, out var recorded))
@@ -31,14 +33,19 @@ public static class WorkoutScientificEngine
                 continue;
             }
 
-            var quality = SignalProcessing.Audit(recorded.Samples().Select(item => new SignalSample(item.Time, item.Value)),
-                workout.StartedAt, workout.EndedAt, MaxGap);
+            var samples = recorded.Samples().Select(item => new SignalSample(item.Time, item.Value)).ToArray();
+            var quality = SignalProcessing.Audit(samples, workout.StartedAt, workout.EndedAt, MaxGap);
+            if (metric is SeriesMetric.Speed or SeriesMetric.Power)
+            {
+                curves.Add(new ObservedPerformanceCurve(metric, metric.Unit(), ObservedPerformanceEngine.MethodVersion,
+                    ObservedPerformanceEngine.Build(samples, workout.StartedAt, workout.EndedAt, MaxGap, CurveDurations)));
+            }
             var status = quality.TimeWeightedMean.HasValue ? "observed" : "insufficient-support";
             channels.Add(new WorkoutChannelReport(metric, metric.Unit(), status, quality.SampleCount,
                 quality.ValidCount, quality.ConflictingCount, quality.Coverage, quality.TimeWeightedMean));
         }
 
         return new WorkoutScienceReport(workout.Id, workout.Revision, Convert.ToHexStringLower(workout.ContentHash),
-            workout.Source, asOf, MethodVersion, MaxGap.TotalSeconds, channels.AsReadOnly());
+            workout.Source, asOf, MethodVersion, MaxGap.TotalSeconds, channels.AsReadOnly(), curves.AsReadOnly());
     }
 }
