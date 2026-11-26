@@ -10,7 +10,8 @@ function Results({ report }: { report: Schemas["WorkoutReserveReport"] }) {
     <>
       <p>Stato: {report.status}</p>
       <p>
-        Supporto continuo: {number.format(report.supportedSeconds)} / {number.format(report.workoutDurationSeconds)} s
+        Supporto continuo: {number.format(report.supportedSeconds)} /{" "}
+        {number.format(report.workoutDurationSeconds)} s
       </p>
       <dl>
         <dt>Riserva minima ({report.unit})</dt>
@@ -44,8 +45,10 @@ function Results({ report }: { report: Schemas["WorkoutReserveReport"] }) {
 
 export function WorkoutReservePanel({ workoutId }: { workoutId: string }) {
   const analysis = useMutation({
-    mutationFn: (query: Schemas["WorkoutReserveProtocol"]) =>
-      unwrap(api.GET("/api/v1/workouts/{id}/science/reserve", { params: { path: { id: workoutId }, query } })),
+    mutationFn: (query: Schemas["WorkoutReserveProtocol"]) => {
+      const params = { path: { id: workoutId }, query };
+      return unwrap(api.GET("/api/v1/workouts/{id}/science/reserve", { params }));
+    },
   });
   const submit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
