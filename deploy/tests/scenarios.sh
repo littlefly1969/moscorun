@@ -225,7 +225,7 @@ fi
 step "Backup e ripristino con dati reali e fixture scientifiche"
 [[ "${CI:-}" == true ]] || fail "scenario distruttivo consentito solo sullo stack isolato CI"
 sql "$(cat <<'SQL'
-DO $
+DO $scientific_fixture$
 DECLARE athlete uuid;
 BEGIN
   SELECT id INTO STRICT athlete FROM moscorun."AspNetUsers" ORDER BY id LIMIT 1;
@@ -269,7 +269,7 @@ BEGIN
     VALUES (athlete,'00000000-0000-4000-8000-000000000007','export','2026-11-25 08:00Z','{"Observations":3}');
   INSERT INTO moscorun.scientific_lifecycle_fences (owner_id,blocked_at)
     VALUES (athlete,'2026-11-25 08:00Z');
-END $;
+END $scientific_fixture$;
 SQL
 )" >/dev/null
 
