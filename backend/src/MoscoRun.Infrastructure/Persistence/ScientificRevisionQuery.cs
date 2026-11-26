@@ -22,7 +22,8 @@ public sealed class ScientificRevisionQuery(MoscoRunDbContext db)
             .OrderBy(o => o.AvailableAt).ThenBy(o => o.Id).ToListAsync(ct);
         return Array.AsReadOnly(rows.Select(o => new ScientificImportedRevision(o.ExternalRevision!, o.ExternalRevisionOrder,
             new ScientificObservation(o.Id, o.OwnerId, o.Metric, o.Unit, o.Value, o.Time, o.AvailableAt, o.Source,
-                Enum.Parse<ObservationMethod>(o.Method), o.ProviderAlgorithm, o.DerivationVersion, o.InputIds))).ToArray());
+                Enum.Parse<ObservationMethod>(o.Method), o.ProviderAlgorithm, o.DerivationVersion, o.InputIds),
+            new ScientificImportProvenance(o.ImportDeviceId, o.WorkoutId, o.NativeMetric, o.NativeUnit, o.NativeValue, o.MappingVersion))).ToArray());
     }
 
     public async Task<ScientificImportedRevision?> ReadLatestOrderedAsync(Guid ownerId, string source, string externalId,

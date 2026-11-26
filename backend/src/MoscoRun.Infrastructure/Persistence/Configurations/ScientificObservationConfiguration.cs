@@ -22,6 +22,9 @@ internal sealed class ScientificObservationConfiguration : IEntityTypeConfigurat
         builder.Property(o => o.ExternalRevision).HasMaxLength(200);
         builder.HasIndex(o => new { o.OwnerId, o.Source, o.ExternalId, o.Metric })
             .HasDatabaseName("ix_scientific_observations_external_lookup");
+        builder.Property(o => o.NativeMetric).HasMaxLength(200);
+        builder.Property(o => o.NativeUnit).HasMaxLength(200);
+        builder.Property(o => o.MappingVersion).HasMaxLength(200);
         builder.Property(o => o.InputIds).IsRequired();
         builder.HasIndex(o => new { o.OwnerId, o.Time, o.AvailableAt });
         builder.HasOne<AppUser>().WithMany().HasForeignKey(o => o.OwnerId).OnDelete(DeleteBehavior.Cascade);

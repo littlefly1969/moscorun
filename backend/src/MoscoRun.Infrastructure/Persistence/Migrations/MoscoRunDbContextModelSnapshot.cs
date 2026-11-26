@@ -96,6 +96,33 @@ namespace MoscoRun.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("external_revision_order");
 
+                    b.Property<Guid?>("ImportDeviceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("import_device_id");
+
+                    b.Property<Guid?>("WorkoutId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("workout_id");
+
+                    b.Property<string>("NativeMetric")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("native_metric");
+
+                    b.Property<string>("NativeUnit")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("native_unit");
+
+                    b.Property<double?>("NativeValue")
+                        .HasColumnType("double precision")
+                        .HasColumnName("native_value");
+
+                    b.Property<string>("MappingVersion")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("mapping_version");
+
                     b.HasKey("OwnerId", "Id")
                         .HasName("pk_scientific_observations");
 
