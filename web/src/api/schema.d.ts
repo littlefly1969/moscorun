@@ -477,6 +477,9 @@ export interface components {
       robustCriticalSpeed: null | components["schemas"]["CriticalSpeedFit"];
       cooperTests: components["schemas"]["CooperTestResult"][];
       criticalSpeedCandidateIds: string[];
+      powerMethodVersion: string;
+      criticalPower: null | components["schemas"]["CriticalPowerFit"];
+      criticalPowerCandidateIds: string[];
     };
     AttestedRaceReport: {
       source: string;
@@ -559,6 +562,16 @@ export interface components {
       durationSeconds: number;
       /** Format: double */
       estimatedVo2MaxMlKgMin: number;
+    };
+    CriticalPowerFit: {
+      /** Format: double */
+      criticalWatts: number;
+      /** Format: double */
+      workReserveJoules: number;
+      /** Format: double */
+      rootMeanSquaredErrorJoules: number;
+      /** Format: int32 */
+      effortCount: number;
     };
     CriticalSpeedFit: {
       /** Format: double */
@@ -935,6 +948,8 @@ export interface components {
       predictedSeconds: null | number;
       /** Format: double */
       absoluteErrorSeconds: null | number;
+      /** Format: double */
+      meanPowerWatts: null | number;
     };
     RaceCalibrationModelSummary: {
       /** Format: double */

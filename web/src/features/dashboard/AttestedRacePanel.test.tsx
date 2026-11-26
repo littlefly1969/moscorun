@@ -29,6 +29,9 @@ describe("calibrazione personale", () => {
             robustCriticalSpeed: null,
             cooperTests: [],
             criticalSpeedCandidateIds: [],
+            powerMethodVersion: "work-time-ols-v1",
+            criticalPower: null,
+            criticalPowerCandidateIds: [],
           },
         });
       }),

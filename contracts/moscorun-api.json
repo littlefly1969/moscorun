@@ -1401,7 +1401,10 @@
           "ordinaryLeastSquares",
           "robustCriticalSpeed",
           "cooperTests",
-          "criticalSpeedCandidateIds"
+          "criticalSpeedCandidateIds",
+          "powerMethodVersion",
+          "criticalPower",
+          "criticalPowerCandidateIds"
         ],
         "type": "object",
         "properties": {
@@ -1441,6 +1444,26 @@
             }
           },
           "criticalSpeedCandidateIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "powerMethodVersion": {
+            "type": "string"
+          },
+          "criticalPower": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CriticalPowerFit"
+              }
+            ]
+          },
+          "criticalPowerCandidateIds": {
             "type": "array",
             "items": {
               "type": "string",
@@ -1677,6 +1700,33 @@
           "estimatedVo2MaxMlKgMin": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "CriticalPowerFit": {
+        "required": [
+          "criticalWatts",
+          "workReserveJoules",
+          "rootMeanSquaredErrorJoules",
+          "effortCount"
+        ],
+        "type": "object",
+        "properties": {
+          "criticalWatts": {
+            "type": "number",
+            "format": "double"
+          },
+          "workReserveJoules": {
+            "type": "number",
+            "format": "double"
+          },
+          "rootMeanSquaredErrorJoules": {
+            "type": "number",
+            "format": "double"
+          },
+          "effortCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -2724,7 +2774,8 @@
           "durationSeconds",
           "role",
           "predictedSeconds",
-          "absoluteErrorSeconds"
+          "absoluteErrorSeconds",
+          "meanPowerWatts"
         ],
         "type": "object",
         "properties": {
@@ -2770,6 +2821,13 @@
             "format": "double"
           },
           "absoluteErrorSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "meanPowerWatts": {
             "type": [
               "null",
               "number"

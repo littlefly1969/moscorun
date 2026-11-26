@@ -27,6 +27,12 @@ function Performance({ profile }: { profile: Schemas["AttestedPerformanceProfile
         <dd>{format(fit?.rootMeanSquaredErrorMeters ?? null)}</dd>
         <dt>Velocità critica OLS (m/s)</dt>
         <dd>{format(profile.ordinaryLeastSquares?.criticalSpeedMetersPerSecond ?? null)}</dd>
+        <dt>Potenza critica (W)</dt>
+        <dd>{format(profile.criticalPower?.criticalWatts ?? null)}</dd>
+        <dt>Riserva di lavoro (J)</dt>
+        <dd>{format(profile.criticalPower?.workReserveJoules ?? null)}</dd>
+        <dt>RMSE del lavoro (J)</dt>
+        <dd>{format(profile.criticalPower?.rootMeanSquaredErrorJoules ?? null)}</dd>
       </dl>
       {!fit && <p>Prove distinte da 2 a 20 minuti insufficienti per il fit robusto.</p>}
       <p>Cooper: stima di campo, non misura diretta del VO2max.</p>
