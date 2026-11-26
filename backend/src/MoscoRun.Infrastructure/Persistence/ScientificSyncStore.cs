@@ -29,13 +29,13 @@ public sealed class ScientificSyncStore(MoscoRunDbContext db, ScientificImportSt
         }
 
         var strategy = db.Database.CreateExecutionStrategy();
-        return await strategy.ExecuteAsync(async () =>
+        return await strategy.ExecuteAsync(async cancellationToken =>
         {
             try
             {
-                await using var transaction = await db.Database.BeginTransactionAsync(ct);
-                var count = await ImportAndAdvanceAsync(ownerId, page, ct);
-                await transaction.CommitAsync(ct);
+                await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+                var count = await ImportAndAdvanceAsync(ownerId, page, cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
                 return count;
             }
             finally
