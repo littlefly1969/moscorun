@@ -53,6 +53,36 @@ export function WorkoutSciencePanel({ workoutId, revision }: { workoutId: string
               </tbody>
             </table>
           </div>
+          {report.data.performanceCurves.map((curve) => (
+            <div key={curve.metric}>
+              <h3>Curva osservata: {curve.metric ? labels[curve.metric] : "Sconosciuta"}</h3>
+              <p className="muted">
+                Migliore media su finestra completamente supportata. Non equivale a uno sforzo massimale.
+              </p>
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th scope="col">Durata (s)</th>
+                      <th scope="col">Migliore media</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {curve.points.map((point) => (
+                      <tr key={point.durationSeconds}>
+                        <th scope="row">{point.durationSeconds}</th>
+                        <td>
+                          {point.mean == null
+                            ? "Supporto insufficiente"
+                            : `${number.format(point.mean)} ${curve.unit}`}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
         </>
       )}
     </section>
