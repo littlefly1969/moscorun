@@ -72,6 +72,35 @@ public sealed class ScienceFeedbackEndpointTests(ApiFactory factory)
         (await user.PutAsJsonAsync(Endpoint, request, ct)).StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
+    [Fact]
+    public async Task Daily_load_distinguishes_rest_missing_and_unrated_sessions()
+    {
+        var (client, _) = await factory.CreateUserClientAsync();
+        using var user = client;
+        var (other, _) = await factory.CreateUserClientAsync();
+        using var stranger = other;
+        var ct = TestContext.Current.CancellationToken;
+        var today = DateOnly.FromDateTime(factory.Time.GetUtcNow().UtcDateTime);
+        var last = today.AddDays(-1);
+        var uri = "/api/v1/science/load?last=" + last.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        var request = new ScienceFeedbackRequest(last, null, null, 1, [new("trainingDayComplete", 1)], null);
+        var missing = await user.GetFromJsonAsync<DailySessionLoadReport>(uri, ct);
+        missing!.Days[^1].Load.Should().BeNull();
+        (await user.PutAsJsonAsync(Endpoint, request with { Day = today }, ct)).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await user.PutAsJsonAsync(Endpoint, request with { Values = [new("trainingDayComplete", 0.5)] }, ct))
+            .StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        await SaveAsync(user, request, ct);
+        var rest = await user.GetFromJsonAsync<DailySessionLoadReport>(uri, ct);
+        rest!.Days[^1].Status.Should().Be("observed-rest");
+        rest.Days[^1].Load.Should().Be(0);
+        rest.RecentWeek.Should().BeNull();
+        var isolated = await stranger.GetFromJsonAsync<DailySessionLoadReport>(uri, ct);
+        isolated!.Days[^1].Load.Should().BeNull();
+        await SaveAsync(user, request with { Revision = 2, Values = [new("trainingDayComplete", 0)] }, ct);
+        var revoked = await user.GetFromJsonAsync<DailySessionLoadReport>(uri, ct);
+        revoked!.Days[^1].Load.Should().BeNull();
+    }
+
     private async Task<Guid> IngestAsync(HttpClient phone, int revision, CancellationToken ct)
     {
         var end = factory.Time.GetUtcNow().AddHours(-1);
