@@ -85,6 +85,9 @@ internal static class WorkoutEndpoints
         workouts.MapGet("/{id:guid}/science/biomechanics", ExtendedBiomechanicsEndpoints.GetAsync)
             .RequireAuthorization(Policies.User)
             .WithName("GetExtendedBiomechanics");
+        workouts.MapPost("/{id:guid}/science/environment", WorkoutEnvironmentEndpoints.PostAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("GetWorkoutEnvironment");
         MapDashboardScienceEndpoints(v1);
     }
 
