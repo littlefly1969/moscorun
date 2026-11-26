@@ -70,7 +70,9 @@ export function WorkoutIntensityPanel({ workoutId }: { workoutId: string }) {
   const analysis = useMutation({
     mutationFn: (query: Protocol) =>
       unwrap(
-        api.GET("/api/v1/workouts/{id}/science/intensity", { params: { path: { id: workoutId }, query } }),
+        api.GET("/api/v1/workouts/{id}/science/intensity", {
+          params: { path: { id: workoutId }, query },
+        }),
       ),
   });
   const submit = (event: SubmitEvent<HTMLFormElement>) => {
@@ -102,8 +104,7 @@ export function WorkoutIntensityPanel({ workoutId }: { workoutId: string }) {
     <section className="card" aria-labelledby="intensity-title">
       <h2 id="intensity-title">Zone d'intensità e carico cardiaco</h2>
       <p>
-        Inserisci soglie crescenti nella stessa unità del segnale. Per la FC puoi indicare riposo, massimo
-        e coefficienti TRIMP calibrati. Nessuna stima per lacune o parametri mancanti.
+        Inserisci soglie nella stessa unità del segnale. Per la FC usa parametri calibrati. Nessuna imputazione.
       </p>
       <form className="inline-form" onSubmit={submit}>
         <label>
