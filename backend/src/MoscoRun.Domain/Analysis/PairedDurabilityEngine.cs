@@ -19,8 +19,8 @@ public static class PairedDurabilityEngine
 
         var load = Supports(externalLoad, start, end, maxGap);
         var heart = Supports(heartRate, start, end, maxGap);
-        int i = 0;
-        int j = 0;
+        var i = 0;
+        var j = 0;
         long ticks = 0;
         double loadIntegral = 0;
         double heartIntegral = 0;
@@ -55,8 +55,11 @@ public static class PairedDurabilityEngine
             return null;
         }
 
-        return new DurabilityWindow(start, end, support, loadIntegral / support.TotalSeconds,
-            heartIntegral / support.TotalSeconds, sessionId, metric);
+        var meanLoad = loadIntegral / support.TotalSeconds;
+        var meanHeart = heartIntegral / support.TotalSeconds;
+        return double.IsFinite(meanLoad) && double.IsFinite(meanHeart) && meanLoad > 0 && meanHeart > 0
+            ? new DurabilityWindow(start, end, support, meanLoad, meanHeart, sessionId, metric)
+            : null;
     }
 
     private static List<(DateTimeOffset Start, DateTimeOffset End, double Value)> Supports(
@@ -70,7 +73,7 @@ public static class PairedDurabilityEngine
             var current = slots[index];
             var next = slots[index + 1];
             // Campioni nulli, in conflitto, non fisici o pause interrompono il supporto.
-            if (current.Value is not > 0 || next.Value is not > 0)
+            if (current.Value is not { } value || value <= 0 || next.Value is not > 0)
             {
                 continue;
             }
@@ -80,7 +83,7 @@ public static class PairedDurabilityEngine
             var from = current.Time > start ? current.Time : start;
             if (until > from)
             {
-                result.Add((from, until, current.Value.Value));
+                result.Add((from, until, value));
             }
         }
 
