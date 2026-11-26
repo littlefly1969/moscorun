@@ -908,6 +908,98 @@
         }
       }
     },
+    "/api/v1/workouts/{id}/science/intensity": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetWorkoutIntensity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SeriesMetric"
+            }
+          },
+          {
+            "name": "thresholds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "restingBpm",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "maximumBpm",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "trimpA",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "trimpB",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutIntensityReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/devices": {
       "get": {
         "tags": [
@@ -1749,6 +1841,36 @@
           }
         },
         "description": "Allenamento svolto inviato dal telefono. Reinviare lo stesso contenuto è sicuro."
+      },
+      "IntensityDistribution": {
+        "required": [
+          "zoneMinutes",
+          "missingMinutes",
+          "totalMinutes",
+          "coverage"
+        ],
+        "type": "object",
+        "properties": {
+          "zoneMinutes": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "missingMinutes": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalMinutes": {
+            "type": "number",
+            "format": "double"
+          },
+          "coverage": {
+            "type": "number",
+            "format": "double"
+          }
+        }
       },
       "LineStringGeometry": {
         "required": [
@@ -2760,6 +2882,144 @@
               "number"
             ],
             "format": "double"
+          }
+        }
+      },
+      "WorkoutIntensityProtocol": {
+        "required": [
+          "metric",
+          "upperBoundaries",
+          "restingBpm",
+          "maximumBpm",
+          "trimpA",
+          "trimpB"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "$ref": "#/components/schemas/SeriesMetric"
+          },
+          "upperBoundaries": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "restingBpm": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "maximumBpm": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "trimpA": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "trimpB": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "WorkoutIntensityReport": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "source",
+          "asOf",
+          "methodVersion",
+          "maxGapSeconds",
+          "protocol",
+          "status",
+          "unit",
+          "distribution",
+          "observedMean",
+          "supportedHeartRateReserveLoad",
+          "supportedExponentialTrimp",
+          "heartRateStatus",
+          "trimpMethodVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "maxGapSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "protocol": {
+            "$ref": "#/components/schemas/WorkoutIntensityProtocol"
+          },
+          "status": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "distribution": {
+            "$ref": "#/components/schemas/IntensityDistribution"
+          },
+          "observedMean": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "supportedHeartRateReserveLoad": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "supportedExponentialTrimp": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "heartRateStatus": {
+            "type": "string"
+          },
+          "trimpMethodVersion": {
+            "type": "string"
           }
         }
       },

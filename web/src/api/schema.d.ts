@@ -347,6 +347,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/workouts/{id}/science/intensity": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetWorkoutIntensity"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/devices": {
     parameters: {
       query?: never;
@@ -668,6 +684,15 @@ export interface components {
       track: null | components["schemas"]["TrackPointInput"][];
       /** @description Serie temporali, al più una per grandezza. */
       series: null | components["schemas"]["SeriesInput"][];
+    };
+    IntensityDistribution: {
+      zoneMinutes: number[];
+      /** Format: double */
+      missingMinutes: number;
+      /** Format: double */
+      totalMinutes: number;
+      /** Format: double */
+      coverage: number;
     };
     /** @description Geometria GeoJSON (RFC 7946): coordinate `[longitudine, latitudine]` o con altitudine. */
     LineStringGeometry: {
@@ -995,6 +1020,43 @@ export interface components {
       meanExternalLoad: null | number;
       /** Format: double */
       meanHeartRateBpm: null | number;
+    };
+    WorkoutIntensityProtocol: {
+      metric: components["schemas"]["SeriesMetric"];
+      upperBoundaries: number[];
+      /** Format: double */
+      restingBpm: null | number;
+      /** Format: double */
+      maximumBpm: null | number;
+      /** Format: double */
+      trimpA: null | number;
+      /** Format: double */
+      trimpB: null | number;
+    };
+    WorkoutIntensityReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      /** Format: double */
+      maxGapSeconds: number;
+      protocol: components["schemas"]["WorkoutIntensityProtocol"];
+      status: string;
+      unit: string;
+      distribution: components["schemas"]["IntensityDistribution"];
+      /** Format: double */
+      observedMean: null | number;
+      /** Format: double */
+      supportedHeartRateReserveLoad: null | number;
+      /** Format: double */
+      supportedExponentialTrimp: null | number;
+      heartRateStatus: string;
+      trimpMethodVersion: string;
     };
     WorkoutList: {
       /** @description Riepiloghi, dal più recente. */
@@ -1717,6 +1779,51 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["WorkoutDurabilityReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetWorkoutIntensity: {
+    parameters: {
+      query: {
+        metric: components["schemas"]["SeriesMetric"];
+        thresholds: string;
+        restingBpm?: number;
+        maximumBpm?: number;
+        trimpA?: number;
+        trimpB?: number;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutIntensityReport"];
         };
       };
       /** @description Bad Request */
