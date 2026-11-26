@@ -397,6 +397,82 @@
         }
       }
     },
+    "/api/v1/science/race-calibration": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetAttestedRace",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "split",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "targetMeters",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttestedRaceReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/device": {
       "get": {
         "tags": [
@@ -1153,6 +1229,94 @@
               "number"
             ],
             "format": "double"
+          }
+        }
+      },
+      "AttestedRaceReport": {
+        "required": [
+          "source",
+          "protocol",
+          "methodVersion",
+          "asOf",
+          "trainingStart",
+          "split",
+          "end",
+          "targetMeters",
+          "status",
+          "model",
+          "prediction",
+          "interval",
+          "evidence"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "trainingStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "split": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "targetMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "type": "string"
+          },
+          "model": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RaceCalibrationModelSummary"
+              }
+            ]
+          },
+          "prediction": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RacePrediction"
+              }
+            ]
+          },
+          "interval": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PredictionInterval"
+              }
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RaceCalibrationEvidence"
+            }
           }
         }
       },
@@ -2120,6 +2284,163 @@
               "string"
             ],
             "format": "date-time"
+          }
+        }
+      },
+      "PredictionInterval": {
+        "required": [
+          "lowerSeconds",
+          "upperSeconds",
+          "calibrationCount",
+          "nominalCoverage"
+        ],
+        "type": "object",
+        "properties": {
+          "lowerSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "upperSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "calibrationCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nominalCoverage": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "Intervallo calibrato empiricamente sui residui disponibili; copertura non garantita in serie dipendenti."
+      },
+      "RaceCalibrationEvidence": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "endedAt",
+          "availableAt",
+          "feedbackRevision",
+          "distanceMeters",
+          "durationSeconds",
+          "role",
+          "predictedSeconds",
+          "absoluteErrorSeconds"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "feedbackRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "durationSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "role": {
+            "type": "string"
+          },
+          "predictedSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "absoluteErrorSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "RaceCalibrationModelSummary": {
+        "required": [
+          "minimumDistanceMeters",
+          "maximumDistanceMeters",
+          "referenceDistanceMeters",
+          "referenceSeconds",
+          "exponent",
+          "medianAbsoluteLogResidual",
+          "trainingCount"
+        ],
+        "type": "object",
+        "properties": {
+          "minimumDistanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "maximumDistanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "referenceDistanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "referenceSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "exponent": {
+            "type": "number",
+            "format": "double"
+          },
+          "medianAbsoluteLogResidual": {
+            "type": "number",
+            "format": "double"
+          },
+          "trainingCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "RacePrediction": {
+        "required": [
+          "distanceMeters",
+          "predictedSeconds",
+          "methodVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "predictedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "methodVersion": {
+            "type": "string"
           }
         }
       },

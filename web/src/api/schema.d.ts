@@ -157,6 +157,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/science/race-calibration": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetAttestedRace"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/device": {
     parameters: {
       query?: never;
@@ -420,6 +436,26 @@ export interface components {
       unit: string;
       /** Format: double */
       value: null | number;
+    };
+    AttestedRaceReport: {
+      source: string;
+      protocol: string;
+      methodVersion: string;
+      /** Format: date-time */
+      asOf: string;
+      /** Format: date-time */
+      trainingStart: string;
+      /** Format: date-time */
+      split: string;
+      /** Format: date-time */
+      end: string;
+      /** Format: double */
+      targetMeters: number;
+      status: string;
+      model: null | components["schemas"]["RaceCalibrationModelSummary"];
+      prediction: null | components["schemas"]["RacePrediction"];
+      interval: null | components["schemas"]["PredictionInterval"];
+      evidence: components["schemas"]["RaceCalibrationEvidence"][];
     };
     /**
      * @description Quanto è certa l'associazione della pesata alla persona.
@@ -762,6 +798,62 @@ export interface components {
       start: null | string;
       /** Format: date-time */
       end: null | string;
+    };
+    /** @description Intervallo calibrato empiricamente sui residui disponibili; copertura non garantita in serie dipendenti. */
+    PredictionInterval: {
+      /** Format: double */
+      lowerSeconds: number;
+      /** Format: double */
+      upperSeconds: number;
+      /** Format: int32 */
+      calibrationCount: number;
+      /** Format: double */
+      nominalCoverage: number;
+    };
+    RaceCalibrationEvidence: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      /** Format: date-time */
+      endedAt: string;
+      /** Format: date-time */
+      availableAt: string;
+      /** Format: int64 */
+      feedbackRevision: number;
+      /** Format: double */
+      distanceMeters: number;
+      /** Format: double */
+      durationSeconds: number;
+      role: string;
+      /** Format: double */
+      predictedSeconds: null | number;
+      /** Format: double */
+      absoluteErrorSeconds: null | number;
+    };
+    RaceCalibrationModelSummary: {
+      /** Format: double */
+      minimumDistanceMeters: number;
+      /** Format: double */
+      maximumDistanceMeters: number;
+      /** Format: double */
+      referenceDistanceMeters: number;
+      /** Format: double */
+      referenceSeconds: number;
+      /** Format: double */
+      exponent: number;
+      /** Format: double */
+      medianAbsoluteLogResidual: number;
+      /** Format: int32 */
+      trainingCount: number;
+    };
+    RacePrediction: {
+      /** Format: double */
+      distanceMeters: number;
+      /** Format: double */
+      predictedSeconds: number;
+      methodVersion: string;
     };
     RecoveryDeviation: {
       /** Format: int32 */
@@ -1505,6 +1597,41 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["DailySessionLoadReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  GetAttestedRace: {
+    parameters: {
+      query: {
+        source: string;
+        from: string;
+        split: string;
+        until: string;
+        targetMeters: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AttestedRaceReport"];
         };
       };
       /** @description Bad Request */
