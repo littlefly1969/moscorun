@@ -12,6 +12,7 @@ public sealed class ScientificModelRunStore(MoscoRunDbContext db, ScientificObse
         ArgumentNullException.ThrowIfNull(run);
         var now = ScientificModelJson.Normalize(clock.GetUtcNow());
         Validate(ownerId, run, now);
+        var operational = run.Mode == ScientificModelRunMode.Operational;
         var decision = ScientificModelJson.Normalize(run.DecisionAt);
         var outputs = run.Outputs.OrderBy(x => x.Id).ToArray();
         var inputs = run.InputIds.Order().ToArray();
@@ -33,7 +34,7 @@ public sealed class ScientificModelRunStore(MoscoRunDbContext db, ScientificObse
             TargetAt = run.TargetAt is { } target ? ScientificModelJson.Normalize(target) : null,
             AvailableAt = now,
             InputIds = inputs,
-            OutputIds = outputs.Select(x => x.Id).ToArray(),
+            OutputIds = operational ? outputs.Select(x => x.Id).ToArray() : [],
             OutputsJson = JsonSerializer.Serialize(outputs),
             StateJson = run.StateJson,
         };
@@ -43,7 +44,7 @@ public sealed class ScientificModelRunStore(MoscoRunDbContext db, ScientificObse
             try
             {
                 await using var tx = await db.Database.BeginTransactionAsync(token);
-                var result = await PersistAsync(row, outputObservations, token);
+                var result = await PersistAsync(row, operational ? outputObservations : [], token);
                 await tx.CommitAsync(token);
                 return result;
             }
