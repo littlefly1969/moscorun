@@ -221,6 +221,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/science/research": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetPersonalResearch"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/device": {
     parameters: {
       query?: never;
@@ -617,6 +633,30 @@ export interface components {
      * @enum {unknown}
      */
     AttributionStatus: "Assumed" | "Confirmed" | "Rejected";
+    BenchmarkReport: {
+      /** Format: int32 */
+      sessionCount: number;
+      /** Format: int32 */
+      athleteCount: number;
+      model: components["schemas"]["BenchmarkScore"];
+      baseline: components["schemas"]["BenchmarkScore"];
+      /** Format: double */
+      meanAbsoluteErrorImprovement: number;
+      /** Format: int32 */
+      intervalCount: number;
+      /** Format: double */
+      empiricalCoverage: null | number;
+      /** Format: double */
+      meanIntervalWidth: null | number;
+    };
+    BenchmarkScore: {
+      /** Format: double */
+      bias: number;
+      /** Format: double */
+      meanAbsoluteError: number;
+      /** Format: double */
+      rootMeanSquaredError: number;
+    };
     BoundsDto: {
       /**
        * Format: double
@@ -1139,6 +1179,39 @@ export interface components {
       /** Format: double */
       currentPredictedSpeedMetersPerSecond: null | number;
     };
+    PersonalResearchFold: {
+      fold: components["schemas"]["ResearchFold"];
+      status: string;
+      /** Format: int32 */
+      trainingCount: number;
+      /** Format: int32 */
+      testCount: number;
+      full: null | components["schemas"]["BenchmarkReport"];
+      ablated: null | components["schemas"]["BenchmarkReport"];
+    };
+    PersonalResearchReport: {
+      methodVersion: string;
+      modelVersion: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      /** Format: date */
+      firstDay: string;
+      /** Format: date */
+      splitDay: string;
+      /** Format: date */
+      untilDay: string;
+      /** Format: double */
+      distanceMeters: number;
+      /** Format: double */
+      penalty: number;
+      status: string;
+      features: string[];
+      /** Format: int32 */
+      candidateTests: number;
+      examples: components["schemas"]["ResearchExampleEvidence"][];
+      folds: components["schemas"]["PersonalResearchFold"][];
+    };
     /** @description Intervallo calibrato empiricamente sui residui disponibili; copertura non garantita in serie dipendenti. */
     PredictionInterval: {
       /** Format: double */
@@ -1216,6 +1289,35 @@ export interface components {
       device: components["schemas"]["DeviceDto"];
       /** @description Credenziale da configurare nell'agente. Viene mostrata solo ora. */
       token: string;
+    };
+    ResearchExampleEvidence: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: uuid */
+      priorWorkoutId: string;
+      /** Format: date-time */
+      predictionAt: string;
+      /** Format: date-time */
+      featuresAvailableAt: string;
+      /** Format: date-time */
+      targetAt: string;
+      /** Format: date-time */
+      targetAvailableAt: string;
+      /** Format: double */
+      priorSpeedMetersPerSecond: number;
+      /** Format: double */
+      recentLoadMean: number;
+      /** Format: double */
+      priorLoadMean: number;
+      /** Format: double */
+      observedSpeedMetersPerSecond: number;
+    };
+    /** @description Fine training e termine della finestra di test (incluso tempo di disponibilità). */
+    ResearchFold: {
+      /** Format: date-time */
+      cutoff: string;
+      /** Format: date-time */
+      asOf: string;
     };
     ReserveState: {
       /** Format: double */
@@ -2237,6 +2339,42 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["PacingScenarioReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  GetPersonalResearch: {
+    parameters: {
+      query: {
+        source: string;
+        from: string;
+        split: string;
+        until: string;
+        distanceMeters: number;
+        penalty: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PersonalResearchReport"];
         };
       };
       /** @description Bad Request */

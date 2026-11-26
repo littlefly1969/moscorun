@@ -673,6 +673,91 @@
         }
       }
     },
+    "/api/v1/science/research": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetPersonalResearch",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "split",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "distanceMeters",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "penalty",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalResearchReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/device": {
       "get": {
         "tags": [
@@ -1962,6 +2047,79 @@
           "Rejected"
         ],
         "description": "Quanto è certa l'associazione della pesata alla persona."
+      },
+      "BenchmarkReport": {
+        "required": [
+          "sessionCount",
+          "athleteCount",
+          "model",
+          "baseline",
+          "meanAbsoluteErrorImprovement",
+          "intervalCount",
+          "empiricalCoverage",
+          "meanIntervalWidth"
+        ],
+        "type": "object",
+        "properties": {
+          "sessionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "athleteCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "model": {
+            "$ref": "#/components/schemas/BenchmarkScore"
+          },
+          "baseline": {
+            "$ref": "#/components/schemas/BenchmarkScore"
+          },
+          "meanAbsoluteErrorImprovement": {
+            "type": "number",
+            "format": "double"
+          },
+          "intervalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "empiricalCoverage": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "meanIntervalWidth": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "BenchmarkScore": {
+        "required": [
+          "bias",
+          "meanAbsoluteError",
+          "rootMeanSquaredError"
+        ],
+        "type": "object",
+        "properties": {
+          "bias": {
+            "type": "number",
+            "format": "double"
+          },
+          "meanAbsoluteError": {
+            "type": "number",
+            "format": "double"
+          },
+          "rootMeanSquaredError": {
+            "type": "number",
+            "format": "double"
+          }
+        }
       },
       "BoundsDto": {
         "required": [
@@ -3549,6 +3707,132 @@
           }
         }
       },
+      "PersonalResearchFold": {
+        "required": [
+          "fold",
+          "status",
+          "trainingCount",
+          "testCount",
+          "full",
+          "ablated"
+        ],
+        "type": "object",
+        "properties": {
+          "fold": {
+            "$ref": "#/components/schemas/ResearchFold"
+          },
+          "status": {
+            "type": "string"
+          },
+          "trainingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "testCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "full": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BenchmarkReport"
+              }
+            ]
+          },
+          "ablated": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BenchmarkReport"
+              }
+            ]
+          }
+        }
+      },
+      "PersonalResearchReport": {
+        "required": [
+          "methodVersion",
+          "modelVersion",
+          "source",
+          "asOf",
+          "firstDay",
+          "splitDay",
+          "untilDay",
+          "distanceMeters",
+          "penalty",
+          "status",
+          "features",
+          "candidateTests",
+          "examples",
+          "folds"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "modelVersion": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "firstDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "splitDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "untilDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "penalty": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "type": "string"
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "candidateTests": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "examples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResearchExampleEvidence"
+            }
+          },
+          "folds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonalResearchFold"
+            }
+          }
+        }
+      },
       "PredictionInterval": {
         "required": [
           "lowerSeconds",
@@ -3783,6 +4067,81 @@
             "description": "Credenziale da configurare nell'agente. Viene mostrata solo ora."
           }
         }
+      },
+      "ResearchExampleEvidence": {
+        "required": [
+          "workoutId",
+          "priorWorkoutId",
+          "predictionAt",
+          "featuresAvailableAt",
+          "targetAt",
+          "targetAvailableAt",
+          "priorSpeedMetersPerSecond",
+          "recentLoadMean",
+          "priorLoadMean",
+          "observedSpeedMetersPerSecond"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "priorWorkoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "predictionAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "featuresAvailableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "targetAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "targetAvailableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "priorSpeedMetersPerSecond": {
+            "type": "number",
+            "format": "double"
+          },
+          "recentLoadMean": {
+            "type": "number",
+            "format": "double"
+          },
+          "priorLoadMean": {
+            "type": "number",
+            "format": "double"
+          },
+          "observedSpeedMetersPerSecond": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ResearchFold": {
+        "required": [
+          "cutoff",
+          "asOf"
+        ],
+        "type": "object",
+        "properties": {
+          "cutoff": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "description": "Fine training e termine della finestra di test (incluso tempo di disponibilità)."
       },
       "ReserveState": {
         "required": [
