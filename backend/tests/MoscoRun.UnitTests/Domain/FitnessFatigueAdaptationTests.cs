@@ -45,15 +45,17 @@ public sealed class FitnessFatigueAdaptationTests
     [Fact]
     public void Adaptation_evaluation_uses_only_available_holdout_outcomes()
     {
-        AdaptationObservation[] observations = [new(Now, Now, 20, 0),
-            new(Now.AddDays(1), Now.AddDays(1), 4, 3),
-            new(Now.AddDays(2), Now.AddDays(2), 3, 4),
-            new(Now.AddDays(3), Now.AddDays(3), 5, 5),
-            new(Now.AddDays(4), Now.AddDays(8), 200, 0)];
+        AdaptationObservation[] observations = [new(Now, Now, 20, 0, Now.AddHours(-1)),
+            new(Now.AddDays(1), Now.AddDays(1), 4, 3, Now),
+            new(Now.AddDays(2), Now.AddDays(2), 3, 4, Now),
+            new(Now.AddDays(3), Now.AddDays(3), 5, 5, Now),
+            new(Now.AddDays(4), Now.AddDays(8), 200, 0, Now)];
         var result = AdaptationEngine.Evaluate(observations, Now, Now.AddDays(5));
         result.Should().NotBeNull();
         result!.Count.Should().Be(3);
         result.MeanError.Should().Be(0);
         result.MeanAbsoluteError.Should().BeApproximately(2.0 / 3, 0.000001);
+        observations[1] = observations[1] with { IssuedAt = observations[1].Time };
+        AdaptationEngine.Evaluate(observations, Now, Now.AddDays(5)).Should().BeNull();
     }
 }
