@@ -4,6 +4,7 @@
 #   ./moscorun.sh update [versione]   pull -> backup -> migrazioni -> riavvio -> verifica (rollback automatico)
 #   ./moscorun.sh rollback            torna all'immagine in uso prima dell'ultimo update
 #   ./moscorun.sh backup              copia del database (pg_dump, formato custom)
+#   ./moscorun.sh verify-backup <file> verifica checksum e struttura del backup
 #   ./moscorun.sh restore <file>      ripristina un backup (chiede conferma)
 #   ./moscorun.sh status | logs       stato (esce con errore se l'app non è pronta) e log
 #   ./moscorun.sh auto-update         usato dal timer systemd: aggiorna solo se MOSCORUN_AUTO_UPDATE=1
@@ -147,24 +148,58 @@ pg_run() {
     "$PG_CLIENT_IMAGE" "$@"
 }
 
+verify_backup_file() {
+  local file="$1" expected actual
+  [[ -f "$file" && -s "$file" ]] || die "backup mancante o vuoto: $file"
+  if [[ -f "$file.sha256" ]]; then
+    expected="$(<"$file.sha256")"
+    [[ "$expected" =~ ^[0-9a-f]{64}$ ]] || die "checksum SHA-256 non valido: $file"
+    actual="$(sha256sum <"$file" | cut -d' ' -f1)"
+    [[ "$actual" == "$expected" ]] || die "checksum SHA-256 non corrispondente: $file"
+  else
+    log "attenzione: backup legacy senza checksum SHA-256; controllo solo della struttura"
+  fi
+  pg_run pg_restore --list <"$file" >/dev/null || die "archivio PostgreSQL non leggibile: $file"
+}
+
+cmd_verify_backup() {
+  load_env
+  local file="${1:?indicare il file di backup}"
+  verify_backup_file "$file"
+  log "verifica backup completata: $file"
+}
+
 cmd_backup() {
   load_env
   validate_backup_dir
-  local dir keep="${MOSCORUN_BACKUP_KEEP:-14}" file
+  local dir keep="${MOSCORUN_BACKUP_KEEP:-14}" file partial digest old
+  [[ "$keep" =~ ^[1-9][0-9]{0,5}$ ]] || die "MOSCORUN_BACKUP_KEEP non valido"
   dir="$(backup_dir)"
   mkdir -p "$dir"
   chmod 700 "$dir"
-  file="$dir/moscorun-$(date -u +%Y%m%dT%H%M%SZ).dump"
+  partial="$(mktemp --suffix=.dump.partial "$dir/moscorun-$(date -u +%Y%m%dT%H%M%SZ)-XXXXXX")"
+  file="${partial%.partial}"
   log "backup del database in $file"
-  pg_run pg_dump --format=custom --no-owner \
-    -h "$POSTGRES_HOST" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USER:-moscorun}" "${POSTGRES_DB:-moscorun}" >"$file.partial"
-  [[ -s "$file.partial" ]] || die "backup vuoto: aggiornamento interrotto"
-  mv "$file.partial" "$file"
-  chmod 600 "$file"
-  echo "$file" >"$STATE_DIR/last-backup"
-  # Rotazione: tiene solo gli ultimi $keep backup.
-  find "$dir" -maxdepth 1 -name 'moscorun-*.dump' -printf '%T@ %p\n' | sort -rn | tail -n "+$((keep + 1))" |
-    cut -d' ' -f2- | xargs -r rm -f --
+  if ! pg_run pg_dump --format=custom --no-owner \
+    -h "$POSTGRES_HOST" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USER:-moscorun}" "${POSTGRES_DB:-moscorun}" >"$partial"; then
+    rm -f -- "$partial"
+    die "pg_dump fallito: aggiornamento interrotto"
+  fi
+  if [[ ! -s "$partial" ]] || ! pg_run pg_restore --list <"$partial" >/dev/null; then
+    rm -f -- "$partial"
+    die "backup vuoto o non leggibile: aggiornamento interrotto"
+  fi
+  digest="$(sha256sum <"$partial" | cut -d' ' -f1)"
+  (umask 077; printf '%s\n' "$digest" >"$file.sha256.partial")
+  chmod 600 "$partial" "$file.sha256.partial"
+  mv "$file.sha256.partial" "$file.sha256"
+  mv "$partial" "$file"
+  printf '%s\n' "$file" >"$STATE_DIR/last-backup"
+  # Rotazione: rimuove sia l'archivio sia il checksum associato.
+  while IFS= read -r -d '' old; do
+    rm -f -- "$old" "$old.sha256"
+  done < <(find "$dir" -maxdepth 1 -name 'moscorun-*.dump' -printf '%T@ %p\0' | sort -zrn |
+    tail -z -n "+$((keep + 1))" | cut -z -d' ' -f2-)
   log "backup completato ($(du -h "$file" | cut -f1))"
 }
 
@@ -236,13 +271,18 @@ cmd_rollback() {
 
 cmd_restore() {
   load_env
-  local file="${1:?indicare il file di backup}"
-  [[ -f "$file" ]] || die "file non trovato: $file"
+  local file="${1:?indicare il file di backup}" answer
+  # Verifica prima di fermare il servizio o di chiedere conferma.
+  verify_backup_file "$file"
   read -r -p "Il database ${POSTGRES_DB:-moscorun} verrà sovrascritto con $file. Scrivere RIPRISTINA per continuare: " answer
   [[ "$answer" == RIPRISTINA ]] || die "annullato"
   compose stop app
-  pg_run pg_restore --clean --if-exists --no-owner \
-    -h "$POSTGRES_HOST" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USER:-moscorun}" -d "${POSTGRES_DB:-moscorun}" <"$file"
+  # Tutto il restore in una transazione: nessun ripristino parziale su errori SQL.
+  if ! pg_run pg_restore --single-transaction --exit-on-error --clean --if-exists --no-owner \
+    -h "$POSTGRES_HOST" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USER:-moscorun}" -d "${POSTGRES_DB:-moscorun}" <"$file"; then
+    compose start app || true
+    die "ripristino fallito: verificare lo stato del database e dell'applicazione"
+  fi
   compose start app
   if wait_ready; then log "ripristino completato"; else die "l'applicazione non è pronta dopo il ripristino"; fi
 }
@@ -364,6 +404,7 @@ main() {
     update) cmd_update "$@" ;;
     rollback) cmd_rollback ;;
     backup) cmd_backup ;;
+    verify-backup) cmd_verify_backup "$@" ;;
     restore) cmd_restore "$@" ;;
     status) cmd_status ;;
     auto-update) cmd_auto_update ;;
@@ -372,7 +413,7 @@ main() {
       load_env
       compose logs --tail=200 -f app
       ;;
-    *) sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+    *) sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
   esac
 }
 

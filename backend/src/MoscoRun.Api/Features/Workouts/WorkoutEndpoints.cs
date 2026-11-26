@@ -54,7 +54,92 @@ internal static class WorkoutEndpoints
                 "l'allenamento non la contiene). maxPoints riduce ogni serie conservando minimi e massimi reali di ogni intervallo; " +
                 "totalSamples indica quanti campioni sono salvati.");
 
+        MapScienceEndpoints(v1, workouts);
+
         return v1;
+    }
+
+    private static void MapScienceEndpoints(RouteGroupBuilder v1, RouteGroupBuilder workouts)
+    {
+        workouts.MapGet("/{id:guid}/science", WorkoutScienceEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("GetWorkoutScience");
+        workouts.MapGet("/{id:guid}/science/durability", WorkoutScienceEndpoints.GetDurabilityAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("GetWorkoutDurability");
+        workouts.MapGet("/{id:guid}/science/intensity", WorkoutIntensityEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("GetWorkoutIntensity");
+        workouts.MapGet("/{id:guid}/science/steps", RunningStepEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("GetRunningSteps");
+        workouts.MapGet("/{id:guid}/science/cardiac-recovery", WorkoutCardiacRecoveryEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("GetWorkoutCardiacRecovery");
+        workouts.MapGet("/{id:guid}/science/reserve", WorkoutReserveEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("GetWorkoutReserve");
+        workouts.MapPost("/{id:guid}/science/twin", CalibratedTwinEndpoints.PostAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("SimulateCalibratedTwin");
+        workouts.MapGet("/{id:guid}/science/biomechanics", ExtendedBiomechanicsEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("GetExtendedBiomechanics");
+        workouts.MapPost("/{id:guid}/science/environment", WorkoutEnvironmentEndpoints.PostAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("GetWorkoutEnvironment");
+        workouts.MapGet("/{id:guid}/science/distance-load", RunningDistanceEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("GetRunningDistanceLoad");
+        MapDashboardScienceEndpoints(v1);
+    }
+
+    private static void MapDashboardScienceEndpoints(RouteGroupBuilder v1)
+    {
+        v1.MapGet("/science/daily", DailyScienceEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("GetDailyScience");
+        v1.MapGet("/science/feedback", ScienceFeedbackEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("GetScienceFeedback");
+        v1.MapPut("/science/feedback", ScienceFeedbackEndpoints.PutAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("SaveScienceFeedback");
+        v1.MapGet("/science/load", DailySessionLoadEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("GetDailySessionLoad");
+        v1.MapGet("/science/race-calibration", AttestedRaceEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("GetAttestedRace");
+        v1.MapGet("/science/rr", RrChunkEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("GetRrChunks");
+        v1.MapGet("/science/adaptation", PersonalAdaptationEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("GetPersonalAdaptation");
+        v1.MapPost("/science/pacing", PacingScenarioEndpoints.PostAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("SimulatePacing");
+        v1.MapGet("/science/research", PersonalResearchEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("GetPersonalResearch");
+        v1.MapGet("/science/sleep", SleepDiaryEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("GetSleepDiary");
+        v1.MapGet("/science/sleep-performance", SleepPerformanceEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("GetSleepPerformance");
     }
 
     internal static async Task<Results<Created<WorkoutSummaryDto>, Ok<WorkoutSummaryDto>, ValidationProblem, ProblemHttpResult>> IngestAsync(

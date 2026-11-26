@@ -109,6 +109,166 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/science/daily": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetDailyScience"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/science/feedback": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetScienceFeedback"];
+    put: operations["SaveScienceFeedback"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/science/load": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetDailySessionLoad"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/science/race-calibration": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetAttestedRace"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/science/rr": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetRrChunks"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/science/adaptation": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetPersonalAdaptation"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/science/pacing": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["SimulatePacing"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/science/research": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetPersonalResearch"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/science/sleep": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetSleepDiary"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/science/sleep-performance": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetSleepPerformance"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/device": {
     parameters: {
       query?: never;
@@ -267,6 +427,166 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/workouts/{id}/science": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetWorkoutScience"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workouts/{id}/science/durability": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetWorkoutDurability"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workouts/{id}/science/intensity": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetWorkoutIntensity"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workouts/{id}/science/steps": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetRunningSteps"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workouts/{id}/science/cardiac-recovery": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetWorkoutCardiacRecovery"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workouts/{id}/science/reserve": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetWorkoutReserve"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workouts/{id}/science/twin": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["SimulateCalibratedTwin"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workouts/{id}/science/biomechanics": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetExtendedBiomechanics"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workouts/{id}/science/environment": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["GetWorkoutEnvironment"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workouts/{id}/science/distance-load": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetRunningDistanceLoad"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/devices": {
     parameters: {
       query?: never;
@@ -303,11 +623,155 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    AdaptationAssessment: {
+      /** Format: int32 */
+      count: number;
+      /** Format: double */
+      meanError: number;
+      /** Format: double */
+      meanAbsoluteError: number;
+      /** Format: double */
+      rootMeanSquaredError: number;
+    };
+    AdaptationModelSummary: {
+      parameters: components["schemas"]["FitnessFatigueParameters"];
+      initial: components["schemas"]["FitnessFatigueState"];
+      /** Format: double */
+      offset: number;
+      /** Format: double */
+      trainingRmse: number;
+      /** Format: int32 */
+      trainingCount: number;
+      /** Format: int32 */
+      candidateCount: number;
+      /** Format: double */
+      baselineMeanSpeed: number;
+    };
+    AdaptationTestEvidence: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      /** Format: int64 */
+      feedbackRevision: number;
+      /** Format: date-time */
+      startedAt: string;
+      /** Format: date-time */
+      endedAt: string;
+      /** Format: date-time */
+      availableAt: string;
+      role: string;
+      /** Format: double */
+      observedSpeedMetersPerSecond: number;
+      /** Format: double */
+      predictedSpeedMetersPerSecond: null | number;
+      /** Format: double */
+      baselineSpeedMetersPerSecond: null | number;
+    };
+    AthleteFeedbackValue: {
+      metric: string;
+      unit: string;
+      /** Format: double */
+      value: null | number;
+    };
+    AttestedPerformanceProfile: {
+      speedMethodVersion: string;
+      robustSpeedMethodVersion: string;
+      cooperMethodVersion: string;
+      ordinaryLeastSquares: null | components["schemas"]["CriticalSpeedFit"];
+      robustCriticalSpeed: null | components["schemas"]["CriticalSpeedFit"];
+      cooperTests: components["schemas"]["CooperTestResult"][];
+      criticalSpeedCandidateIds: string[];
+      powerMethodVersion: string;
+      criticalPower: null | components["schemas"]["CriticalPowerFit"];
+      criticalPowerCandidateIds: string[];
+    };
+    AttestedRaceReport: {
+      source: string;
+      protocol: string;
+      methodVersion: string;
+      /** Format: date-time */
+      asOf: string;
+      /** Format: date-time */
+      trainingStart: string;
+      /** Format: date-time */
+      split: string;
+      /** Format: date-time */
+      end: string;
+      /** Format: double */
+      targetMeters: number;
+      status: string;
+      model: null | components["schemas"]["RaceCalibrationModelSummary"];
+      prediction: null | components["schemas"]["RacePrediction"];
+      interval: null | components["schemas"]["PredictionInterval"];
+      evidence: components["schemas"]["RaceCalibrationEvidence"][];
+      performance: components["schemas"]["AttestedPerformanceProfile"];
+    };
     /**
      * @description Quanto è certa l'associazione della pesata alla persona.
      * @enum {unknown}
      */
     AttributionStatus: "Assumed" | "Confirmed" | "Rejected";
+    BenchmarkReport: {
+      /** Format: int32 */
+      sessionCount: number;
+      /** Format: int32 */
+      athleteCount: number;
+      model: components["schemas"]["BenchmarkScore"];
+      baseline: components["schemas"]["BenchmarkScore"];
+      /** Format: double */
+      meanAbsoluteErrorImprovement: number;
+      /** Format: int32 */
+      intervalCount: number;
+      /** Format: double */
+      empiricalCoverage: null | number;
+      /** Format: double */
+      meanIntervalWidth: null | number;
+    };
+    BenchmarkScore: {
+      /** Format: double */
+      bias: number;
+      /** Format: double */
+      meanAbsoluteError: number;
+      /** Format: double */
+      rootMeanSquaredError: number;
+    };
+    BiomechanicsChunkMetadata: {
+      /** Format: uuid */
+      id: string;
+      metric: string;
+      unit: string;
+      externalId: string;
+      revision: string;
+      /** Format: int64 */
+      revisionOrder: null | number;
+      method: string;
+      providerAlgorithm: null | string;
+      /** Format: uuid */
+      deviceId: null | string;
+      /** Format: date-time */
+      firstSample: string;
+      /** Format: date-time */
+      lastSample: string;
+      /** Format: date-time */
+      availableAt: string;
+      /** Format: int32 */
+      sampleCount: number;
+      contentSha256: string;
+    };
+    BiomechanicsMetricSummary: {
+      metric: string;
+      unit: string;
+      /** Format: double */
+      supportedSeconds: number;
+      /** Format: double */
+      coverage: number;
+      /** Format: double */
+      weightedMean: null | number;
+      /** Format: double */
+      weightedCvPercent: null | number;
+    };
     BoundsDto: {
       /**
        * Format: double
@@ -330,11 +794,160 @@ export interface components {
        */
       maxLongitude: number;
     };
+    CalibratedTwinReport: {
+      methodVersion: string;
+      /** Format: date-time */
+      asOf: string;
+      status: string;
+      calibration: components["schemas"]["WorkoutCardiacRecoveryReport"];
+      request: components["schemas"]["CalibratedTwinRequest"];
+      parameters: null | components["schemas"]["TwinParameters"];
+      segments: components["schemas"]["TwinSegmentResult"][];
+    };
+    CalibratedTwinRequest: {
+      recoveryProtocol: components["schemas"]["WorkoutCardiacRecoveryProtocol"];
+      /** Format: double */
+      initialBpm: number;
+      /** Format: double */
+      restingBpm: number;
+      /** Format: double */
+      maximumBpm: number;
+      /** Format: double */
+      maximumFitRmseBpm: number;
+      transferAssumptionConfirmed: boolean;
+      segments: components["schemas"]["TwinSegment"][];
+    };
+    CardiacRecoveryPoint: {
+      /** Format: int32 */
+      elapsedSeconds: number;
+      /** Format: date-time */
+      target: string;
+      /** Format: date-time */
+      observedAt: null | string;
+      /** Format: double */
+      heartRateBpm: null | number;
+      /** Format: double */
+      dropFromEndBpm: null | number;
+    };
+    CardiacResponseFit: {
+      /** Format: double */
+      timeConstantSeconds: number;
+      /** Format: double */
+      rootMeanSquaredErrorBpm: number;
+      /** Format: int32 */
+      sampleCount: number;
+    };
+    CooperTestResult: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      /** Format: date-time */
+      endedAt: string;
+      /** Format: double */
+      distanceMeters: number;
+      /** Format: double */
+      durationSeconds: number;
+      /** Format: double */
+      estimatedVo2MaxMlKgMin: number;
+    };
+    CriticalPowerFit: {
+      /** Format: double */
+      criticalWatts: number;
+      /** Format: double */
+      workReserveJoules: number;
+      /** Format: double */
+      rootMeanSquaredErrorJoules: number;
+      /** Format: int32 */
+      effortCount: number;
+    };
+    CriticalSpeedFit: {
+      /** Format: double */
+      criticalSpeedMetersPerSecond: number;
+      /** Format: double */
+      distanceReserveMeters: number;
+      /** Format: double */
+      rootMeanSquaredErrorMeters: number;
+      /** Format: int32 */
+      effortCount: number;
+    };
     CurrentUser: {
       /** Format: uuid */
       id: string;
       email: string;
       displayName: null | string;
+    };
+    DailyMetricPoint: {
+      /** Format: date */
+      day: string;
+      status: string;
+      /** Format: double */
+      value: null | number;
+      /** Format: uuid */
+      observationId: null | string;
+      /** Format: date-time */
+      time: null | string;
+      /** Format: date-time */
+      availableAt: null | string;
+      method: null | string;
+      providerAlgorithm: null | string;
+    };
+    DailyMetricReport: {
+      metric: string;
+      unit: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      /** Format: int32 */
+      baselineDays: number;
+      current: components["schemas"]["DailyMetricPoint"];
+      history: components["schemas"]["DailyMetricPoint"][];
+      status: string;
+      baseline: null | components["schemas"]["RecoveryDeviation"];
+      /** Format: double */
+      currentVersusMedianPercent: null | number;
+      /** Format: double */
+      weightTrendKgPerWeek: null | number;
+    };
+    DailyRunningDistancePoint: {
+      /** Format: date */
+      day: string;
+      status: string;
+      /** Format: int32 */
+      runningSessions: number;
+      /** Format: double */
+      totalMeters: null | number;
+      /** Format: double */
+      longestMeters: null | number;
+      /** Format: date-time */
+      attestationAvailableAt: null | string;
+    };
+    DailySessionLoadPoint: {
+      /** Format: date */
+      day: string;
+      status: string;
+      /** Format: int32 */
+      sessions: number;
+      /** Format: int32 */
+      ratedSessions: number;
+      /** Format: double */
+      load: null | number;
+      /** Format: date-time */
+      availableAt: null | string;
+      /** Format: date-time */
+      attestationAvailableAt: null | string;
+    };
+    DailySessionLoadReport: {
+      /** Format: date */
+      lastDay: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      unit: string;
+      days: components["schemas"]["DailySessionLoadPoint"][];
+      recentWeek: null | components["schemas"]["TrainingLoadSummary"];
+      rolling: null | components["schemas"]["RollingLoadSummary"];
     };
     DashboardSummary: {
       /**
@@ -419,6 +1032,100 @@ export interface components {
      * @enum {unknown}
      */
     DeviceKind: "ScaleAgent" | "PhoneBridge";
+    DfaAlpha1Result: {
+      /** Format: double */
+      alpha1: number;
+      /** Format: int32 */
+      intervalCount: number;
+      /** Format: int32 */
+      scaleCount: number;
+    };
+    /** @description Profilo descrittivo del deterioramento, con onset e trend sullo stesso protocollo di finestre. */
+    DurabilityProfile: {
+      /** Format: date-time */
+      baselineStart: string;
+      /** Format: double */
+      baselineEfficiency: number;
+      lossPercent: number[];
+      /** Format: date-time */
+      onset: null | string;
+      /** Format: date-time */
+      onsetConfirmedAt: null | string;
+      /** Format: double */
+      lossPercentagePointsPerHour: number;
+      /** Format: double */
+      medianAbsoluteResidualPercentagePoints: number;
+    };
+    EnvironmentalExposure: {
+      /** Format: double */
+      observedMinutes: number;
+      /** Format: double */
+      aboveThresholdMinutes: number;
+      /** Format: double */
+      degreeMinutes: number;
+    };
+    EnvironmentalMetricSummary: {
+      metric: string;
+      unit: string;
+      /** Format: double */
+      supportedSeconds: number;
+      /** Format: double */
+      coverage: number;
+      /** Format: double */
+      weightedMean: null | number;
+    };
+    ExtendedBiomechanicsReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      workoutRevision: number;
+      workoutContentSha256: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      status: string;
+      /** Format: double */
+      durationSeconds: number;
+      truncated: boolean;
+      protocolConfirmed: boolean;
+      cadenceIsStepsPerMinute: boolean;
+      balanceIsLeftPercent: boolean;
+      chunks: components["schemas"]["BiomechanicsChunkMetadata"][];
+      selected: components["schemas"]["BiomechanicsChunkMetadata"][];
+      metrics: components["schemas"]["BiomechanicsMetricSummary"][];
+    };
+    /** @description Costanti di decadimento in giorni e guadagni per unità del medesimo carico. */
+    FitnessFatigueParameters: {
+      /** Format: double */
+      fitnessTimeConstantDays: number;
+      /** Format: double */
+      fatigueTimeConstantDays: number;
+      /** Format: double */
+      fitnessGain: number;
+      /** Format: double */
+      fatigueGain: number;
+    };
+    FitnessFatigueState: {
+      /** Format: date */
+      date: string;
+      /** Format: double */
+      fitness: number;
+      /** Format: double */
+      fatigue: number;
+      /** Format: double */
+      netResponse?: number;
+    };
+    HrvSummary: {
+      /** Format: int32 */
+      intervalCount: number;
+      /** Format: double */
+      meanRrMilliseconds: number;
+      /** Format: double */
+      rmssdMilliseconds: number;
+      /** Format: double */
+      sdnnMilliseconds: number;
+    };
     HttpValidationProblemDetails: {
       type?: null | string;
       title?: null | string;
@@ -508,6 +1215,15 @@ export interface components {
       /** @description Serie temporali, al più una per grandezza. */
       series: null | components["schemas"]["SeriesInput"][];
     };
+    IntensityDistribution: {
+      zoneMinutes: number[];
+      /** Format: double */
+      missingMinutes: number;
+      /** Format: double */
+      totalMinutes: number;
+      /** Format: double */
+      coverage: number;
+    };
     /** @description Geometria GeoJSON (RFC 7946): coordinate `[longitudine, latitudine]` o con altitudine. */
     LineStringGeometry: {
       type: string;
@@ -523,6 +1239,214 @@ export interface components {
       /** @description Chiave per il browser, presente solo con Google. */
       googleApiKey: null | string;
     };
+    NutritionFeedbackReport: {
+      methodVersion: string;
+      source: string;
+      status: string;
+      diaryComplete: boolean;
+      /** Format: double */
+      durationHours: null | number;
+      /** Format: double */
+      totalExpenditureKcal: null | number;
+      /** Format: double */
+      energyBalanceKcal: null | number;
+      /** Format: double */
+      energyAvailabilityKcalPerKg: null | number;
+      /** Format: double */
+      carbohydrateGramsPerHour: null | number;
+      /** Format: double */
+      fluidMillilitersPerHour: null | number;
+      /** Format: double */
+      sodiumMilligramsPerHour: null | number;
+      /** Format: double */
+      estimatedSweatLitersPerHour: null | number;
+    };
+    ObservedPerformanceCurve: {
+      metric: components["schemas"]["SeriesMetric"];
+      unit: string;
+      methodVersion: string;
+      points: components["schemas"]["ObservedPerformancePoint"][];
+    };
+    ObservedPerformancePoint: {
+      /** Format: int32 */
+      durationSeconds: number;
+      /** Format: double */
+      mean: null | number;
+      /** Format: date-time */
+      start: null | string;
+      /** Format: date-time */
+      end: null | string;
+    };
+    PacingRaceReference: {
+      source: string;
+      /** Format: date */
+      from: string;
+      /** Format: date */
+      split: string;
+      /** Format: date */
+      until: string;
+    };
+    PacingScenarioReport: {
+      methodVersion: string;
+      /** Format: date-time */
+      asOf: string;
+      status: string;
+      targetSource: string;
+      /** Format: double */
+      distanceMeters: number;
+      /** Format: double */
+      targetSeconds: null | number;
+      segments: components["schemas"]["PacingSegment"][];
+      splits: components["schemas"]["PacingSplit"][];
+      prediction: null | components["schemas"]["RacePrediction"];
+      interval: null | components["schemas"]["PredictionInterval"];
+      evidence: components["schemas"]["RaceCalibrationEvidence"][];
+    };
+    PacingScenarioRequest: {
+      segments: components["schemas"]["PacingSegment"][];
+      /** Format: double */
+      targetSeconds: null | number;
+      raceReference: null | components["schemas"]["PacingRaceReference"];
+    };
+    /** @description Moltiplicatore relativo di costo/tempo noto prima della simulazione; non inferito dal dislivello da solo. */
+    PacingSegment: {
+      /** Format: double */
+      distanceMeters: number;
+      /** Format: double */
+      relativeTimeCost: number;
+    };
+    PacingSplit: {
+      /** Format: double */
+      distanceMeters: number;
+      /** Format: double */
+      segmentSeconds: number;
+      /** Format: double */
+      cumulativeSeconds: number;
+    };
+    PersonalAdaptationReport: {
+      methodVersion: string;
+      source: string;
+      loadMethodVersion: string;
+      /** Format: date */
+      firstDay: string;
+      /** Format: date */
+      splitDay: string;
+      /** Format: date */
+      untilDay: string;
+      /** Format: date-time */
+      asOf: string;
+      /** Format: double */
+      distanceMeters: number;
+      status: string;
+      loads: components["schemas"]["DailySessionLoadPoint"][];
+      tests: components["schemas"]["AdaptationTestEvidence"][];
+      model: null | components["schemas"]["AdaptationModelSummary"];
+      holdout: null | components["schemas"]["AdaptationAssessment"];
+      baselineHoldout: null | components["schemas"]["AdaptationAssessment"];
+      /** Format: double */
+      currentPredictedSpeedMetersPerSecond: null | number;
+    };
+    PersonalResearchFold: {
+      fold: components["schemas"]["ResearchFold"];
+      status: string;
+      /** Format: int32 */
+      trainingCount: number;
+      /** Format: int32 */
+      testCount: number;
+      full: null | components["schemas"]["BenchmarkReport"];
+      ablated: null | components["schemas"]["BenchmarkReport"];
+    };
+    PersonalResearchReport: {
+      methodVersion: string;
+      modelVersion: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      /** Format: date */
+      firstDay: string;
+      /** Format: date */
+      splitDay: string;
+      /** Format: date */
+      untilDay: string;
+      /** Format: double */
+      distanceMeters: number;
+      /** Format: double */
+      penalty: number;
+      status: string;
+      features: string[];
+      /** Format: int32 */
+      candidateTests: number;
+      examples: components["schemas"]["ResearchExampleEvidence"][];
+      folds: components["schemas"]["PersonalResearchFold"][];
+    };
+    /** @description Intervallo calibrato empiricamente sui residui disponibili; copertura non garantita in serie dipendenti. */
+    PredictionInterval: {
+      /** Format: double */
+      lowerSeconds: number;
+      /** Format: double */
+      upperSeconds: number;
+      /** Format: int32 */
+      calibrationCount: number;
+      /** Format: double */
+      nominalCoverage: number;
+    };
+    RaceCalibrationEvidence: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      /** Format: date-time */
+      endedAt: string;
+      /** Format: date-time */
+      availableAt: string;
+      /** Format: int64 */
+      feedbackRevision: number;
+      /** Format: double */
+      distanceMeters: number;
+      /** Format: double */
+      durationSeconds: number;
+      role: string;
+      /** Format: double */
+      predictedSeconds: null | number;
+      /** Format: double */
+      absoluteErrorSeconds: null | number;
+      /** Format: double */
+      meanPowerWatts: null | number;
+    };
+    RaceCalibrationModelSummary: {
+      /** Format: double */
+      minimumDistanceMeters: number;
+      /** Format: double */
+      maximumDistanceMeters: number;
+      /** Format: double */
+      referenceDistanceMeters: number;
+      /** Format: double */
+      referenceSeconds: number;
+      /** Format: double */
+      exponent: number;
+      /** Format: double */
+      medianAbsoluteLogResidual: number;
+      /** Format: int32 */
+      trainingCount: number;
+    };
+    RacePrediction: {
+      /** Format: double */
+      distanceMeters: number;
+      /** Format: double */
+      predictedSeconds: number;
+      methodVersion: string;
+    };
+    RecoveryDeviation: {
+      /** Format: int32 */
+      baselineCount: number;
+      /** Format: double */
+      baselineMedian: number;
+      /** Format: double */
+      medianAbsoluteDeviation: number;
+      /** Format: double */
+      robustZScore: null | number;
+    };
     RegisterDeviceRequest: {
       name: string;
       kind: null | components["schemas"]["DeviceKind"];
@@ -532,6 +1456,51 @@ export interface components {
       device: components["schemas"]["DeviceDto"];
       /** @description Credenziale da configurare nell'agente. Viene mostrata solo ora. */
       token: string;
+    };
+    ResearchExampleEvidence: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: uuid */
+      priorWorkoutId: string;
+      /** Format: date-time */
+      predictionAt: string;
+      /** Format: date-time */
+      featuresAvailableAt: string;
+      /** Format: date-time */
+      targetAt: string;
+      /** Format: date-time */
+      targetAvailableAt: string;
+      /** Format: double */
+      priorSpeedMetersPerSecond: number;
+      /** Format: double */
+      recentLoadMean: number;
+      /** Format: double */
+      priorLoadMean: number;
+      /** Format: double */
+      observedSpeedMetersPerSecond: number;
+    };
+    /** @description Fine training e termine della finestra di test (incluso tempo di disponibilità). */
+    ResearchFold: {
+      /** Format: date-time */
+      cutoff: string;
+      /** Format: date-time */
+      asOf: string;
+    };
+    ReserveState: {
+      /** Format: double */
+      cumulativeSeconds: number;
+      /** Format: double */
+      remaining: number;
+      exhausted: boolean;
+    };
+    /** @description Confronto descrittivo di medie giornaliere in finestre disgiunte, non score di rischio. */
+    RollingLoadSummary: {
+      /** Format: double */
+      recentMean: number;
+      /** Format: double */
+      priorMean: number;
+      /** Format: double */
+      recentToPriorRatio: null | number;
     };
     /** @description Tracciato come Feature GeoJSON (RFC 7946), utilizzabile da qualunque libreria di mappe. */
     RouteFeature: {
@@ -573,11 +1542,166 @@ export interface components {
       /** @description Istante di ogni coordinata, in millisecondi Unix. */
       times: number[];
     };
+    RrChunkAnalysis: {
+      methodVersion: string;
+      context: string;
+      status: string;
+      /** Format: int32 */
+      sampleCount: number;
+      /** Format: double */
+      observedSpanSeconds: number;
+      /** Format: double */
+      intervalDurationSeconds: null | number;
+      hrvMethodVersion: string;
+      hrv: null | components["schemas"]["HrvSummary"];
+      dfaMethodVersion: string;
+      dfa: null | components["schemas"]["DfaAlpha1Result"];
+    };
+    RrChunkMetadata: {
+      /** Format: uuid */
+      id: string;
+      externalId: string;
+      revision: string;
+      /** Format: int64 */
+      revisionOrder: null | number;
+      unit: string;
+      method: string;
+      providerAlgorithm: null | string;
+      /** Format: uuid */
+      workoutId: null | string;
+      /** Format: date-time */
+      firstSample: string;
+      /** Format: date-time */
+      lastSample: string;
+      /** Format: date-time */
+      availableAt: string;
+      /** Format: int32 */
+      sampleCount: number;
+      contentSha256: string;
+    };
+    RrChunkReport: {
+      source: string;
+      /** Format: date */
+      day: string;
+      /** Format: date-time */
+      asOf: string;
+      truncated: boolean;
+      chunks: components["schemas"]["RrChunkMetadata"][];
+      selected: null | components["schemas"]["RrChunkMetadata"];
+      analysis: null | components["schemas"]["RrChunkAnalysis"];
+    };
+    RunningDistanceEvidence: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      source: string;
+      activityType: string;
+      /** Format: date-time */
+      startedAt: string;
+      /** Format: date-time */
+      endedAt: string;
+      /** Format: date-time */
+      availableAt: string;
+      /** Format: double */
+      distanceMeters: null | number;
+    };
+    RunningDistanceReport: {
+      methodVersion: string;
+      /** Format: date-time */
+      asOf: string;
+      /** Format: date-time */
+      priorCutoff: string;
+      /** Format: date */
+      priorFirstDay: string;
+      /** Format: date */
+      priorLastDay: string;
+      current: components["schemas"]["RunningDistanceEvidence"];
+      status: string;
+      /** Format: int32 */
+      completeDays: number;
+      days: components["schemas"]["DailyRunningDistancePoint"][];
+      priorRuns: components["schemas"]["RunningDistanceEvidence"][];
+      /** Format: double */
+      priorLongestMeters: null | number;
+      /** Format: double */
+      increasePercent: null | number;
+    };
+    RunningStepReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      status: string;
+      /** Format: double */
+      maxGapSeconds: number;
+      cadenceIsStepsPerMinute: boolean;
+      /** Format: double */
+      durationSeconds: number;
+      /** Format: double */
+      pairedSeconds: number;
+      /** Format: double */
+      coverage: number;
+      /** Format: double */
+      meanSpeedMetersPerSecond: null | number;
+      /** Format: double */
+      meanCadenceStepsPerMinute: null | number;
+      /** Format: double */
+      meanStepLengthMeters: null | number;
+      /** Format: double */
+      stepLengthCvPercent: null | number;
+      /** Format: double */
+      cadenceCvPercent: null | number;
+    };
     SampleInput: {
       /** Format: date-time */
       time: null | string;
       /** Format: double */
       value: null | number;
+    };
+    ScienceFeedbackInput: {
+      metric: string;
+      /** Format: double */
+      value: null | number;
+    };
+    ScienceFeedbackReport: {
+      /** Format: date */
+      day: null | string;
+      /** Format: uuid */
+      workoutId: null | string;
+      /** Format: int64 */
+      workoutRevision: null | number;
+      /** Format: int64 */
+      revision: null | number;
+      /** Format: date-time */
+      availableAt: null | string;
+      values: components["schemas"]["AthleteFeedbackValue"][];
+      note: null | string;
+      status: string;
+      /** Format: double */
+      activeDurationSeconds: null | number;
+      /** Format: double */
+      sessionRpeLoad: null | number;
+      sessionLoadMethodVersion: string;
+      nutrition: components["schemas"]["NutritionFeedbackReport"];
+    };
+    ScienceFeedbackRequest: {
+      /** Format: date */
+      day: null | string;
+      /** Format: uuid */
+      workoutId: null | string;
+      /** Format: int64 */
+      workoutRevision: null | number;
+      /** Format: int64 */
+      revision: number;
+      values: components["schemas"]["ScienceFeedbackInput"][];
+      note: null | string;
     };
     /** @description Serie: `times` in millisecondi Unix e `values` allineati per indice. */
     SeriesDto: {
@@ -613,6 +1737,100 @@ export interface components {
     };
     /** @enum {unknown} */
     SeriesMetric: "HeartRate" | "Speed" | "Cadence" | "Power" | null;
+    SleepDiaryNight: {
+      /** Format: date */
+      day: string;
+      status: string;
+      /** Format: int64 */
+      revision: null | number;
+      /** Format: date-time */
+      availableAt: null | string;
+      /** Format: double */
+      bedtimeMinute: null | number;
+      /** Format: double */
+      wakeMinute: null | number;
+      /** Format: double */
+      asleepSeconds: null | number;
+      /** Format: double */
+      inBedSeconds: null | number;
+      /** Format: double */
+      efficiencyPercent: null | number;
+    };
+    SleepDiaryReport: {
+      methodVersion: string;
+      /** Format: date */
+      lastDay: string;
+      /** Format: date-time */
+      asOf: string;
+      /** Format: int32 */
+      windowDays: number;
+      /** Format: int32 */
+      completeNights: number;
+      status: string;
+      nights: components["schemas"]["SleepDiaryNight"][];
+      bedtime: null | components["schemas"]["SleepTimingSummary"];
+      wake: null | components["schemas"]["SleepTimingSummary"];
+      /** Format: double */
+      meanEfficiencyPercent: null | number;
+    };
+    SleepPerformancePair: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      workoutRevision: number;
+      contentSha256: string;
+      /** Format: int64 */
+      feedbackRevision: number;
+      /** Format: date-time */
+      testStartedAt: string;
+      /** Format: date-time */
+      testEndedAt: string;
+      /** Format: date-time */
+      testAvailableAt: string;
+      /** Format: double */
+      speedMetersPerSecond: number;
+      /** Format: date */
+      sleepDay: string;
+      /** Format: int64 */
+      sleepRevision: null | number;
+      /** Format: date-time */
+      sleepAvailableAt: null | string;
+      status: string;
+      /** Format: double */
+      sleepHours: null | number;
+      /** Format: double */
+      sleepEfficiencyPercent: null | number;
+    };
+    SleepPerformanceReport: {
+      methodVersion: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      /** Format: date */
+      lastTestDay: string;
+      /** Format: int32 */
+      windowDays: number;
+      /** Format: int32 */
+      lagDays: number;
+      /** Format: double */
+      distanceMeters: number;
+      status: string;
+      /** Format: int32 */
+      pairedTests: number;
+      /** Format: double */
+      sleepHoursCorrelation: null | number;
+      /** Format: double */
+      sleepEfficiencyCorrelation: null | number;
+      evidence: components["schemas"]["SleepPerformancePair"][];
+    };
+    SleepTimingSummary: {
+      /** Format: int32 */
+      nightCount: number;
+      /** Format: double */
+      meanMinuteOfDay: number;
+      /** Format: double */
+      circularStandardDeviationMinutes: number;
+    };
     SourceFreshness: {
       /**
        * Format: uuid
@@ -634,6 +1852,18 @@ export interface components {
     };
     SystemInfo: {
       version: string;
+    };
+    TerrainSummary: {
+      /** Format: double */
+      supportedSeconds: number;
+      /** Format: double */
+      horizontalDistanceMeters: number;
+      /** Format: double */
+      netGradePercent: null | number;
+      /** Format: double */
+      rawAscentMeters: null | number;
+      /** Format: double */
+      rawDescentMeters: null | number;
     };
     TrackPointInput: {
       /**
@@ -662,6 +1892,47 @@ export interface components {
        */
       accuracyM: null | number;
     };
+    TrainingLoadSummary: {
+      /** Format: double */
+      totalLoad: number;
+      /** Format: double */
+      meanDailyLoad: number;
+      /** Format: double */
+      monotony: null | number;
+      /** Format: double */
+      strain: null | number;
+    };
+    /** @description Parametri individuali espliciti, con riferimento al modello e al cutoff di calibrazione. */
+    TwinParameters: {
+      calibrationVersion: string;
+      /** Format: date-time */
+      calibrationCutoff: string;
+      /** Format: double */
+      heartRateTimeConstantSeconds: number;
+      /** Format: double */
+      restingHeartRateBpm: number;
+      /** Format: double */
+      maximumHeartRateBpm: number;
+    };
+    /** @description Ingresso ipotetico: durata ed equilibrio cardiaco da modello calibrato, non da una FC futura osservata. */
+    TwinSegment: {
+      /** Format: double */
+      durationSeconds: number;
+      /** Format: double */
+      equilibriumHeartRateBpm: number;
+      /** Format: double */
+      externalSpeedMetersPerSecond: number;
+    };
+    TwinSegmentResult: {
+      /** Format: double */
+      cumulativeSeconds: number;
+      /** Format: double */
+      cumulativeMeters: number;
+      /** Format: double */
+      endHeartRateBpm: number;
+      /** Format: double */
+      meanHeartRateBpm: number;
+    };
     UpdateAttributionRequest: {
       attribution: null | components["schemas"]["AttributionStatus"];
     };
@@ -688,10 +1959,176 @@ export interface components {
       /** Format: date-time */
       to: string;
     };
+    WorkoutCardiacRecoveryProtocol: {
+      /** Format: int32 */
+      endOffsetSeconds: number;
+      mode: string;
+      confirmed: boolean;
+      /** Format: double */
+      equilibriumBpm: null | number;
+    };
+    WorkoutCardiacRecoveryReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      /** Format: double */
+      maximumAgeSeconds: number;
+      protocol: components["schemas"]["WorkoutCardiacRecoveryProtocol"];
+      status: string;
+      points: components["schemas"]["CardiacRecoveryPoint"][];
+      fit: null | components["schemas"]["CardiacResponseFit"];
+      fitStatus: string;
+    };
+    WorkoutChannelReport: {
+      metric: components["schemas"]["SeriesMetric"];
+      unit: string;
+      status: string;
+      /** Format: int32 */
+      sampleCount: number;
+      /** Format: int32 */
+      validCount: number;
+      /** Format: int32 */
+      conflictingCount: number;
+      /** Format: double */
+      coverage: number;
+      /** Format: double */
+      timeWeightedMean: null | number;
+    };
     /** @description Dettaglio: riepilogo più l'elenco delle serie disponibili. */
     WorkoutDetailDto: {
       summary: components["schemas"]["WorkoutSummaryDto"];
       series: components["schemas"]["SeriesInfoDto"][];
+    };
+    WorkoutDurabilityProtocol: {
+      metric: components["schemas"]["SeriesMetric"];
+      /** Format: int32 */
+      startOffsetSeconds: number;
+      /** Format: int32 */
+      windowSeconds: number;
+      /** Format: int32 */
+      windowCount: number;
+      /** Format: double */
+      minimumCoverage: number;
+      /** Format: double */
+      onsetLossPercent: number;
+      /** Format: int32 */
+      minimumConsecutiveWindows: number;
+    };
+    WorkoutDurabilityReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      windowMethodVersion: string;
+      /** Format: double */
+      maxGapSeconds: number;
+      protocol: components["schemas"]["WorkoutDurabilityProtocol"];
+      status: string;
+      windows: components["schemas"]["WorkoutDurabilityWindow"][];
+      profile: null | components["schemas"]["DurabilityProfile"];
+    };
+    WorkoutDurabilityWindow: {
+      /** Format: int32 */
+      offsetSeconds: number;
+      /** Format: double */
+      pairedSeconds: number;
+      /** Format: double */
+      coverage: number;
+      /** Format: double */
+      meanExternalLoad: null | number;
+      /** Format: double */
+      meanHeartRateBpm: null | number;
+    };
+    WorkoutEnvironmentAnalysis: {
+      methodVersion: string;
+      /** Format: double */
+      durationSeconds: number;
+      metrics: components["schemas"]["EnvironmentalMetricSummary"][];
+      heatExposure: null | components["schemas"]["EnvironmentalExposure"];
+      terrain: components["schemas"]["TerrainSummary"];
+    };
+    WorkoutEnvironmentProtocol: {
+      /** Format: double */
+      heatThresholdCelsius: number;
+      /** Format: double */
+      maximumWeatherGapSeconds: number;
+      /** Format: double */
+      maximumGpsGapSeconds: number;
+      /** Format: double */
+      maximumHorizontalAccuracyMeters: number;
+      /** Format: double */
+      minimumHorizontalDistanceMeters: number;
+      weatherRepresentative: boolean;
+      windDirectionIsFrom: boolean;
+    };
+    WorkoutEnvironmentReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      workoutRevision: number;
+      workoutContentSha256: string;
+      /** Format: date-time */
+      asOf: string;
+      source: string;
+      weatherStatus: string;
+      protocol: components["schemas"]["WorkoutEnvironmentProtocol"];
+      truncated: boolean;
+      chunks: components["schemas"]["BiomechanicsChunkMetadata"][];
+      selected: components["schemas"]["BiomechanicsChunkMetadata"][];
+      analysis: components["schemas"]["WorkoutEnvironmentAnalysis"];
+    };
+    WorkoutEnvironmentRequest: {
+      source: string;
+      chunkIds: string[];
+      protocol: components["schemas"]["WorkoutEnvironmentProtocol"];
+    };
+    WorkoutIntensityProtocol: {
+      metric: components["schemas"]["SeriesMetric"];
+      upperBoundaries: number[];
+      /** Format: double */
+      restingBpm: null | number;
+      /** Format: double */
+      maximumBpm: null | number;
+      /** Format: double */
+      trimpA: null | number;
+      /** Format: double */
+      trimpB: null | number;
+    };
+    WorkoutIntensityReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      /** Format: double */
+      maxGapSeconds: number;
+      protocol: components["schemas"]["WorkoutIntensityProtocol"];
+      status: string;
+      unit: string;
+      distribution: components["schemas"]["IntensityDistribution"];
+      /** Format: double */
+      observedMean: null | number;
+      /** Format: double */
+      supportedHeartRateReserveLoad: null | number;
+      /** Format: double */
+      supportedExponentialTrimp: null | number;
+      heartRateStatus: string;
+      trimpMethodVersion: string;
     };
     WorkoutList: {
       /** @description Riepiloghi, dal più recente. */
@@ -708,6 +2145,61 @@ export interface components {
       to: string;
       /** @description Presente solo nelle liste paginate quando esistono altri elementi: va passato come `cursor`. */
       nextCursor?: null | string;
+    };
+    WorkoutReserveProtocol: {
+      metric: components["schemas"]["SeriesMetric"];
+      /** Format: double */
+      criticalIntensity: number;
+      /** Format: double */
+      capacity: number;
+      /** Format: double */
+      initialRemaining: number;
+      /** Format: double */
+      recoveryTimeConstantSeconds: number;
+    };
+    WorkoutReserveReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      protocol: components["schemas"]["WorkoutReserveProtocol"];
+      unit: string;
+      status: string;
+      /** Format: double */
+      workoutDurationSeconds: number;
+      /** Format: double */
+      supportedSeconds: number;
+      /** Format: double */
+      evaluatedSeconds: number;
+      /** Format: int32 */
+      evaluatedSegments: number;
+      /** Format: double */
+      minimumRemaining: null | number;
+      /** Format: double */
+      lastRemaining: null | number;
+      /** Format: double */
+      exhaustionSeconds: null | number;
+      points: components["schemas"]["ReserveState"][];
+    };
+    WorkoutScienceReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      /** Format: double */
+      maxGapSeconds: number;
+      channels: components["schemas"]["WorkoutChannelReport"][];
+      performanceCurves: components["schemas"]["ObservedPerformanceCurve"][];
     };
     WorkoutSeriesList: {
       items: components["schemas"]["SeriesDto"][];
@@ -903,6 +2395,407 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["WorkoutSummaryDto"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  GetDailyScience: {
+    parameters: {
+      query: {
+        metric: string;
+        source: string;
+        day: string;
+        baselineDays: number;
+        asOf?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DailyMetricReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  GetScienceFeedback: {
+    parameters: {
+      query?: {
+        day?: string;
+        workoutId?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ScienceFeedbackReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  SaveScienceFeedback: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ScienceFeedbackRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ScienceFeedbackReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetDailySessionLoad: {
+    parameters: {
+      query: {
+        last: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DailySessionLoadReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  GetAttestedRace: {
+    parameters: {
+      query: {
+        source: string;
+        from: string;
+        split: string;
+        until: string;
+        targetMeters: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AttestedRaceReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  GetRrChunks: {
+    parameters: {
+      query: {
+        source: string;
+        day: string;
+        context: string;
+        screened: boolean;
+        timestampsAreBeatEnds: boolean;
+        chunkId?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RrChunkReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetPersonalAdaptation: {
+    parameters: {
+      query: {
+        source: string;
+        from: string;
+        split: string;
+        until: string;
+        distanceMeters: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PersonalAdaptationReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  SimulatePacing: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PacingScenarioRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PacingScenarioReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  GetPersonalResearch: {
+    parameters: {
+      query: {
+        source: string;
+        from: string;
+        split: string;
+        until: string;
+        distanceMeters: number;
+        penalty: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PersonalResearchReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  GetSleepDiary: {
+    parameters: {
+      query: {
+        last: string;
+        days: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SleepDiaryReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  GetSleepPerformance: {
+    parameters: {
+      query: {
+        source: string;
+        last: string;
+        days: number;
+        lag: number;
+        distanceMeters: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SleepPerformanceReport"];
         };
       };
       /** @description Bad Request */
@@ -1181,6 +3074,401 @@ export interface operations {
         };
         content: {
           "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetWorkoutScience: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutScienceReport"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetWorkoutDurability: {
+    parameters: {
+      query: {
+        metric: components["schemas"]["SeriesMetric"];
+        startOffsetSeconds: number;
+        windowSeconds: number;
+        windowCount: number;
+        minimumCoverage: number;
+        onsetLossPercent: number;
+        minimumConsecutiveWindows: number;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutDurabilityReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetWorkoutIntensity: {
+    parameters: {
+      query: {
+        metric: components["schemas"]["SeriesMetric"];
+        thresholds: string;
+        restingBpm?: number;
+        maximumBpm?: number;
+        trimpA?: number;
+        trimpB?: number;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutIntensityReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetRunningSteps: {
+    parameters: {
+      query: {
+        cadenceIsStepsPerMinute: boolean;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunningStepReport"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetWorkoutCardiacRecovery: {
+    parameters: {
+      query: {
+        endOffsetSeconds: number;
+        mode: string;
+        confirmed: boolean;
+        equilibriumBpm?: number;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutCardiacRecoveryReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetWorkoutReserve: {
+    parameters: {
+      query: {
+        metric: components["schemas"]["SeriesMetric"];
+        criticalIntensity: number;
+        capacity: number;
+        initialRemaining: number;
+        recoveryTimeConstantSeconds: number;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutReserveReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  SimulateCalibratedTwin: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CalibratedTwinRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CalibratedTwinReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetExtendedBiomechanics: {
+    parameters: {
+      query: {
+        source: string;
+        protocolConfirmed: boolean;
+        cadenceIsStepsPerMinute: boolean;
+        balanceIsLeftPercent: boolean;
+        chunkIds?: string;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExtendedBiomechanicsReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetWorkoutEnvironment: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["WorkoutEnvironmentRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutEnvironmentReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetRunningDistanceLoad: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunningDistanceReport"];
         };
       };
       /** @description Not Found */

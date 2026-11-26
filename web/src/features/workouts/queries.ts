@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { api, unwrap } from "../../api/client";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { api, unwrap, type Schemas } from "../../api/client";
 
 export const workoutsKey = ["workouts"] as const;
 
@@ -40,4 +40,20 @@ export const useMapsConfig = () =>
     queryKey: ["maps", "config"],
     queryFn: () => unwrap(api.GET("/api/v1/maps/config")),
     staleTime: Infinity,
+  });
+
+export const useWorkoutScience = (id: string, revision: number) =>
+  useQuery({
+    queryKey: [...workoutsKey, id, "science", revision],
+    queryFn: () => unwrap(api.GET("/api/v1/workouts/{id}/science", { params: { path: { id } } })),
+  });
+
+export const useAnalyzeDurability = (id: string) =>
+  useMutation({
+    mutationFn: (protocol: Schemas["WorkoutDurabilityProtocol"]) =>
+      unwrap(
+        api.GET("/api/v1/workouts/{id}/science/durability", {
+          params: { path: { id }, query: protocol },
+        }),
+      ),
   });

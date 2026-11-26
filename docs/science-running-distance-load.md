@@ -1,0 +1,5 @@
+# Distanza di una seduta e storico precedente
+
+GET /api/v1/workouts/{id}/science/distance-load. Confronta distanza della seduta di corsa corrente con il massimo delle distanze delle singole corse nei 30 giorni di calendario UTC precedenti (non rolling 720 ore, giorno della seduta escluso). Usa solo revisioni correnti già disponibili all'inizio della seduta per lo storico; la distanza corrente è nota dopo la seduta. Richiede 30 attestazioni complete disponibili al cutoff, anche nei giorni di riposo, nessuna sovrapposizione o seduta a cavallo di giorni, stessa sorgente di corsa, distanze positive e revisioni non successive alle attestazioni. Non richiede RPE. Non ricostruisce versioni sovrascritte.
+
+Se manca una giornata, il massimo di riferimento e la variazione si astengono. Il report include evidenze osservate e stato di ogni giorno; nessuna corsa precedente non equivale a un denominatore zero. Variazione = 100*(distanza corrente/massima distanza singola precedente -1). Non è classificazione del rischio di infortunio né soglia prescrittiva.

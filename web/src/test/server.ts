@@ -98,6 +98,24 @@ export const handlers = [
       to: "2026-11-12T07:00:00Z",
     }),
   ),
+  http.get("*/api/v1/science/feedback", ({ request }) => {
+    const query = new URL(request.url).searchParams;
+    const workoutId = query.get("workoutId");
+    return HttpResponse.json({
+      day: query.get("day"),
+      workoutId,
+      workoutRevision: workoutId ? 1 : null,
+      revision: null,
+      availableAt: null,
+      values: [{ metric: workoutId ? "rpe" : "fatigue", unit: "0-10", value: null }],
+      note: null,
+      status: "missing",
+      activeDurationSeconds: workoutId ? 3000 : null,
+      sessionRpeLoad: null,
+      sessionLoadMethodVersion: "session-rpe-active-minutes-v1",
+      nutrition: missingNutrition,
+    });
+  }),
   http.get("*/api/v1/devices", () => HttpResponse.json([device({ id: "d1" })])),
   http.get("*/api/v1/workouts", () =>
     HttpResponse.json({ items: [workout()], from: "2026-08-14T00:00:00Z", to: "2026-11-14T00:00:00Z" }),
@@ -127,7 +145,66 @@ export const handlers = [
       ],
     }),
   ),
+  http.get("*/api/v1/workouts/:id/science", () =>
+    HttpResponse.json({
+      workoutId: "wk1",
+      revision: 1,
+      contentSha256: "synthetic",
+      source: "samsung-health",
+      asOf: "2026-11-13T07:05:00Z",
+      methodVersion: "workout-channel-quality-v2",
+      maxGapSeconds: 5,
+      performanceCurves: [
+        {
+          metric: "Speed",
+          unit: "m/s",
+          methodVersion: "observed-curve-native-zoh-v1",
+          points: [
+            { durationSeconds: 5, mean: 4, start: "2026-11-13T06:00:00Z", end: "2026-11-13T06:00:05Z" },
+            { durationSeconds: 3600, mean: null, start: null, end: null },
+          ],
+        },
+      ],
+      channels: [
+        {
+          metric: "HeartRate",
+          unit: "bpm",
+          status: "observed",
+          sampleCount: 3,
+          validCount: 3,
+          conflictingCount: 0,
+          coverage: 0.5,
+          timeWeightedMean: 140,
+        },
+        {
+          metric: "Power",
+          unit: "W",
+          status: "missing",
+          sampleCount: 0,
+          validCount: 0,
+          conflictingCount: 0,
+          coverage: 0,
+          timeWeightedMean: null,
+        },
+      ],
+    }),
+  ),
   http.get("*/api/v1/maps/config", () => HttpResponse.json({ provider: "none", googleApiKey: null })),
 ];
+
+export const missingNutrition = {
+  methodVersion: "declared-nutrition-accounting-v1",
+  source: "athlete-feedback",
+  status: "incomplete-diary",
+  diaryComplete: false,
+  durationHours: null,
+  totalExpenditureKcal: null,
+  energyBalanceKcal: null,
+  energyAvailabilityKcalPerKg: null,
+  carbohydrateGramsPerHour: null,
+  fluidMillilitersPerHour: null,
+  sodiumMilligramsPerHour: null,
+  estimatedSweatLitersPerHour: null,
+};
 
 export const server = setupServer(...handlers);

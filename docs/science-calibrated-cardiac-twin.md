@@ -1,0 +1,5 @@
+# Digital Twin cardiaco condizionale
+
+POST /api/v1/workouts/{id}/science/twin. Lo snapshot autorizzato del workout e della sua serie FC fornisce il fit di recupero già implementato. Non accetta una tau predefinita. Richiede protocollo di recupero confermato, equilibrio fornito da protocollo separato, limiti FC espliciti, tolleranza RMSE dichiarata e conferma del trasferimento della tau al nuovo scenario. Fit assente, RMSE oltre tolleranza o tau a bordo griglia causano astensione.
+
+I segmenti sono ipotetici (durata, velocità, FC di equilibrio); gli equilibri non sono stimati dalla velocità. Il modello del primo ordine simula FC media e finale, distanza e tempo cumulati. Non è un modello metabolico né una prescrizione. La tau del recupero non è validata come tau di salita durante lo sforzo; l'assunzione è esplicita. Limite 100 segmenti, due ore complessive, nessuna inferenza da dati mancanti. Report contiene revisione e hash della calibrazione, protocollo e parametri. Il cutoff identifica la disponibilità della revisione usata, non l'emissione storica di una previsione.

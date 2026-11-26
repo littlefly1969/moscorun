@@ -1,0 +1,5 @@
+# Associazione laggata tra sonno e prestazione
+
+GET /api/v1/science/sleep-performance: fonte delle prove, ultimo giorno UTC concluso, finestra 7–90 giorni, lag 1–7 giorni UTC, distanza 100–100000 m. Una snapshot privata accoppia diario sonno principale attestato e prove massimali della stessa distanza ±0,5 m. Il lag 1 indica la notte conclusa il giorno UTC precedente alla prova, non necessariamente l'ultima notte prima della prova. L'attestazione del diario deve essere disponibile prima dell'inizio della prova; revisioni tardive, mancanti e giorni con più prove sono esclusi. Non ricostruisce versioni sostituite del workout; usa l'ultima revisione disponibile al momento del report, conservativamente escludendo quelle tardive per il sonno.
+
+Almeno 7 coppie distinte per Pearson r di durata/velocità ed efficienza/velocità; varianza nulla produce astensione. Nessun aggiustamento per carico, meteo o confondenti, nessuna causalità, nessun intervallo di confidenza con campione dipendente. Selezionare lag prima dell'analisi; esplorazione multipla non è conferma indipendente. Report espone evidenze, tempi e revisioni e stato di ciascuna coppia.
