@@ -34,7 +34,7 @@ public static class WorkoutReserveEngine
     }
 
     private static WorkoutReserveReport Report(Workout workout, DateTimeOffset asOf, WorkoutReserveProtocol protocol,
-        double duration, double supported, string status, IReadOnlyList<ReserveSegment> segments, IReadOnlyList<ReserveState>? states)
+        double duration, double supported, string status, ReserveSegment[] segments, IReadOnlyList<ReserveState>? states)
     {
         double? exhaustion = null;
         if (states is not null && states[^1].Exhausted)
