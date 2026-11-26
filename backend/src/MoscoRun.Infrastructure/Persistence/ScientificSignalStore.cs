@@ -89,11 +89,25 @@ public sealed class ScientificSignalStore(MoscoRunDbContext db, TimeProvider clo
             now, chunk.Source, chunk.Method, chunk.ProviderAlgorithm);
         return new ScientificSignalChunkRow
         {
-            OwnerId = ownerId, Id = id, Source = chunk.Source, ExternalId = chunk.ExternalId, Revision = chunk.Revision,
-            RevisionOrder = chunk.RevisionOrder, Metric = chunk.Metric, Unit = chunk.Unit, Method = chunk.Method.ToString(),
-            ProviderAlgorithm = chunk.ProviderAlgorithm, DeviceId = chunk.DeviceId, WorkoutId = chunk.WorkoutId,
-            FirstTicks = chunk.Samples[0].Time.UtcTicks, LastTicks = chunk.Samples[^1].Time.UtcTicks, AvailableTicks = now.UtcTicks,
-            SampleCount = chunk.Samples.Count, CodecVersion = ScientificSignalCodec.Version, Data = encoded.Data, ContentHash = encoded.Hash,
+            OwnerId = ownerId,
+            Id = id,
+            Source = chunk.Source,
+            ExternalId = chunk.ExternalId,
+            Revision = chunk.Revision,
+            RevisionOrder = chunk.RevisionOrder,
+            Metric = chunk.Metric,
+            Unit = chunk.Unit,
+            Method = chunk.Method.ToString(),
+            ProviderAlgorithm = chunk.ProviderAlgorithm,
+            DeviceId = chunk.DeviceId,
+            WorkoutId = chunk.WorkoutId,
+            FirstTicks = chunk.Samples[0].Time.UtcTicks,
+            LastTicks = chunk.Samples[^1].Time.UtcTicks,
+            AvailableTicks = now.UtcTicks,
+            SampleCount = chunk.Samples.Count,
+            CodecVersion = ScientificSignalCodec.Version,
+            Data = encoded.Data,
+            ContentHash = encoded.Hash,
         };
     }
 

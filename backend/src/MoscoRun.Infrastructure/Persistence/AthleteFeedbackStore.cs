@@ -98,9 +98,16 @@ public sealed class AthleteFeedbackStore(MoscoRunDbContext db, ScientificImportS
 
         entries.Add(new AthleteFeedbackEntryRow
         {
-            OwnerId = ownerId, Id = id, EntryId = entry.EntryId, Revision = entry.Revision,
-            RevisionOrder = entry.RevisionOrder, Time = Normalize(entry.Time), AvailableAt = availableAt,
-            WorkoutId = entry.WorkoutId, Note = entry.Note, ObservationIds = ids,
+            OwnerId = ownerId,
+            Id = id,
+            EntryId = entry.EntryId,
+            Revision = entry.Revision,
+            RevisionOrder = entry.RevisionOrder,
+            Time = Normalize(entry.Time),
+            AvailableAt = availableAt,
+            WorkoutId = entry.WorkoutId,
+            Note = entry.Note,
+            ObservationIds = ids,
         });
         await db.SaveChangesAsync(ct);
         return new AthleteFeedbackSaveResult(true, count);
