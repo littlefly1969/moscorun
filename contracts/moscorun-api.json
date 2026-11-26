@@ -1672,6 +1672,89 @@
         }
       }
     },
+    "/api/v1/workouts/{id}/science/biomechanics": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetExtendedBiomechanics",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "protocolConfirmed",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "cadenceIsStepsPerMinute",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "balanceIsLeftPercent",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "chunkIds",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendedBiomechanicsReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/devices": {
       "get": {
         "tags": [
@@ -2167,6 +2250,126 @@
           },
           "rootMeanSquaredError": {
             "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BiomechanicsChunkMetadata": {
+        "required": [
+          "id",
+          "metric",
+          "unit",
+          "externalId",
+          "revision",
+          "revisionOrder",
+          "method",
+          "providerAlgorithm",
+          "deviceId",
+          "firstSample",
+          "lastSample",
+          "availableAt",
+          "sampleCount",
+          "contentSha256"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "metric": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "string"
+          },
+          "revisionOrder": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "method": {
+            "type": "string"
+          },
+          "providerAlgorithm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "deviceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "firstSample": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSample": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "contentSha256": {
+            "type": "string"
+          }
+        }
+      },
+      "BiomechanicsMetricSummary": {
+        "required": [
+          "metric",
+          "unit",
+          "supportedSeconds",
+          "coverage",
+          "weightedMean",
+          "weightedCvPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "supportedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "coverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "weightedMean": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "weightedCvPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
             "format": "double"
           }
         }
@@ -2931,6 +3134,86 @@
           }
         },
         "description": "Profilo descrittivo del deterioramento, con onset e trend sullo stesso protocollo di finestre."
+      },
+      "ExtendedBiomechanicsReport": {
+        "required": [
+          "workoutId",
+          "workoutRevision",
+          "workoutContentSha256",
+          "source",
+          "asOf",
+          "methodVersion",
+          "status",
+          "durationSeconds",
+          "truncated",
+          "protocolConfirmed",
+          "cadenceIsStepsPerMinute",
+          "balanceIsLeftPercent",
+          "chunks",
+          "selected",
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workoutRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "workoutContentSha256": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "durationSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "protocolConfirmed": {
+            "type": "boolean"
+          },
+          "cadenceIsStepsPerMinute": {
+            "type": "boolean"
+          },
+          "balanceIsLeftPercent": {
+            "type": "boolean"
+          },
+          "chunks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BiomechanicsChunkMetadata"
+            }
+          },
+          "selected": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BiomechanicsChunkMetadata"
+            }
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BiomechanicsMetricSummary"
+            }
+          }
+        }
       },
       "FitnessFatigueParameters": {
         "required": [

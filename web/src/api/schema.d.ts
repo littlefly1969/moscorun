@@ -523,6 +523,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/workouts/{id}/science/biomechanics": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetExtendedBiomechanics"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/devices": {
     parameters: {
       query?: never;
@@ -672,6 +688,41 @@ export interface components {
       meanAbsoluteError: number;
       /** Format: double */
       rootMeanSquaredError: number;
+    };
+    BiomechanicsChunkMetadata: {
+      /** Format: uuid */
+      id: string;
+      metric: string;
+      unit: string;
+      externalId: string;
+      revision: string;
+      /** Format: int64 */
+      revisionOrder: null | number;
+      method: string;
+      providerAlgorithm: null | string;
+      /** Format: uuid */
+      deviceId: null | string;
+      /** Format: date-time */
+      firstSample: string;
+      /** Format: date-time */
+      lastSample: string;
+      /** Format: date-time */
+      availableAt: string;
+      /** Format: int32 */
+      sampleCount: number;
+      contentSha256: string;
+    };
+    BiomechanicsMetricSummary: {
+      metric: string;
+      unit: string;
+      /** Format: double */
+      supportedSeconds: number;
+      /** Format: double */
+      coverage: number;
+      /** Format: double */
+      weightedMean: null | number;
+      /** Format: double */
+      weightedCvPercent: null | number;
     };
     BoundsDto: {
       /**
@@ -943,6 +994,27 @@ export interface components {
       lossPercentagePointsPerHour: number;
       /** Format: double */
       medianAbsoluteResidualPercentagePoints: number;
+    };
+    ExtendedBiomechanicsReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      workoutRevision: number;
+      workoutContentSha256: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      status: string;
+      /** Format: double */
+      durationSeconds: number;
+      truncated: boolean;
+      protocolConfirmed: boolean;
+      cadenceIsStepsPerMinute: boolean;
+      balanceIsLeftPercent: boolean;
+      chunks: components["schemas"]["BiomechanicsChunkMetadata"][];
+      selected: components["schemas"]["BiomechanicsChunkMetadata"][];
+      metrics: components["schemas"]["BiomechanicsMetricSummary"][];
     };
     /** @description Costanti di decadimento in giorni e guadagni per unità del medesimo carico. */
     FitnessFatigueParameters: {
@@ -3016,6 +3088,50 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["CalibratedTwinReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetExtendedBiomechanics: {
+    parameters: {
+      query: {
+        source: string;
+        protocolConfirmed: boolean;
+        cadenceIsStepsPerMinute: boolean;
+        balanceIsLeftPercent: boolean;
+        chunkIds?: string;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExtendedBiomechanicsReport"];
         };
       };
       /** @description Bad Request */

@@ -17,6 +17,7 @@ import { WorkoutSciencePanel } from "./WorkoutSciencePanel";
 import { WorkoutDurabilityPanel } from "./WorkoutDurabilityPanel";
 import { WorkoutIntensityPanel } from "./WorkoutIntensityPanel";
 import { RunningStepPanel } from "./RunningStepPanel";
+import { ExtendedBiomechanicsPanel } from "./ExtendedBiomechanicsPanel";
 import { CardiacRecoveryPanel } from "./CardiacRecoveryPanel";
 import { WorkoutReservePanel } from "./WorkoutReservePanel";
 import { CalibratedTwinPanel } from "./CalibratedTwinPanel";
@@ -78,7 +79,10 @@ export function WorkoutDetailPage() {
       <WorkoutReservePanel key={`${w.id}:${w.revision}:reserve`} workoutId={w.id} />
       <CalibratedTwinPanel key={`${w.id}:${w.revision}:twin`} workoutId={w.id} />
       {w.activityType.toUpperCase() === "RUNNING" && (
-        <RunningStepPanel key={`${w.id}:${w.revision}:steps`} workoutId={w.id} />
+        <>
+          <RunningStepPanel key={`${w.id}:${w.revision}:steps`} workoutId={w.id} />
+          <ExtendedBiomechanicsPanel key={`${w.id}:${w.revision}:biomechanics`} workoutId={w.id} />
+        </>
       )}
       <WorkoutDurabilityPanel
         key={`${w.id}:${w.revision}`}
