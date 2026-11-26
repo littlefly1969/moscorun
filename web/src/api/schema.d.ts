@@ -555,6 +555,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/workouts/{id}/science/distance-load": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetRunningDistanceLoad"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/devices": {
     parameters: {
       query?: never;
@@ -877,6 +893,19 @@ export interface components {
       currentVersusMedianPercent: null | number;
       /** Format: double */
       weightTrendKgPerWeek: null | number;
+    };
+    DailyRunningDistancePoint: {
+      /** Format: date */
+      day: string;
+      status: string;
+      /** Format: int32 */
+      runningSessions: number;
+      /** Format: double */
+      totalMeters: null | number;
+      /** Format: double */
+      longestMeters: null | number;
+      /** Format: date-time */
+      attestationAvailableAt: null | string;
     };
     DailySessionLoadPoint: {
       /** Format: date */
@@ -1544,6 +1573,44 @@ export interface components {
       chunks: components["schemas"]["RrChunkMetadata"][];
       selected: null | components["schemas"]["RrChunkMetadata"];
       analysis: null | components["schemas"]["RrChunkAnalysis"];
+    };
+    RunningDistanceEvidence: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      source: string;
+      activityType: string;
+      /** Format: date-time */
+      startedAt: string;
+      /** Format: date-time */
+      endedAt: string;
+      /** Format: date-time */
+      availableAt: string;
+      /** Format: double */
+      distanceMeters: null | number;
+    };
+    RunningDistanceReport: {
+      methodVersion: string;
+      /** Format: date-time */
+      asOf: string;
+      /** Format: date-time */
+      priorCutoff: string;
+      /** Format: date */
+      priorFirstDay: string;
+      /** Format: date */
+      priorLastDay: string;
+      current: components["schemas"]["RunningDistanceEvidence"];
+      status: string;
+      /** Format: int32 */
+      completeDays: number;
+      days: components["schemas"]["DailyRunningDistancePoint"][];
+      priorRuns: components["schemas"]["RunningDistanceEvidence"][];
+      /** Format: double */
+      priorLongestMeters: null | number;
+      /** Format: double */
+      increasePercent: null | number;
     };
     RunningStepReport: {
       /** Format: uuid */
@@ -3272,6 +3339,35 @@ export interface operations {
         };
         content: {
           "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetRunningDistanceLoad: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunningDistanceReport"];
         };
       };
       /** @description Not Found */

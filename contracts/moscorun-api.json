@@ -1809,6 +1809,40 @@
         }
       }
     },
+    "/api/v1/workouts/{id}/science/distance-load": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetRunningDistanceLoad",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunningDistanceReport"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/devices": {
       "get": {
         "tags": [
@@ -2858,6 +2892,51 @@
               "number"
             ],
             "format": "double"
+          }
+        }
+      },
+      "DailyRunningDistancePoint": {
+        "required": [
+          "day",
+          "status",
+          "runningSessions",
+          "totalMeters",
+          "longestMeters",
+          "attestationAvailableAt"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "runningSessions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalMeters": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "longestMeters": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "attestationAvailableAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -4903,6 +4982,132 @@
                 "$ref": "#/components/schemas/RrChunkAnalysis"
               }
             ]
+          }
+        }
+      },
+      "RunningDistanceEvidence": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "source",
+          "activityType",
+          "startedAt",
+          "endedAt",
+          "availableAt",
+          "distanceMeters"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "activityType": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "distanceMeters": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "RunningDistanceReport": {
+        "required": [
+          "methodVersion",
+          "asOf",
+          "priorCutoff",
+          "priorFirstDay",
+          "priorLastDay",
+          "current",
+          "status",
+          "completeDays",
+          "days",
+          "priorRuns",
+          "priorLongestMeters",
+          "increasePercent"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "priorCutoff": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "priorFirstDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "priorLastDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "current": {
+            "$ref": "#/components/schemas/RunningDistanceEvidence"
+          },
+          "status": {
+            "type": "string"
+          },
+          "completeDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailyRunningDistancePoint"
+            }
+          },
+          "priorRuns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RunningDistanceEvidence"
+            }
+          },
+          "priorLongestMeters": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "increasePercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
