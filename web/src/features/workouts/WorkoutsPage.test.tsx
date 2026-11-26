@@ -98,7 +98,9 @@ describe("allenamenti", () => {
 
     status = "missing-channel";
     await userEvent.click(analyze);
-    expect(await within(panel).findByText(/Canale di carico o frequenza cardiaca non acquisito/)).toBeInTheDocument();
+    expect(
+      await within(panel).findByText(/Canale di carico o frequenza cardiaca non acquisito/),
+    ).toBeInTheDocument();
 
     status = "error";
     await userEvent.click(analyze);
