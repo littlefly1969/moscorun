@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import type { Schemas } from "../../api/client";
 import { renderApp } from "../../test/render";
-import { server } from "../../test/server";
+import { missingNutrition, server } from "../../test/server";
 
 describe("feedback scientifico", () => {
   it("salva lo zero nel diario come misura e non come dato mancante", async () => {
@@ -19,6 +19,7 @@ describe("feedback scientifico", () => {
           activeDurationSeconds: null,
           sessionRpeLoad: null,
           sessionLoadMethodVersion: "session-rpe-active-minutes-v1",
+          nutrition: missingNutrition,
         });
       }),
     );
@@ -31,6 +32,7 @@ describe("feedback scientifico", () => {
     expect(sent?.values).toEqual([{ metric: "fatigue", value: 0 }]);
     expect(sent?.note).toBe("Giornata tranquilla");
     expect(sent?.workoutId).toBeNull();
+    expect(within(panel).getByText("Diario non confermato completo")).toBeInTheDocument();
   });
 
   it("salva RPE per la revisione della seduta e mostra il carico restituito dal server", async () => {
@@ -50,6 +52,7 @@ describe("feedback scientifico", () => {
           activeDurationSeconds: 3000,
           sessionRpeLoad: 350,
           sessionLoadMethodVersion: "session-rpe-active-minutes-v1",
+          nutrition: missingNutrition,
         });
       }),
     );

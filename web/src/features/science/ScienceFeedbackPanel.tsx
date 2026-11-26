@@ -121,7 +121,7 @@ function FeedbackForm({
           {report.sessionRpeLoad != null && "UA"} · durata attiva × RPE, senza imputazione delle pause.
         </p>
       )}
-      {report.nutrition && <NutritionSummary report={report.nutrition} session={report.workoutId != null} />}
+      <NutritionSummary report={report.nutrition} session={report.workoutId != null} />
       <form className="inline-form" onSubmit={submit}>
         {report.values.map(({ metric, unit, value }) => (
           <label key={metric}>

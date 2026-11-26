@@ -113,6 +113,7 @@ export const handlers = [
       activeDurationSeconds: workoutId ? 3000 : null,
       sessionRpeLoad: null,
       sessionLoadMethodVersion: "session-rpe-active-minutes-v1",
+      nutrition: missingNutrition,
     });
   }),
   http.get("*/api/v1/devices", () => HttpResponse.json([device({ id: "d1" })])),
@@ -190,5 +191,20 @@ export const handlers = [
   ),
   http.get("*/api/v1/maps/config", () => HttpResponse.json({ provider: "none", googleApiKey: null })),
 ];
+
+export const missingNutrition = {
+  methodVersion: "declared-nutrition-accounting-v1",
+  source: "athlete-feedback",
+  status: "incomplete-diary",
+  diaryComplete: false,
+  durationHours: null,
+  totalExpenditureKcal: null,
+  energyBalanceKcal: null,
+  energyAvailabilityKcalPerKg: null,
+  carbohydrateGramsPerHour: null,
+  fluidMillilitersPerHour: null,
+  sodiumMilligramsPerHour: null,
+  estimatedSweatLitersPerHour: null,
+};
 
 export const server = setupServer(...handlers);
