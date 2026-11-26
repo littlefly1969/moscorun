@@ -315,6 +315,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/science/feedback": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetScienceFeedback"];
+    put: operations["SaveScienceFeedback"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/devices": {
     parameters: {
       query?: never;
@@ -351,6 +367,12 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    AthleteFeedbackValue: {
+      metric: string;
+      unit: string;
+      /** Format: double */
+      value: null | number;
+    };
     /**
      * @description Quanto è certa l'associazione della pesata alla persona.
      * @enum {unknown}
@@ -701,6 +723,43 @@ export interface components {
       time: null | string;
       /** Format: double */
       value: null | number;
+    };
+    ScienceFeedbackInput: {
+      metric: string;
+      /** Format: double */
+      value: null | number;
+    };
+    ScienceFeedbackReport: {
+      /** Format: date */
+      day: null | string;
+      /** Format: uuid */
+      workoutId: null | string;
+      /** Format: int64 */
+      workoutRevision: null | number;
+      /** Format: int64 */
+      revision: null | number;
+      /** Format: date-time */
+      availableAt: null | string;
+      values: components["schemas"]["AthleteFeedbackValue"][];
+      note: null | string;
+      status: string;
+      /** Format: double */
+      activeDurationSeconds: null | number;
+      /** Format: double */
+      sessionRpeLoad: null | number;
+      sessionLoadMethodVersion: string;
+    };
+    ScienceFeedbackRequest: {
+      /** Format: date */
+      day: null | string;
+      /** Format: uuid */
+      workoutId: null | string;
+      /** Format: int64 */
+      workoutRevision: null | number;
+      /** Format: int64 */
+      revision: number;
+      values: components["schemas"]["ScienceFeedbackInput"][];
+      note: null | string;
     };
     /** @description Serie: `times` in millisecondi Unix e `values` allineati per indice. */
     SeriesDto: {
@@ -1497,6 +1556,92 @@ export interface operations {
         content: {
           "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
         };
+      };
+    };
+  };
+  GetScienceFeedback: {
+    parameters: {
+      query?: {
+        day?: string;
+        workoutId?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ScienceFeedbackReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  SaveScienceFeedback: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ScienceFeedbackRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ScienceFeedbackReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
