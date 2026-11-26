@@ -758,6 +758,56 @@
         }
       }
     },
+    "/api/v1/science/sleep": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetSleepDiary",
+        "parameters": [
+          {
+            "name": "last",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SleepDiaryReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/device": {
       "get": {
         "tags": [
@@ -4850,6 +4900,172 @@
           "Power",
           null
         ]
+      },
+      "SleepDiaryNight": {
+        "required": [
+          "day",
+          "status",
+          "revision",
+          "availableAt",
+          "bedtimeMinute",
+          "wakeMinute",
+          "asleepSeconds",
+          "inBedSeconds",
+          "efficiencyPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "revision": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "availableAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "bedtimeMinute": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "wakeMinute": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "asleepSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "inBedSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "efficiencyPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SleepDiaryReport": {
+        "required": [
+          "methodVersion",
+          "lastDay",
+          "asOf",
+          "windowDays",
+          "completeNights",
+          "status",
+          "nights",
+          "bedtime",
+          "wake",
+          "meanEfficiencyPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "lastDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "windowDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "completeNights": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string"
+          },
+          "nights": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SleepDiaryNight"
+            }
+          },
+          "bedtime": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SleepTimingSummary"
+              }
+            ]
+          },
+          "wake": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SleepTimingSummary"
+              }
+            ]
+          },
+          "meanEfficiencyPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SleepTimingSummary": {
+        "required": [
+          "nightCount",
+          "meanMinuteOfDay",
+          "circularStandardDeviationMinutes"
+        ],
+        "type": "object",
+        "properties": {
+          "nightCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "meanMinuteOfDay": {
+            "type": "number",
+            "format": "double"
+          },
+          "circularStandardDeviationMinutes": {
+            "type": "number",
+            "format": "double"
+          }
+        }
       },
       "SourceFreshness": {
         "required": [

@@ -237,6 +237,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/science/sleep": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetSleepDiary"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/device": {
     parameters: {
       query?: never;
@@ -1532,6 +1548,50 @@ export interface components {
     };
     /** @enum {unknown} */
     SeriesMetric: "HeartRate" | "Speed" | "Cadence" | "Power" | null;
+    SleepDiaryNight: {
+      /** Format: date */
+      day: string;
+      status: string;
+      /** Format: int64 */
+      revision: null | number;
+      /** Format: date-time */
+      availableAt: null | string;
+      /** Format: double */
+      bedtimeMinute: null | number;
+      /** Format: double */
+      wakeMinute: null | number;
+      /** Format: double */
+      asleepSeconds: null | number;
+      /** Format: double */
+      inBedSeconds: null | number;
+      /** Format: double */
+      efficiencyPercent: null | number;
+    };
+    SleepDiaryReport: {
+      methodVersion: string;
+      /** Format: date */
+      lastDay: string;
+      /** Format: date-time */
+      asOf: string;
+      /** Format: int32 */
+      windowDays: number;
+      /** Format: int32 */
+      completeNights: number;
+      status: string;
+      nights: components["schemas"]["SleepDiaryNight"][];
+      bedtime: null | components["schemas"]["SleepTimingSummary"];
+      wake: null | components["schemas"]["SleepTimingSummary"];
+      /** Format: double */
+      meanEfficiencyPercent: null | number;
+    };
+    SleepTimingSummary: {
+      /** Format: int32 */
+      nightCount: number;
+      /** Format: double */
+      meanMinuteOfDay: number;
+      /** Format: double */
+      circularStandardDeviationMinutes: number;
+    };
     SourceFreshness: {
       /**
        * Format: uuid
@@ -2375,6 +2435,38 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["PersonalResearchReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  GetSleepDiary: {
+    parameters: {
+      query: {
+        last: string;
+        days: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SleepDiaryReport"];
         };
       };
       /** @description Bad Request */
