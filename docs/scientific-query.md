@@ -1,5 +1,7 @@
-# C5 — Letture longitudinali limitate
+# C5 — Query e segnali longitudinali
 
-Intervallo semiaperto, cutoff di disponibilità, filtro metrica e pagine massimo 500. Usa l'indice atleta/tempo esistente. Non convalida il lineage: per quello usare ScientificObservationStore.ReadAsOfAsync.
+Query scalari con keyset (tempo, disponibilità, ID), cutoff fisso e indici PostgreSQL per atleta con o senza metrica. Massimo 500 righe per pagina; non sostituisce il controllo lineage di ScientificSnapshot.
 
-Offset non stabile con modifiche tra pagine. Restano keyset/watermark, indici dedicati, benchmark e storage ad alta frequenza. Conservare le serie workout compresse esistenti.
+Per PPG/ECG/accelerometria e altre serie: chunk immutabili di massimo 16.384 campioni, codec Brotli lossless (timestamp UTC a 100 ns, bit IEEE754, null), SHA-256 dell'encoding canonico, metodo e fonte, revisioni, isolamento, associazioni autorizzate. Import idempotente e lettura paginata di chunk sovrapposti alla finestra, non di campioni già ritagliati. I connettori devono usare ID chunk e revisioni stabili; ogni chunk ha commit atomico, il checkpoint di una serie si avanza solo dopo aver salvato tutti i chunk. Le vecchie serie workout restano inalterate.
+
+Test su PostgreSQL reale di keyset, cutoff, round-trip a precisione piena, replay, isolamento e corruzione codec. Benchmark di throughput sul volume di produzione da eseguire con dati rappresentativi; non è una misura di performance clinica.
