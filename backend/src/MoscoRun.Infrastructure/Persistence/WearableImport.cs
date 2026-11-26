@@ -3,9 +3,6 @@ using MoscoRun.Domain.Analysis;
 namespace MoscoRun.Infrastructure.Persistence;
 
 /// <summary>Campione già normalizzato dal connettore; l'ID deve identificare il singolo campione.</summary>
-public sealed record WearableSample(string ExternalId, string Revision, string Metric, string Unit,
-    double? Value, DateTimeOffset Time, ObservationMethod Method, string? ProviderAlgorithm = null);
-
 public sealed class WearableImport(ScientificImportStore store)
 {
     public Task<int> ImportAsync(Guid ownerId, string source, IReadOnlyList<WearableSample> samples,
