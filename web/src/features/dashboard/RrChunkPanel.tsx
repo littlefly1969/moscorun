@@ -105,7 +105,7 @@ export function RrChunkPanel() {
       </form>
       {analysis.isPending && <p role="status">Analisi in corso…</p>}
       {analysis.isError && <p role="alert">Analisi RR non riuscita.</p>}
-      {report && report.chunks.length === 0 && <p>Nessuna sequenza RR disponibile.</p>}
+      {report?.chunks.length === 0 && <p>Nessuna sequenza RR disponibile.</p>}
       {report?.truncated && <p>Elenco limitato alle prime 64 revisioni.</p>}
       {report?.selected && (
         <p>
