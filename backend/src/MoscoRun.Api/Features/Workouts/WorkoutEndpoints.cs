@@ -88,6 +88,9 @@ internal static class WorkoutEndpoints
         workouts.MapPost("/{id:guid}/science/environment", WorkoutEnvironmentEndpoints.PostAsync)
             .RequireAuthorization(Policies.User)
             .WithName("GetWorkoutEnvironment");
+        workouts.MapGet("/{id:guid}/science/distance-load", RunningDistanceEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("GetRunningDistanceLoad");
         MapDashboardScienceEndpoints(v1);
     }
 
