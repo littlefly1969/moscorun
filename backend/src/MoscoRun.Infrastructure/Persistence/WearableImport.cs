@@ -24,7 +24,7 @@ public sealed class WearableImport(ScientificImportStore store, ScientificSyncSt
         ArgumentNullException.ThrowIfNull(samples);
         ValidateSource(source);
         if (samples.Count > ScientificImportStore.MaxBatchSize ||
-            samples.Any(s => s.Method is not (ObservationMethod.Measured or ObservationMethod.ProviderReported or ObservationMethod.ProviderEstimated)))
+            samples.Any(s => !WearableIngestCatalog.AcceptsMethod(s.Method)))
         {
             throw new ArgumentException("Batch o metodo wearable non valido.", nameof(samples));
         }
@@ -35,7 +35,7 @@ public sealed class WearableImport(ScientificImportStore store, ScientificSyncSt
 
     private static void ValidateSource(string source)
     {
-        if (source is not ("garmin-connect" or "samsung-health" or "health-connect"))
+        if (!WearableIngestCatalog.IsSource(source))
         {
             throw new ArgumentException("Sorgente wearable non supportata.", nameof(source));
         }

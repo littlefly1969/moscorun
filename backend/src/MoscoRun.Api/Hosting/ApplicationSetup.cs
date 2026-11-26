@@ -9,6 +9,7 @@ using MoscoRun.Api.Auth;
 using MoscoRun.Api.Features.Dashboard;
 using MoscoRun.Api.Features.Devices;
 using MoscoRun.Api.Features.Maps;
+using MoscoRun.Api.Features.Science;
 using MoscoRun.Api.Features.System;
 using MoscoRun.Api.Features.Weighings;
 using MoscoRun.Api.Features.Workouts;
@@ -172,6 +173,7 @@ public static class ApplicationSetup
         var v1 = api.MapGroup("/v1");
         v1.MapWeighingEndpoints();
         v1.MapWorkoutEndpoints();
+        v1.MapScientificIngestEndpoints();
         v1.MapDeviceEndpoints();
         v1.MapDashboardEndpoints();
         v1.MapMapEndpoints();
