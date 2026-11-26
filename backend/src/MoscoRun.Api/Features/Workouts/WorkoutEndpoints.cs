@@ -100,6 +100,10 @@ internal static class WorkoutEndpoints
             .RequireAuthorization(Policies.User)
             .WithTags("Cruscotto")
             .WithName("GetRrChunks");
+        v1.MapGet("/science/adaptation", PersonalAdaptationEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("GetPersonalAdaptation");
     }
 
     internal static async Task<Results<Created<WorkoutSummaryDto>, Ok<WorkoutSummaryDto>, ValidationProblem, ProblemHttpResult>> IngestAsync(
