@@ -1,0 +1,7 @@
+# Research Lab N-of-1: benchmark causale e ablation
+
+GET /api/v1/science/research: source, from, split, until UTC, distanceMeters e penalty L2 0,0001–1000. Legge una snapshot privata di carichi attestati e prove massimali omogenee, tramite il reader di adattamento. Per ogni prova costruisce feature prima del suo inizio: velocità dell'ultima prova disponibile, media dei 7 giorni precedenti, media dei 21 giorni precedenti a questi 7. Tutti i 28 carichi e la prova precedente devono essere disponibili prima dell'inizio. Nessuna imputazione o target corrente come feature.
+
+Due fold walk-forward prefissati: metà della finestra holdout e fine. Standardizzazione train-only e regressione ridge, penalty dichiarata. Ogni fold richiede almeno 10 esempi training e 3 test; label disponibili entro il cutoff del training o il termine del test. Ablation conserva esattamente gli stessi esempi e rimuove i due carichi. Baseline = media target del training. MAE/RMSE e bias sulle stesse prove. Mancanti e fold insufficienti espliciti.
+
+Confronto retrospettivo N-of-1, non predizioni emesse in passato né validazione indipendente. Non seleziona iperparametri sul test; ripetere il benchmark per scegliere penalty trasformerebbe il test in calibrazione e richiederebbe un nuovo holdout. Non implementa reti neurali o validazione inter-atleta. Le revisioni correnti e disponibilità conservative possono ridurre il campione.

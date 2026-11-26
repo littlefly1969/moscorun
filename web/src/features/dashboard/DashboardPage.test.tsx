@@ -18,6 +18,51 @@ describe("cruscotto", () => {
     expect(await screen.findByRole("figure", { name: "Andamento del peso" })).toBeInTheDocument();
   });
 
+  it("analizza recupero e forma senza imputare giorni mancanti", async () => {
+    let missing = false;
+    server.use(
+      http.get("*/api/v1/science/daily", ({ request }) => {
+        const params = new URL(request.url).searchParams;
+        expect(params.get("metric")).toBe("weight");
+        expect(params.get("source")).toBe("samsung-health");
+        expect(params.get("baselineDays")).toBe("28");
+        return HttpResponse.json({
+          metric: "weight",
+          unit: "kg",
+          source: "samsung-health",
+          asOf: "2026-11-26T12:00:00Z",
+          methodVersion: "daily-observation-median-mad-v1",
+          status: missing ? "missing" : "observed",
+          current: {
+            day: params.get("day"),
+            status: missing ? "missing" : "observed",
+            value: missing ? null : 79.3,
+            method: missing ? null : "Measured",
+          },
+          history: [
+            { day: "2026-11-24", status: "observed", value: 80 },
+            { day: "2026-11-23", status: "missing", value: null },
+          ],
+          baseline: missing ? null : { baselineMedian: 80, baselineCount: 7, robustZScore: null },
+          currentVersusMedianPercent: missing ? null : -0.875,
+          weightTrendKgPerWeek: missing ? null : -0.7,
+        });
+      }),
+    );
+    renderApp("/");
+    const panel = await screen.findByRole("region", { name: "Recupero e composizione corporea" });
+    await userEvent.selectOptions(within(panel).getByLabelText("Metrica giornaliera"), "weight");
+    const run = within(panel).getByRole("button", { name: "Analizza recupero e forma" });
+    await userEvent.click(run);
+    expect(await within(panel).findByText("79,3 kg")).toBeInTheDocument();
+    expect(within(panel).getByText("-0,7 kg/settimana")).toBeInTheDocument();
+    expect(within(panel).getByText("Non disponibile")).toBeInTheDocument();
+    missing = true;
+    await userEvent.click(run);
+    expect(await within(panel).findByText(/Non disponibile · samsung-health/)).toBeInTheDocument();
+    expect(within(panel).queryByText("79,3 kg")).not.toBeInTheDocument();
+  });
+
   it("gestisce l'archivio vuoto senza inventare valori", async () => {
     server.use(
       http.get("*/api/v1/dashboard/summary", () =>

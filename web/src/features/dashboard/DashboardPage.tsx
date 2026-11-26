@@ -3,6 +3,16 @@ import type { Weighing } from "../../api/client";
 import { formatDateTime, formatDeltaKg, formatKg, formatRelative, freshness } from "../../lib/format";
 import { useSetAttribution, useSummary, useWeighings } from "./queries";
 import { StatCard } from "./StatCard";
+import { DailySciencePanel } from "./DailySciencePanel";
+import { DailySessionLoadPanel } from "./DailySessionLoadPanel";
+import { AttestedRacePanel } from "./AttestedRacePanel";
+import { RrChunkPanel } from "./RrChunkPanel";
+import { PersonalAdaptationPanel } from "./PersonalAdaptationPanel";
+import { PacingScenarioPanel } from "./PacingScenarioPanel";
+import { PersonalResearchPanel } from "./PersonalResearchPanel";
+import { SleepDiaryPanel } from "./SleepDiaryPanel";
+import { SleepPerformancePanel } from "./SleepPerformancePanel";
+import { ScienceFeedbackPanel } from "../science/ScienceFeedbackPanel";
 
 // La libreria dei grafici è il pacchetto più pesante: caricata a parte, dopo i dati essenziali.
 const WeightChart = lazy(() => import("./WeightChart").then((m) => ({ default: m.WeightChart })));
@@ -82,6 +92,17 @@ export function DashboardPage() {
           <WeightChart items={items} />
         </Suspense>
       </section>
+
+      <DailySciencePanel />
+      <ScienceFeedbackPanel />
+      <DailySessionLoadPanel />
+      <AttestedRacePanel />
+      <RrChunkPanel />
+      <PersonalAdaptationPanel />
+      <PacingScenarioPanel />
+      <PersonalResearchPanel />
+      <SleepDiaryPanel />
+      <SleepPerformancePanel />
 
       <section className="card" aria-labelledby="sources-title">
         <h2 id="sources-title">Sorgenti dati</h2>
