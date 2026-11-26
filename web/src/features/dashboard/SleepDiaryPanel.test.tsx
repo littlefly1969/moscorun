@@ -30,7 +30,7 @@ describe("regolarità sonno", () => {
         });
       }),
     );
-    renderApp("/");
+    renderApp("/forma");
     const panel = await screen.findByRole("region", { name: "Regolarità del sonno" });
     await userEvent.type(within(panel).getByLabelText("Ultimo giorno sonno UTC"), "2026-11-25");
     await userEvent.click(within(panel).getByRole("button", { name: "Analizza sonno" }));

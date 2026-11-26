@@ -36,7 +36,7 @@ describe("calibrazione personale", () => {
         });
       }),
     );
-    renderApp("/");
+    renderApp("/forma");
     const panel = await screen.findByRole("region", { name: "Calibrazione prestazionale personale" });
     await userEvent.type(within(panel).getByLabelText("Inizio fit UTC"), "2026-01-01");
     await userEvent.type(within(panel).getByLabelText("Cutoff fit UTC"), "2026-02-01");

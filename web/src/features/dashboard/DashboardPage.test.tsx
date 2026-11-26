@@ -7,7 +7,7 @@ import { toChartPoints } from "./chartPoints";
 
 describe("cruscotto", () => {
   it("mostra indicatori, sorgenti e pesate", async () => {
-    renderApp("/");
+    renderApp("/forma");
 
     const latest = await screen.findByRole("region", { name: "Ultimo peso" });
     expect(latest).toHaveTextContent("78,4 kg");
@@ -49,7 +49,7 @@ describe("cruscotto", () => {
         });
       }),
     );
-    renderApp("/");
+    renderApp("/forma");
     const panel = await screen.findByRole("region", { name: "Recupero e composizione corporea" });
     await userEvent.selectOptions(within(panel).getByLabelText("Metrica giornaliera"), "weight");
     const run = within(panel).getByRole("button", { name: "Analizza recupero e forma" });
@@ -78,7 +78,7 @@ describe("cruscotto", () => {
       ),
       http.get("*/api/v1/weighings", () => HttpResponse.json({ items: [], from: "x", to: "y" })),
     );
-    renderApp("/");
+    renderApp("/forma");
 
     expect(await screen.findByRole("region", { name: "Ultimo peso" })).toHaveTextContent("—");
     expect(screen.getByText("nessuna pesata")).toBeInTheDocument();
@@ -95,7 +95,7 @@ describe("cruscotto", () => {
         return HttpResponse.json(weighing({ id: "w2", attribution: "Confirmed" }));
       }),
     );
-    renderApp("/");
+    renderApp("/forma");
 
     const row = (await screen.findAllByRole("row"))[1];
     if (!row) throw new Error("riga mancante");
@@ -120,7 +120,7 @@ describe("cruscotto", () => {
         return HttpResponse.json(weighing({ id: "w2", attribution: "Rejected" }));
       }),
     );
-    renderApp("/");
+    renderApp("/forma");
 
     const row = (await screen.findAllByRole("row"))[1];
     if (!row) throw new Error("riga mancante");
@@ -144,7 +144,7 @@ describe("cruscotto", () => {
         }),
       ),
     );
-    renderApp("/");
+    renderApp("/forma");
 
     const [, confirmed, rejected] = await screen.findAllByRole("row");
     if (!confirmed || !rejected) throw new Error("righe mancanti");
@@ -178,7 +178,7 @@ describe("cruscotto", () => {
         }),
       ),
     );
-    renderApp("/");
+    renderApp("/forma");
 
     const source = await screen.findByText(/Bilancia bagno: ultima pesata ricevuta mai/);
     expect(source.closest("li")).toHaveAttribute("data-freshness", "missing");
@@ -186,7 +186,7 @@ describe("cruscotto", () => {
 
   it("mostra un errore se il server non risponde", async () => {
     server.use(http.get("*/api/v1/dashboard/summary", () => new HttpResponse(null, { status: 500 })));
-    renderApp("/");
+    renderApp("/forma");
     expect(await screen.findByRole("alert")).toHaveTextContent("Impossibile caricare i dati.");
   });
 

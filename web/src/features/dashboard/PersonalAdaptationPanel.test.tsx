@@ -35,7 +35,7 @@ describe("adattamento personale", () => {
         });
       }),
     );
-    renderApp("/");
+    renderApp("/forma");
     const panel = await screen.findByRole("region", { name: "Adattamento fitness-fatigue" });
     await userEvent.type(within(panel).getByLabelText("Sorgente prove"), "samsung-health");
     await userEvent.type(within(panel).getByLabelText("Inizio storico UTC"), "2026-01-01");

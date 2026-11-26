@@ -22,7 +22,7 @@ describe("carico longitudinale", () => {
         }),
       ),
     );
-    renderApp("/");
+    renderApp("/forma");
     const panel = await screen.findByRole("region", { name: "Carico di allenamento longitudinale" });
     await userEvent.click(within(panel).getByRole("button", { name: "Analizza carico" }));
     const rest = await within(panel).findByRole("row", { name: /2026-01-31/ });

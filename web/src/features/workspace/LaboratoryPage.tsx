@@ -24,7 +24,7 @@ const methods = [
   ["sonno", "Regolarità del sonno", "Diario notturno e qualità"],
   ["diario", "Feedback e nutrizione", "Osservazioni e attestazioni"],
   ["seduta", "Analisi della seduta", "Durability, biomeccanica, intensità e contesto"],
-];
+] as const;
 
 function WorkoutMethods({ workout }: { workout: WorkoutSummary }) {
   const id = workout.id;
@@ -56,7 +56,8 @@ function WorkoutMethods({ workout }: { workout: WorkoutSummary }) {
 
 export function LaboratoryPage() {
   const [params, setParams] = useSearchParams();
-  const method = params.get("metodo") ?? "ricerca";
+  const requested = params.get("metodo");
+  const method = methods.find(([id]) => id === requested)?.[0] ?? "ricerca";
   return (
     <>
       <header className="sw-head">
@@ -70,7 +71,7 @@ export function LaboratoryPage() {
             key={id}
             type="button"
             aria-pressed={method === id}
-            onClick={() => setParams({ metodo: id ?? "ricerca" })}
+            onClick={() => setParams({ metodo: id })}
           >
             <strong>{title}</strong>
             <small>{hint}</small>
@@ -105,7 +106,7 @@ export function EvidencePage() {
           risultato statistico sul protocollo selezionato.
         </p>
       </header>
-      <SleepPerformancePanel />
+      <SleepPerformancePanel showMap />
     </>
   );
 }

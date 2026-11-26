@@ -12,8 +12,9 @@ export function Layout() {
         <span className="brand">MoscoRun</span>
         <nav aria-label="Principale">
           <NavLink to="/" end>
-            Forma
+            Atlante scientifico
           </NavLink>
+          <NavLink to="/forma">Forma</NavLink>
           <NavLink to="/allenamenti">Allenamenti</NavLink>
           <NavLink to="/dispositivi">Dispositivi</NavLink>
         </nav>

@@ -23,7 +23,7 @@ describe("feedback scientifico", () => {
         });
       }),
     );
-    renderApp("/");
+    renderApp("/forma");
     const panel = await screen.findByRole("region", { name: "Diario giornaliero" });
     await userEvent.type(await within(panel).findByLabelText("Fatica (0-10)"), "0");
     await userEvent.type(within(panel).getByLabelText("Note"), "Giornata tranquilla");

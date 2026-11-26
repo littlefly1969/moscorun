@@ -10,7 +10,7 @@ async function login(page: Page) {
   await page.getByLabel("Email").fill(adminEmail);
   await page.getByLabel("Password").fill(adminPassword);
   await page.getByRole("button", { name: "Accedi" }).click();
-  await expect(page.getByRole("heading", { name: "Forma" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Atlante delle metriche" })).toBeVisible();
 }
 
 async function expectNoA11yViolations(page: Page) {
