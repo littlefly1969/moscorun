@@ -1,0 +1,5 @@
+# Diario sonno e regolarità
+
+Nuovi campi del diario giornaliero: ora locale a letto e risveglio in minuti da mezzanotte, durata a letto in secondi, attestazione notte principale nello stesso fuso abituale. sleepDuration deve riferirsi alla sola notte principale. Giorno UTC in cui la notte termina; attestazione dopo la chiusura del giorno. Durate dichiarate indipendenti dagli orari per evitare inferenze errate con DST.
+
+GET /api/v1/science/sleep?last=...&days=7..90. Una transazione repeatable-read seleziona l'ultima revisione ordinata di ogni diario, senza combinare metriche fra revisioni o atleti. Revoche e mancanti restano espliciti. Efficienza = sonno/a letto ×100, con durate fisicamente coerenti. Almeno sette notti complete per media di efficienza e statistiche circolari degli orari locali, non medie lineari attraverso mezzanotte. Non è Sleep Regularity Index, diagnosi o misura strumentale. Nessuna correzione automatica del fuso: esclusione dichiarata delle notti fuori fuso. Non ricostruisce stadi o sonno wearable.
