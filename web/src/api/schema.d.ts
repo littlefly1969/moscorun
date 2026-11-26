@@ -205,6 +205,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/science/pacing": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["SimulatePacing"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/device": {
     parameters: {
       query?: never;
@@ -1014,6 +1030,52 @@ export interface components {
       start: null | string;
       /** Format: date-time */
       end: null | string;
+    };
+    PacingRaceReference: {
+      source: string;
+      /** Format: date */
+      from: string;
+      /** Format: date */
+      split: string;
+      /** Format: date */
+      until: string;
+    };
+    PacingScenarioReport: {
+      methodVersion: string;
+      /** Format: date-time */
+      asOf: string;
+      status: string;
+      targetSource: string;
+      /** Format: double */
+      distanceMeters: number;
+      /** Format: double */
+      targetSeconds: null | number;
+      segments: components["schemas"]["PacingSegment"][];
+      splits: components["schemas"]["PacingSplit"][];
+      prediction: null | components["schemas"]["RacePrediction"];
+      interval: null | components["schemas"]["PredictionInterval"];
+      evidence: components["schemas"]["RaceCalibrationEvidence"][];
+    };
+    PacingScenarioRequest: {
+      segments: components["schemas"]["PacingSegment"][];
+      /** Format: double */
+      targetSeconds: null | number;
+      raceReference: null | components["schemas"]["PacingRaceReference"];
+    };
+    /** @description Moltiplicatore relativo di costo/tempo noto prima della simulazione; non inferito dal dislivello da solo. */
+    PacingSegment: {
+      /** Format: double */
+      distanceMeters: number;
+      /** Format: double */
+      relativeTimeCost: number;
+    };
+    PacingSplit: {
+      /** Format: double */
+      distanceMeters: number;
+      /** Format: double */
+      segmentSeconds: number;
+      /** Format: double */
+      cumulativeSeconds: number;
     };
     PersonalAdaptationReport: {
       methodVersion: string;
@@ -2072,6 +2134,39 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["PersonalAdaptationReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  SimulatePacing: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PacingScenarioRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PacingScenarioReport"];
         };
       };
       /** @description Bad Request */

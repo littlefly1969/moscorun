@@ -633,6 +633,46 @@
         }
       }
     },
+    "/api/v1/science/pacing": {
+      "post": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "SimulatePacing",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PacingScenarioRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PacingScenarioReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/device": {
       "get": {
         "tags": [
@@ -3082,6 +3122,185 @@
               "string"
             ],
             "format": "date-time"
+          }
+        }
+      },
+      "PacingRaceReference": {
+        "required": [
+          "source",
+          "from",
+          "split",
+          "until"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "split": {
+            "type": "string",
+            "format": "date"
+          },
+          "until": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "PacingScenarioReport": {
+        "required": [
+          "methodVersion",
+          "asOf",
+          "status",
+          "targetSource",
+          "distanceMeters",
+          "targetSeconds",
+          "segments",
+          "splits",
+          "prediction",
+          "interval",
+          "evidence"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "targetSource": {
+            "type": "string"
+          },
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "targetSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "segments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PacingSegment"
+            }
+          },
+          "splits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PacingSplit"
+            }
+          },
+          "prediction": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RacePrediction"
+              }
+            ]
+          },
+          "interval": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PredictionInterval"
+              }
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RaceCalibrationEvidence"
+            }
+          }
+        }
+      },
+      "PacingScenarioRequest": {
+        "required": [
+          "segments",
+          "targetSeconds",
+          "raceReference"
+        ],
+        "type": "object",
+        "properties": {
+          "segments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PacingSegment"
+            }
+          },
+          "targetSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "raceReference": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PacingRaceReference"
+              }
+            ]
+          }
+        }
+      },
+      "PacingSegment": {
+        "required": [
+          "distanceMeters",
+          "relativeTimeCost"
+        ],
+        "type": "object",
+        "properties": {
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "relativeTimeCost": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "Moltiplicatore relativo di costo/tempo noto prima della simulazione; non inferito dal dislivello da solo."
+      },
+      "PacingSplit": {
+        "required": [
+          "distanceMeters",
+          "segmentSeconds",
+          "cumulativeSeconds"
+        ],
+        "type": "object",
+        "properties": {
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "segmentSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "cumulativeSeconds": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
