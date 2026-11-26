@@ -5,7 +5,7 @@ namespace MoscoRun.Domain.Analysis;
 /// <summary>Audit della revisione corrente delle serie originali, senza inferire canali non disponibili.</summary>
 public static class WorkoutScientificEngine
 {
-    public const string MethodVersion = "workout-channel-quality-v1";
+    public const string MethodVersion = "workout-channel-quality-v2";
     private static readonly TimeSpan MaxGap = TimeSpan.FromSeconds(5);
 
     public static WorkoutScienceReport? Build(
