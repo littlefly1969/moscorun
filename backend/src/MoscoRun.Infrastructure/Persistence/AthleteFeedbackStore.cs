@@ -18,6 +18,9 @@ public sealed class AthleteFeedbackStore(MoscoRunDbContext db, ScientificImportS
     {
         "energyIntake", "carbohydrateIntake", "proteinIntake", "fatIntake", "fluidIntake",
         "sodiumIntake", "caffeineIntake", "sleepDuration", "napDuration",
+        "restingEnergyExpenditure", "fatFreeMass", NutritionFeedbackMetrics.Thermogenesis,
+        NutritionFeedbackMetrics.NonExerciseNet, NutritionFeedbackMetrics.ExerciseNet,
+        NutritionFeedbackMetrics.BeforeWeight, NutritionFeedbackMetrics.AfterWeight, NutritionFeedbackMetrics.Urine,
     };
 
     public async Task<int> SaveAsync(Guid ownerId, string entryId, string revision, DateTimeOffset time,
@@ -135,9 +138,11 @@ public sealed class AthleteFeedbackStore(MoscoRunDbContext db, ScientificImportS
     {
         return entry.Values.Select(v =>
         {
-            var completeness = string.Equals(v.Metric, ScientificFeedbackKeys.DailyCompleteMetric, StringComparison.Ordinal);
+            var completeness = NutritionFeedbackMetrics.IsAttestation(v.Metric);
             if ((!completeness && !Scores.Contains(v.Metric) && !Quantities.Contains(v.Metric)) ||
-                (completeness && (entry.WorkoutId is not null || v.Value is not (null or 0 or 1))) ||
+                (completeness && v.Value is not (null or 0 or 1)) ||
+                (string.Equals(v.Metric, ScientificFeedbackKeys.DailyCompleteMetric, StringComparison.Ordinal) && entry.WorkoutId is not null) ||
+                (string.Equals(v.Metric, NutritionFeedbackMetrics.SweatProtocol, StringComparison.Ordinal) && entry.WorkoutId is null) ||
                 (v.Value is { } number && (!double.IsFinite(number) || number < 0 ||
                     (Scores.Contains(v.Metric) && number > 10))))
             {

@@ -18,6 +18,9 @@ internal static class ScienceFeedbackProtocol
         new("energyIntake", "kcal"), new("carbohydrateIntake", "g"), new("proteinIntake", "g"),
         new("fatIntake", "g"), new("fluidIntake", "mL"), new("sodiumIntake", "mg"), new("caffeineIntake", "mg"),
         new(ScientificFeedbackKeys.DailyCompleteMetric, "1"),
+        new(NutritionFeedbackMetrics.Complete, "1"), new("restingEnergyExpenditure", "kcal"),
+        new(NutritionFeedbackMetrics.Thermogenesis, "kcal"), new(NutritionFeedbackMetrics.NonExerciseNet, "kcal"),
+        new(NutritionFeedbackMetrics.ExerciseNet, "kcal"), new("fatFreeMass", "kg"),
     ];
 
     private static readonly KeyValuePair<string, string>[] SessionMetrics =
@@ -25,7 +28,9 @@ internal static class ScienceFeedbackProtocol
         new("rpe", "0-10"), new("fatigue", "0-10"), new("soreness", "0-10"),
         new("pain", "0-10"), new("gastrointestinalDiscomfort", "0-10"),
         new("carbohydrateIntake", "g"), new("fluidIntake", "mL"), new("sodiumIntake", "mg"),
-        new("caffeineIntake", "mg"),
+        new("caffeineIntake", "mg"), new(NutritionFeedbackMetrics.Complete, "1"),
+        new(NutritionFeedbackMetrics.BeforeWeight, "kg"), new(NutritionFeedbackMetrics.AfterWeight, "kg"),
+        new(NutritionFeedbackMetrics.Urine, "mL"), new(NutritionFeedbackMetrics.SweatProtocol, "1"),
     ];
 
     public static bool ValidContext(DateOnly? day, Guid? workoutId, DateTimeOffset now) =>
@@ -58,7 +63,7 @@ internal static class ScienceFeedbackProtocol
         {
             byMetric.TryGetValue(metric.Key, out var value);
             if (value is { } number && (!double.IsFinite(number) || number < 0 ||
-                (string.Equals(metric.Key, ScientificFeedbackKeys.DailyCompleteMetric, StringComparison.Ordinal) && number is not (0 or 1)) ||
+                (NutritionFeedbackMetrics.IsAttestation(metric.Key) && number is not (0 or 1)) ||
                 (string.Equals(metric.Value, "0-10", StringComparison.Ordinal) && number > 10) || (string.Equals(metric.Value, "s", StringComparison.Ordinal) && number > 86400)))
             {
                 return null;

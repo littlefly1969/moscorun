@@ -48,7 +48,7 @@ internal static class ScienceFeedbackEndpoints
 
         var values = ScienceFeedbackProtocol.Values(request.WorkoutId.HasValue, request.Values);
         if (values is null || (request.Day == DateOnly.FromDateTime(now.UtcDateTime) &&
-            values.Any(value => string.Equals(value.Metric, ScientificFeedbackKeys.DailyCompleteMetric, StringComparison.Ordinal) && value.Value == 1)))
+            values.Any(value => NutritionFeedbackMetrics.IsAttestation(value.Metric) && value.Value == 1)))
         {
             return Invalid();
         }
@@ -106,9 +106,12 @@ internal static class ScienceFeedbackEndpoints
         var status = latest is not null ? "recorded" : history.Count == 0 ? "missing" : "ambiguous";
         var rpe = values.SingleOrDefault(value => string.Equals(value.Metric, "rpe", StringComparison.Ordinal))?.Value;
         var load = workout?.ActiveDuration is { } duration ? TrainingLoadEngine.SessionRpe(duration.TotalMinutes, rpe) : null;
+        var nutrition = NutritionFeedbackEngine.Build(values.ToDictionary(value => value.Metric, value => value.Value, StringComparer.Ordinal),
+            workout is not null, (workout?.EndedAt - workout?.StartedAt)?.TotalHours, latest?.AvailableAt,
+            workout?.EndedAt ?? ScienceFeedbackProtocol.ReferenceTime(day, null).AddDays(1));
         return new ScienceFeedbackReport(day, workout?.Id, workout?.Revision, latest?.Entry.RevisionOrder,
             latest?.AvailableAt, values, latest?.Entry.Note, status, workout?.ActiveDuration?.TotalSeconds,
-            load, ScienceFeedbackProtocol.LoadVersion);
+            load, ScienceFeedbackProtocol.LoadVersion, nutrition);
     }
 
     private static ValidationProblem Invalid() =>

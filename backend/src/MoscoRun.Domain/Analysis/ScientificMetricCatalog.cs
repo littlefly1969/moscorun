@@ -90,6 +90,14 @@ public static class ScientificMetricCatalog
         ["gastrointestinalDiscomfort"] = "0-10",
         ["motivation"] = "0-10",
         ["trainingDayComplete"] = "1",
+        ["nutritionDiaryComplete"] = "1",
+        ["thermicEffectOfFood"] = "kcal",
+        ["nonExerciseEnergyExpenditureNet"] = "kcal",
+        ["exerciseEnergyExpenditureNet"] = "kcal",
+        ["preExerciseWeight"] = "kg",
+        ["postExerciseWeight"] = "kg",
+        ["exerciseUrineVolume"] = "mL",
+        ["sweatProtocolConfirmed"] = "1",
     };
 
     public const int SchemaVersion = 1;
