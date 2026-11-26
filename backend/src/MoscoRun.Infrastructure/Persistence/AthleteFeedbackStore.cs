@@ -24,6 +24,15 @@ public sealed class AthleteFeedbackStore(MoscoRunDbContext db, ScientificImportS
         NutritionFeedbackMetrics.BeforeWeight, NutritionFeedbackMetrics.AfterWeight, NutritionFeedbackMetrics.Urine,
     };
 
+    /// <summary>Attestazioni che hanno senso solo legate a una seduta.</summary>
+    private static readonly HashSet<string> SessionOnly = new(StringComparer.Ordinal)
+    {
+        NutritionFeedbackMetrics.SweatProtocol, AttestedRaceEngine.AttestationMetric, AttestedPerformanceEngine.PowerAttestation,
+    };
+
+    /// <summary>Attestazioni solo giornaliere.</summary>
+    private static readonly HashSet<string> DailyOnly = new(StringComparer.Ordinal) { ScientificFeedbackKeys.DailyCompleteMetric };
+
     public async Task<int> SaveAsync(Guid ownerId, string entryId, string revision, DateTimeOffset time,
         IReadOnlyList<AthleteFeedbackValue> values, CancellationToken ct = default)
     {
@@ -135,20 +144,38 @@ public sealed class AthleteFeedbackStore(MoscoRunDbContext db, ScientificImportS
         }
     }
 
+    /// <summary>Valore nel catalogo, nel contesto giusto (giornaliero o di seduta) e nell'intervallo ammesso.</summary>
+    private static bool Accepts(bool daily, AthleteFeedbackValue v)
+    {
+        var completeness = NutritionFeedbackMetrics.IsAttestation(v.Metric);
+        if (!completeness && !Scores.Contains(v.Metric) && !Quantities.Contains(v.Metric))
+        {
+            return false;
+        }
+
+        if ((completeness && v.Value is not (null or 0 or 1)) || (SessionOnly.Contains(v.Metric) && daily))
+        {
+            return false;
+        }
+
+        if ((SleepDiaryMetrics.IsDiaryMetric(v.Metric) || DailyOnly.Contains(v.Metric)) && !daily)
+        {
+            return false;
+        }
+
+        if (!SleepDiaryMetrics.ValidValue(v.Metric, v.Value) || v.Value is not { } number)
+        {
+            return v.Value is null;
+        }
+
+        return double.IsFinite(number) && number >= 0 && (number <= 10 || !Scores.Contains(v.Metric));
+    }
+
     private static ScientificImportItem[] CreateItems(AthleteFeedbackEntry entry)
     {
         return entry.Values.Select(v =>
         {
-            var completeness = NutritionFeedbackMetrics.IsAttestation(v.Metric);
-            if ((!completeness && !Scores.Contains(v.Metric) && !Quantities.Contains(v.Metric)) ||
-                (completeness && v.Value is not (null or 0 or 1)) ||
-                (SleepDiaryMetrics.IsDiaryMetric(v.Metric) && (entry.WorkoutId is not null || !SleepDiaryMetrics.ValidValue(v.Metric, v.Value))) ||
-                (string.Equals(v.Metric, ScientificFeedbackKeys.DailyCompleteMetric, StringComparison.Ordinal) && entry.WorkoutId is not null) ||
-                ((string.Equals(v.Metric, NutritionFeedbackMetrics.SweatProtocol, StringComparison.Ordinal) ||
-                    string.Equals(v.Metric, AttestedRaceEngine.AttestationMetric, StringComparison.Ordinal) ||
-                    string.Equals(v.Metric, AttestedPerformanceEngine.PowerAttestation, StringComparison.Ordinal)) && entry.WorkoutId is null) ||
-                (v.Value is { } number && (!double.IsFinite(number) || number < 0 ||
-                    (Scores.Contains(v.Metric) && number > 10))))
+            if (!Accepts(entry.WorkoutId is null, v))
             {
                 throw new ArgumentException("Feedback fuori catalogo o intervallo.", nameof(entry));
             }

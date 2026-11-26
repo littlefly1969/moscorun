@@ -11,6 +11,7 @@ namespace MoscoRun.Infrastructure.Persistence;
 public sealed class ScientificImportStore(MoscoRunDbContext db, TimeProvider clock)
 {
     public const int MaxBatchSize = 500;
+    private const int MaxProvenanceText = 200;
 
     public static Guid Identity(ScientificImportItem item)
     {
@@ -140,25 +141,27 @@ public sealed class ScientificImportStore(MoscoRunDbContext db, TimeProvider clo
         return observations;
     }
 
+    private static bool IsValid(ScientificImportProvenance p) =>
+        p.DeviceId != Guid.Empty && p.WorkoutId != Guid.Empty && HasValidMapping(p);
+
+    /// <summary>Mappatura nativa tutta assente oppure completa (metrica, unità, versione), testi limitati e valore finito.</summary>
+    private static bool HasValidMapping(ScientificImportProvenance p)
+    {
+        string?[] texts = [p.NativeMetric, p.NativeUnit, p.MappingVersion];
+        if (texts.Any(text => text?.Length > MaxProvenanceText) || p.NativeValue is { } value && !double.IsFinite(value))
+        {
+            return false;
+        }
+
+        return (p.NativeValue is null && texts.All(text => text is null)) ||
+            texts.All(text => !string.IsNullOrWhiteSpace(text));
+    }
+
     private async Task ValidateProvenanceAsync(Guid ownerId, IReadOnlyList<ScientificImportItem> items, CancellationToken ct)
     {
-        foreach (var item in items)
+        if (items.Select(item => item.Provenance).OfType<ScientificImportProvenance>().Any(p => !IsValid(p)))
         {
-            var p = item.Provenance;
-            if (p is null)
-            {
-                continue;
-            }
-
-            if (p.DeviceId == Guid.Empty || p.WorkoutId == Guid.Empty ||
-                p.NativeMetric?.Length > 200 || p.NativeUnit?.Length > 200 || p.MappingVersion?.Length > 200 ||
-                (p.NativeValue is { } value && !double.IsFinite(value)) ||
-                ((p.NativeMetric is not null || p.NativeUnit is not null || p.NativeValue is not null || p.MappingVersion is not null) &&
-                    (string.IsNullOrWhiteSpace(p.NativeMetric) || string.IsNullOrWhiteSpace(p.NativeUnit) ||
-                        string.IsNullOrWhiteSpace(p.MappingVersion))))
-            {
-                throw new ArgumentException("Provenienza non valida.", nameof(items));
-            }
+            throw new ArgumentException("Provenienza non valida.", nameof(items));
         }
 
         var devices = items.Select(x => x.Provenance?.DeviceId).OfType<Guid>().Distinct().ToArray();

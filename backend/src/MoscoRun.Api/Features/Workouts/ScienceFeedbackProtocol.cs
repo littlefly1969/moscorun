@@ -65,10 +65,7 @@ internal static class ScienceFeedbackProtocol
         foreach (var metric in metrics)
         {
             byMetric.TryGetValue(metric.Key, out var value);
-            if (value is { } number && (!double.IsFinite(number) || number < 0 ||
-                (NutritionFeedbackMetrics.IsAttestation(metric.Key) && number is not (0 or 1)) ||
-                !SleepDiaryMetrics.ValidValue(metric.Key, number) ||
-                (string.Equals(metric.Value, "0-10", StringComparison.Ordinal) && number > 10) || (string.Equals(metric.Value, "s", StringComparison.Ordinal) && number > 86400)))
+            if (value is { } number && !InRange(metric, number))
             {
                 return null;
             }
@@ -84,4 +81,24 @@ internal static class ScienceFeedbackProtocol
         history.Select(item => item.Entry.RevisionOrder).Distinct().Count() != history.Count
             ? null
             : history.MaxBy(item => item.Entry.RevisionOrder);
+
+    private static bool InRange(KeyValuePair<string, string> metric, double number)
+    {
+        if (!double.IsFinite(number) || number < 0 || !SleepDiaryMetrics.ValidValue(metric.Key, number))
+        {
+            return false;
+        }
+
+        if (NutritionFeedbackMetrics.IsAttestation(metric.Key) && number is not (0 or 1))
+        {
+            return false;
+        }
+
+        return metric.Value switch
+        {
+            "0-10" => number <= 10,
+            "s" => number <= 86400,
+            _ => true,
+        };
+    }
 }

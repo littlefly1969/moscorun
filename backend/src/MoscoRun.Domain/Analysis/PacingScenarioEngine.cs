@@ -43,7 +43,7 @@ public static class PacingScenarioEngine
         if (request.RaceReference is { } reference &&
             (race is null || !string.Equals(race.Source, reference.Source, StringComparison.Ordinal) ||
                 race.TrainingStart != At(reference.From) || race.Split != At(reference.Split) ||
-                race.End != At(reference.Until) || race.TargetMeters != distance || race.AsOf != asOf))
+                race.End != At(reference.Until) || !race.TargetMeters.Equals(distance) || race.AsOf != asOf))
         {
             return null;
         }
