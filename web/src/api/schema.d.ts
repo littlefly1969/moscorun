@@ -571,6 +571,22 @@ export interface components {
       /** @description Chiave per il browser, presente solo con Google. */
       googleApiKey: null | string;
     };
+    ObservedPerformanceCurve: {
+      metric: components["schemas"]["SeriesMetric"];
+      unit: string;
+      methodVersion: string;
+      points: components["schemas"]["ObservedPerformancePoint"][];
+    };
+    ObservedPerformancePoint: {
+      /** Format: int32 */
+      durationSeconds: number;
+      /** Format: double */
+      mean: null | number;
+      /** Format: date-time */
+      start: null | string;
+      /** Format: date-time */
+      end: null | string;
+    };
     RegisterDeviceRequest: {
       name: string;
       kind: null | components["schemas"]["DeviceKind"];
@@ -830,6 +846,7 @@ export interface components {
       /** Format: double */
       maxGapSeconds: number;
       channels: components["schemas"]["WorkoutChannelReport"][];
+      performanceCurves: components["schemas"]["ObservedPerformanceCurve"][];
     };
     WorkoutSeriesList: {
       items: components["schemas"]["SeriesDto"][];
