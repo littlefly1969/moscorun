@@ -3,8 +3,6 @@ using MoscoRun.Domain.Analysis;
 
 namespace MoscoRun.Infrastructure.Persistence;
 
-public sealed record ScientificObservationPage(IReadOnlyList<ScientificObservation> Items, int? NextOffset);
-
 /// <summary>Letture archiviate, non uno snapshot scientifico con lineage validato.</summary>
 public sealed class ScientificObservationQuery(MoscoRunDbContext db)
 {
@@ -15,7 +13,7 @@ public sealed class ScientificObservationQuery(MoscoRunDbContext db)
     {
         if (ownerId == Guid.Empty || from >= to || offset < 0 || offset > int.MaxValue - MaxPageSize || limit is < 1 or > MaxPageSize)
         {
-            throw new ArgumentException("Parametri di interrogazione non validi.");
+            throw new ArgumentException("Parametri di interrogazione non validi.", nameof(from));
         }
 
         var start = from.ToUniversalTime();
