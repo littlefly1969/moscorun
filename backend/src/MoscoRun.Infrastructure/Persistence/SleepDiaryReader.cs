@@ -23,7 +23,7 @@ public sealed class SleepDiaryReader(MoscoRunDbContext db)
         }, ct);
     }
 
-    private async Task<SleepDiaryReport?> ReadCoreAsync(Guid owner, DateOnly last, int days, DateTimeOffset asOf,
+    internal async Task<SleepDiaryReport?> ReadCoreAsync(Guid owner, DateOnly last, int days, DateTimeOffset asOf,
         CancellationToken ct)
     {
         var dates = Enumerable.Range(0, days).Select(index => last.AddDays(index + 1 - days)).ToArray();

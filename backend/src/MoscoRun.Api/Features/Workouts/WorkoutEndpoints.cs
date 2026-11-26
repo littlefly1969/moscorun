@@ -136,6 +136,10 @@ internal static class WorkoutEndpoints
             .RequireAuthorization(Policies.User)
             .WithTags("Cruscotto")
             .WithName("GetSleepDiary");
+        v1.MapGet("/science/sleep-performance", SleepPerformanceEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("GetSleepPerformance");
     }
 
     internal static async Task<Results<Created<WorkoutSummaryDto>, Ok<WorkoutSummaryDto>, ValidationProblem, ProblemHttpResult>> IngestAsync(
