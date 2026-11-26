@@ -363,6 +363,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/workouts/{id}/science/steps": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetRunningSteps"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/devices": {
     parameters: {
       query?: never;
@@ -793,6 +809,37 @@ export interface components {
       hiddenEndPoints: number;
       /** @description Istante di ogni coordinata, in millisecondi Unix. */
       times: number[];
+    };
+    RunningStepReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      status: string;
+      /** Format: double */
+      maxGapSeconds: number;
+      cadenceIsStepsPerMinute: boolean;
+      /** Format: double */
+      durationSeconds: number;
+      /** Format: double */
+      pairedSeconds: number;
+      /** Format: double */
+      coverage: number;
+      /** Format: double */
+      meanSpeedMetersPerSecond: null | number;
+      /** Format: double */
+      meanCadenceStepsPerMinute: null | number;
+      /** Format: double */
+      meanStepLengthMeters: null | number;
+      /** Format: double */
+      stepLengthCvPercent: null | number;
+      /** Format: double */
+      cadenceCvPercent: null | number;
     };
     SampleInput: {
       /** Format: date-time */
@@ -1833,6 +1880,37 @@ export interface operations {
         };
         content: {
           "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetRunningSteps: {
+    parameters: {
+      query: {
+        cadenceIsStepsPerMinute: boolean;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunningStepReport"];
         };
       };
       /** @description Not Found */

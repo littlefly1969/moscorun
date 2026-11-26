@@ -1000,6 +1000,48 @@
         }
       }
     },
+    "/api/v1/workouts/{id}/science/steps": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetRunningSteps",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "cadenceIsStepsPerMinute",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunningStepReport"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/devices": {
       "get": {
         "tags": [
@@ -2165,6 +2207,108 @@
               "format": "int64"
             },
             "description": "Istante di ogni coordinata, in millisecondi Unix."
+          }
+        }
+      },
+      "RunningStepReport": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "source",
+          "asOf",
+          "methodVersion",
+          "status",
+          "maxGapSeconds",
+          "cadenceIsStepsPerMinute",
+          "durationSeconds",
+          "pairedSeconds",
+          "coverage",
+          "meanSpeedMetersPerSecond",
+          "meanCadenceStepsPerMinute",
+          "meanStepLengthMeters",
+          "stepLengthCvPercent",
+          "cadenceCvPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "maxGapSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "cadenceIsStepsPerMinute": {
+            "type": "boolean"
+          },
+          "durationSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "pairedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "coverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "meanSpeedMetersPerSecond": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "meanCadenceStepsPerMinute": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "meanStepLengthMeters": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "stepLengthCvPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "cadenceCvPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
