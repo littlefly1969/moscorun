@@ -43,6 +43,8 @@ const labels: Record<string, string> = {
   comparableRunningPower: "Potenza di corsa con stesso sensore e algoritmo delle altre prove (1 sì, 0 no)",
 };
 
+const maxValue: Record<string, number> = { "1": 1, "0-10": 10, s: 86400, min: 1439 };
+
 const number = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 2 });
 
 function NutritionSummary({
@@ -136,7 +138,7 @@ function FeedbackForm({
               name={metric}
               type="number"
               min={0}
-              max={unit === "1" ? 1 : unit === "0-10" ? 10 : unit === "s" ? 86400 : unit === "min" ? 1439 : undefined}
+              max={maxValue[unit]}
               step={unit === "1" || unit === "min" ? 1 : "any"}
               defaultValue={value ?? ""}
             />
