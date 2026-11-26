@@ -49,5 +49,31 @@ public sealed class SignalProcessingTests
         SignalProcessing.Median([double.NaN]).Should().BeNull();
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    public void Explicit_invalid_sample_interrupts_support(double? value)
+    {
+        SignalSample[] samples = [At(0, 100), At(2, value), At(4, 140)];
+        var result = SignalProcessing.Audit(samples, Now, Now.AddSeconds(4), TimeSpan.FromSeconds(5));
+        result.InvalidCount.Should().Be(1);
+        result.ConflictingCount.Should().Be(0);
+        result.Coverage.Should().Be(0);
+        result.TimeWeightedMean.Should().BeNull();
+        SignalProcessing.CausalValue(samples, Now.AddSeconds(3), TimeSpan.FromSeconds(5)).Should().BeNull();
+    }
+
+    [Fact]
+    public void Missing_and_valid_duplicate_is_not_silently_resolved()
+    {
+        SignalSample[] samples = [At(0, 100), At(2, null), At(2, 120), At(4, 140)];
+        var result = SignalProcessing.Audit(samples, Now, Now.AddSeconds(4), TimeSpan.FromSeconds(5));
+        result.ConflictingCount.Should().Be(1);
+        result.DuplicateCount.Should().Be(1);
+        result.Coverage.Should().Be(0);
+        SignalProcessing.CausalValue(samples, Now.AddSeconds(2), TimeSpan.FromSeconds(5)).Should().BeNull();
+    }
+
     private static SignalSample At(int seconds, double? value) => new(Now.AddSeconds(seconds), value);
 }
