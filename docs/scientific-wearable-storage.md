@@ -1,5 +1,5 @@
-# C3 — Ingresso wearable
+# C3 — Persistenza wearable
 
-Adattatore server per campioni già normalizzati, separazione sorgenti Garmin, Samsung Health e Health Connect, persistenza idempotente tramite C2. Il chiamante deve autenticare il dispositivo e risolvere l'atleta, normalizzare unità e provenienza tramite i contratti dell'agente acquisizione (#39). Le sorgenti sono etichette interne da concordare con i connettori.
+Adattatore server registrato in DI per campioni normalizzati Garmin, Samsung Health e Health Connect. Import singolo o paginato con checkpoint atomico C2. Revisioni, unità canoniche, dato nativo, mapping versionato, workout e dispositivo sono conservati; gli ID contestuali sono validati per atleta.
 
-Non implementa le API dei produttori, token, mapping nativo, collegamento workout/dispositivo o sincronizzazione automatica. Non inviare campioni ad alta frequenza tramite questo adattatore senza benchmark.
+Il connettore deve ricavare l'atleta da autenticazione, qualificare gli ID per account provider e normalizzare tramite i contratti #39. I test verificano isolamento multi-sorgente, replay, round-trip del dato nativo, associazione a workout esistente e rifiuto di contesti altrui. I connettori, token e API esterne sono responsabilità del flusso acquisizione, non di questa PR.

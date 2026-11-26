@@ -21,6 +21,10 @@ public static class DependencyInjection
             .UseSnakeCaseNamingConvention());
 
         services.AddScoped<ScientificObservationStore>();
+        services.AddScoped<ScientificImportStore>();
+        services.AddScoped<ScientificSyncStore>();
+        services.AddScoped<ScientificRevisionQuery>();
+        services.AddScoped<WearableImport>();
         return services;
     }
 }

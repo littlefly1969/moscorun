@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using MoscoRun.Domain.Analysis;
@@ -15,7 +16,9 @@ public sealed class ScientificImportStore(MoscoRunDbContext db, TimeProvider clo
     {
         ArgumentNullException.ThrowIfNull(item);
         if (string.IsNullOrWhiteSpace(item.ExternalId) || string.IsNullOrWhiteSpace(item.Revision) ||
-            string.IsNullOrWhiteSpace(item.Source) || string.IsNullOrWhiteSpace(item.Metric))
+            string.IsNullOrWhiteSpace(item.Source) || string.IsNullOrWhiteSpace(item.Metric) ||
+            item.ExternalId.Length > 512 || item.Revision.Length > 200 || item.RevisionOrder < 0 ||
+            Encoding.UTF8.GetByteCount(item.Source) + Encoding.UTF8.GetByteCount(item.ExternalId) + Encoding.UTF8.GetByteCount(item.Metric) > 2300)
         {
             throw new ArgumentException("Identità esterna incompleta.", nameof(item));
         }
@@ -38,13 +41,14 @@ public sealed class ScientificImportStore(MoscoRunDbContext db, TimeProvider clo
         }
 
         var observations = Prepare(ownerId, items, Normalize(clock.GetUtcNow()));
+        await ValidateProvenanceAsync(ownerId, items, ct);
         for (var attempt = 0; ; attempt++)
         {
             var ids = observations.Select(o => o.Id).ToArray();
             var existing = await db.Set<ScientificObservationRow>().AsNoTracking()
                 .Where(o => o.OwnerId == ownerId && ids.Contains(o.Id))
                 .ToDictionaryAsync(o => o.Id, ct);
-            var pending = Pending(ownerId, observations, existing);
+            var pending = Pending(ownerId, observations, items, existing);
 
             if (pending.Count == 0)
             {
@@ -68,14 +72,16 @@ public sealed class ScientificImportStore(MoscoRunDbContext db, TimeProvider clo
     }
 
     private static List<ScientificObservationRow> Pending(Guid ownerId, ScientificObservation[] observations,
-        Dictionary<Guid, ScientificObservationRow> existing)
+        IReadOnlyList<ScientificImportItem> items, Dictionary<Guid, ScientificObservationRow> existing)
     {
         var pending = new List<ScientificObservationRow>();
-        foreach (var observation in observations)
+        for (var i = 0; i < observations.Length; i++)
         {
+            var observation = observations[i];
+            var item = items[i];
             if (existing.TryGetValue(observation.Id, out var saved))
             {
-                if (!Matches(saved, observation))
+                if (!Matches(saved, observation, item))
                 {
                     throw new InvalidOperationException("Revisione già presente con contenuto diverso.");
                 }
@@ -95,6 +101,15 @@ public sealed class ScientificImportStore(MoscoRunDbContext db, TimeProvider clo
                 Source = observation.Source,
                 Method = observation.Method.ToString(),
                 ProviderAlgorithm = observation.ProviderAlgorithm,
+                ExternalId = item.ExternalId,
+                ExternalRevision = item.Revision,
+                ExternalRevisionOrder = item.RevisionOrder,
+                ImportDeviceId = item.Provenance?.DeviceId,
+                WorkoutId = item.Provenance?.WorkoutId,
+                NativeMetric = item.Provenance?.NativeMetric,
+                NativeUnit = item.Provenance?.NativeUnit,
+                NativeValue = item.Provenance?.NativeValue,
+                MappingVersion = item.Provenance?.MappingVersion,
             });
         }
 
@@ -122,15 +137,58 @@ public sealed class ScientificImportStore(MoscoRunDbContext db, TimeProvider clo
         return observations;
     }
 
+    private async Task ValidateProvenanceAsync(Guid ownerId, IReadOnlyList<ScientificImportItem> items, CancellationToken ct)
+    {
+        foreach (var item in items)
+        {
+            var p = item.Provenance;
+            if (p is null)
+            {
+                continue;
+            }
+
+            if (p.DeviceId == Guid.Empty || p.WorkoutId == Guid.Empty ||
+                p.NativeMetric?.Length > 200 || p.NativeUnit?.Length > 200 || p.MappingVersion?.Length > 200 ||
+                (p.NativeValue is { } value && !double.IsFinite(value)) ||
+                ((p.NativeMetric is not null || p.NativeUnit is not null || p.NativeValue is not null || p.MappingVersion is not null) &&
+                    (string.IsNullOrWhiteSpace(p.NativeMetric) || string.IsNullOrWhiteSpace(p.NativeUnit) ||
+                        string.IsNullOrWhiteSpace(p.MappingVersion))))
+            {
+                throw new ArgumentException("Provenienza non valida.", nameof(items));
+            }
+        }
+
+        var devices = items.Select(x => x.Provenance?.DeviceId).OfType<Guid>().Distinct().ToArray();
+        var workouts = items.Select(x => x.Provenance?.WorkoutId).OfType<Guid>().Distinct().ToArray();
+        if (devices.Length > 0 && await db.Devices.CountAsync(d => d.OwnerId == ownerId &&
+                d.RevokedAt == null && devices.Contains(d.Id), ct) != devices.Length)
+        {
+            throw new ArgumentException("Dispositivo non autorizzato.", nameof(items));
+        }
+
+        if (workouts.Length > 0 && await db.Workouts.CountAsync(w => w.OwnerId == ownerId &&
+                workouts.Contains(w.Id), ct) != workouts.Length)
+        {
+            throw new ArgumentException("Allenamento non autorizzato.", nameof(items));
+        }
+    }
+
     private static DateTimeOffset Normalize(DateTimeOffset time)
     {
         var ticks = time.UtcTicks;
         return new DateTimeOffset(ticks - (ticks % 10), TimeSpan.Zero);
     }
 
-    private static bool Matches(ScientificObservationRow saved, ScientificObservation observation) =>
+    private static bool Matches(ScientificObservationRow saved, ScientificObservation observation, ScientificImportItem item) =>
         string.Equals(saved.Metric, observation.Metric, StringComparison.Ordinal) && string.Equals(saved.Unit, observation.Unit, StringComparison.Ordinal) && saved.Value == observation.Value &&
         saved.Time == observation.Time && string.Equals(saved.Source, observation.Source, StringComparison.Ordinal) &&
         string.Equals(saved.Method, observation.Method.ToString(), StringComparison.Ordinal) && string.Equals(saved.ProviderAlgorithm, observation.ProviderAlgorithm, StringComparison.Ordinal) &&
-        saved.DerivationVersion is null && saved.InputIds.Length == 0;
+        saved.DerivationVersion is null && saved.InputIds.Length == 0 &&
+        string.Equals(saved.ExternalId, item.ExternalId, StringComparison.Ordinal) &&
+        string.Equals(saved.ExternalRevision, item.Revision, StringComparison.Ordinal) && saved.ExternalRevisionOrder == item.RevisionOrder &&
+        saved.WorkoutId == item.Provenance?.WorkoutId &&
+        string.Equals(saved.NativeMetric, item.Provenance?.NativeMetric, StringComparison.Ordinal) &&
+        string.Equals(saved.NativeUnit, item.Provenance?.NativeUnit, StringComparison.Ordinal) &&
+        saved.NativeValue == item.Provenance?.NativeValue &&
+        string.Equals(saved.MappingVersion, item.Provenance?.MappingVersion, StringComparison.Ordinal);
 }
