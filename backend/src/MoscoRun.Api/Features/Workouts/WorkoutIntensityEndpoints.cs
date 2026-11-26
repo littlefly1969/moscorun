@@ -47,7 +47,7 @@ internal static class WorkoutIntensityEndpoints
         return report is not null ? TypedResults.Ok(report) : TypedResults.NotFound();
     }
 
-    private static IReadOnlyList<double>? Parse(string thresholds)
+    private static System.Collections.ObjectModel.ReadOnlyCollection<double>? Parse(string thresholds)
     {
         if (string.IsNullOrWhiteSpace(thresholds) || thresholds.Length > 200)
         {
