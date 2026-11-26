@@ -31,6 +31,25 @@ public sealed class AttestedPerformanceEngineTests
         report.CooperTests.Should().BeEmpty();
     }
 
+    [Fact]
+    public void Critical_power_uses_only_comparable_full_support_training_trials()
+    {
+        var evidence = new[]
+        {
+            Row(180, 820) with { MeanPowerWatts = 400 },
+            Row(360, 1540) with { MeanPowerWatts = 350 },
+            Row(720, 2980) with { MeanPowerWatts = 325 },
+            Row(900, 3700) with { MeanPowerWatts = null },
+            Row(600, 8000, "calibration") with { MeanPowerWatts = 1000 },
+        };
+        var report = AttestedPerformanceEngine.Build(evidence);
+        report.CriticalPower!.CriticalWatts.Should().BeApproximately(300, 1e-9);
+        report.CriticalPower.WorkReserveJoules.Should().BeApproximately(18000, 1e-8);
+        report.CriticalPowerCandidateIds.Should().HaveCount(3);
+        evidence[2] = evidence[2] with { MeanPowerWatts = null };
+        AttestedPerformanceEngine.Build(evidence).CriticalPower.Should().BeNull();
+    }
+
     private static RaceCalibrationEvidence Row(double seconds, double meters, string role = "training") =>
         new(Guid.NewGuid(), 1, "hash", DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch, 1,
             meters, seconds, role, null, null);
