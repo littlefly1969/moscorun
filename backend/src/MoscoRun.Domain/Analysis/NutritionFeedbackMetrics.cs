@@ -14,5 +14,6 @@ public static class NutritionFeedbackMetrics
     public static bool IsAttestation(string metric) =>
         string.Equals(metric, Complete, StringComparison.Ordinal) ||
         string.Equals(metric, SweatProtocol, StringComparison.Ordinal) ||
+        string.Equals(metric, AttestedRaceEngine.AttestationMetric, StringComparison.Ordinal) ||
         string.Equals(metric, ScientificFeedbackKeys.DailyCompleteMetric, StringComparison.Ordinal);
 }

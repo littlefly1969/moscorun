@@ -98,6 +98,7 @@ public static class ScientificMetricCatalog
         ["postExerciseWeight"] = "kg",
         ["exerciseUrineVolume"] = "mL",
         ["sweatProtocolConfirmed"] = "1",
+        ["maximalFlatRun"] = "1",
     };
 
     public const int SchemaVersion = 1;

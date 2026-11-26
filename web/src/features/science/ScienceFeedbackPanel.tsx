@@ -35,6 +35,7 @@ const labels: Record<string, string> = {
   postExerciseWeight: "Peso dopo la seduta",
   exerciseUrineVolume: "Urina durante la seduta",
   sweatProtocolConfirmed: "Bilancio di massa controllato (1 sì, 0 no)",
+  maximalFlatRun: "Prova massimale su percorso piano misurato, senza pause (1 sì, 0 no)",
 };
 
 const number = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 2 });
