@@ -81,7 +81,7 @@ function FeedbackForm({
               name={metric}
               type="number"
               min={0}
-              max={metric === "trainingDayComplete" ? 1 : unit === "0-10" ? 10 : unit === "s" ? 86400 : undefined}
+              max={unit === "1" ? 1 : unit === "0-10" ? 10 : unit === "s" ? 86400 : undefined}
               step={metric === "trainingDayComplete" ? 1 : "any"}
               defaultValue={value ?? ""}
             />

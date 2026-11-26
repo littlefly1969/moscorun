@@ -56,7 +56,9 @@ function Report({ report }: { report: Schemas["DailySessionLoadReport"] }) {
             {report.days.map((day) => (
               <tr key={day.day}>
                 <th scope="row">{day.day}</th>
-                <td>{day.ratedSessions} / {day.sessions}</td>
+                <td>
+                  {day.ratedSessions} / {day.sessions}
+                </td>
                 <td>{format(day.load)}</td>
                 <td>{labels[day.status] ?? day.status}</td>
               </tr>
@@ -70,8 +72,7 @@ function Report({ report }: { report: Schemas["DailySessionLoadReport"] }) {
 
 export function DailySessionLoadPanel() {
   const analysis = useMutation({
-    mutationFn: (last: string) =>
-      unwrap(api.GET("/api/v1/science/load", { params: { query: { last } } })),
+    mutationFn: (last: string) => unwrap(api.GET("/api/v1/science/load", { params: { query: { last } } })),
   });
   const [yesterday] = useState(() => new Date(Date.now() - 86400000).toISOString().slice(0, 10));
   const submit = (event: SubmitEvent<HTMLFormElement>) => {
