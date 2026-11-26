@@ -30,6 +30,29 @@ public static class FitnessFatigueCalibration
             return null;
         }
 
+        var aligned = AlignLoads(loads, rows, firstDay, cutoff);
+        if (aligned is not { } input)
+        {
+            return null;
+        }
+
+        FitnessFatigueFit? best = null;
+        foreach (var parameters in candidates)
+        {
+            var fit = EvaluateCandidate(ownerId, input.Daily, rows, input.RowIndices, firstDay, cutoff, initial, parameters);
+            if (fit is not null && (best is null || fit.TrainingRmse < best.TrainingRmse))
+            {
+                best = fit;
+            }
+        }
+
+        return best;
+    }
+
+    private static (DailyTrainingLoad[] Daily, int[] RowIndices)? AlignLoads(
+        IReadOnlyList<DailyTrainingLoad> loads, FitnessFatigueCalibrationPoint[] rows,
+        DateOnly firstDay, DateTimeOffset cutoff)
+    {
         var lastMeasurementDay = DateOnly.FromDateTime(rows[^1].Time.UtcDateTime);
         if (DateOnly.FromDateTime(rows[0].Time.UtcDateTime) <= firstDay ||
             lastMeasurementDay.DayNumber - firstDay.DayNumber > 3660)
@@ -75,17 +98,7 @@ public static class FitnessFatigueCalibration
             return null;
         }
 
-        FitnessFatigueFit? best = null;
-        foreach (var parameters in candidates)
-        {
-            var fit = EvaluateCandidate(ownerId, daily, rows, rowIndices, firstDay, cutoff, initial, parameters);
-            if (fit is not null && (best is null || fit.TrainingRmse < best.TrainingRmse))
-            {
-                best = fit;
-            }
-        }
-
-        return best;
+        return (daily, rowIndices);
     }
 
     private static FitnessFatigueFit? EvaluateCandidate(
