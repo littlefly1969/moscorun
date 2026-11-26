@@ -63,7 +63,7 @@ export function ExtendedBiomechanicsPanel({ workoutId }: { workoutId: string }) 
     if (typeof source !== "string") return;
     const ids = metrics
       .map((metric) => form.get(metric))
-      .filter((value) => typeof value === "string" && value !== "");
+      .filter((value): value is string => typeof value === "string" && value !== "");
     const query: Protocol = {
       source,
       protocolConfirmed: form.has("protocol"),
