@@ -101,6 +101,36 @@ public sealed class ScienceFeedbackEndpointTests(ApiFactory factory)
         revoked!.Days[^1].Load.Should().BeNull();
     }
 
+    [Fact]
+    public async Task Nutrition_is_calculated_from_saved_complete_revision_only()
+    {
+        var (client, _) = await factory.CreateUserClientAsync();
+        using var user = client;
+        var ct = TestContext.Current.CancellationToken;
+        var today = DateOnly.FromDateTime(factory.Time.GetUtcNow().UtcDateTime);
+        var day = today.AddDays(-1);
+        ScienceFeedbackInput[] values =
+        [
+            new("nutritionDiaryComplete", 1), new("energyIntake", 2400), new("restingEnergyExpenditure", 1500),
+            new("thermicEffectOfFood", 200), new("nonExerciseEnergyExpenditureNet", 300),
+            new("exerciseEnergyExpenditureNet", 600), new("fatFreeMass", 60),
+        ];
+        var request = new ScienceFeedbackRequest(day, null, null, 1, values, null);
+        (await user.PutAsJsonAsync(Endpoint, request with { Day = today }, ct)).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var report = await SaveAsync(user, request, ct);
+        report.Nutrition.DiaryComplete.Should().BeTrue();
+        report.Nutrition.TotalExpenditureKcal.Should().Be(2600);
+        report.Nutrition.EnergyBalanceKcal.Should().Be(-200);
+        report.Nutrition.EnergyAvailabilityKcalPerKg.Should().Be(30);
+        var read = await user.GetFromJsonAsync<ScienceFeedbackReport>(
+            Endpoint + "?day=" + day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), ct);
+        read!.Nutrition.Should().Be(report.Nutrition);
+        var revised = await SaveAsync(user, request with { Revision = 2, Values = [new("energyIntake", 2400)] }, ct);
+        revised.Nutrition.DiaryComplete.Should().BeFalse();
+        revised.Nutrition.EnergyBalanceKcal.Should().BeNull();
+        revised.Nutrition.EnergyAvailabilityKcalPerKg.Should().BeNull();
+    }
+
     private async Task<Guid> IngestAsync(HttpClient phone, int revision, CancellationToken ct)
     {
         var end = factory.Time.GetUtcNow().AddHours(-1);
