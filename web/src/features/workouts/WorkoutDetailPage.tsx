@@ -12,6 +12,7 @@ import {
 import { StatCard } from "../dashboard/StatCard";
 import { RouteMap } from "./RouteMap";
 import { useWorkout } from "./queries";
+import { WorkoutSciencePanel } from "./WorkoutSciencePanel";
 
 const HeartRateChart = lazy(() => import("./HeartRateChart").then((m) => ({ default: m.HeartRateChart })));
 
@@ -62,6 +63,8 @@ export function WorkoutDetailPage() {
         <h2 id="route-title">Percorso</h2>
         <RouteMap workoutId={w.id} hasTrack={w.trackPointCount > 0} />
       </section>
+
+      <WorkoutSciencePanel workoutId={w.id} revision={w.revision} />
 
       {hasHeartRate && (
         <section className="card" aria-labelledby="hr-title">

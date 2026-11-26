@@ -28,6 +28,13 @@ describe("allenamenti", () => {
     expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent("Corsa");
   });
 
+  it("mostra le metriche scientifiche senza trasformare i canali mancanti in zero", async () => {
+    renderApp("/allenamenti/wk1");
+    const panel = await screen.findByRole("region", { name: "Analisi scientifica delle serie" });
+    expect(await within(panel).findByText("Non acquisita")).toBeInTheDocument();
+    expect(within(panel).getByText("140 bpm")).toBeInTheDocument();
+  });
+
   it("senza allenamenti spiega come inviarli dal telefono", async () => {
     server.use(http.get("*/api/v1/workouts", () => HttpResponse.json({ items: [], from: "x", to: "y" })));
     renderApp("/allenamenti");

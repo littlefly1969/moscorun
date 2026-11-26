@@ -41,3 +41,9 @@ export const useMapsConfig = () =>
     queryFn: () => unwrap(api.GET("/api/v1/maps/config")),
     staleTime: Infinity,
   });
+
+export const useWorkoutScience = (id: string, revision: number) =>
+  useQuery({
+    queryKey: [...workoutsKey, id, "science", revision],
+    queryFn: () => unwrap(api.GET("/api/v1/workouts/{id}/science", { params: { path: { id } } })),
+  });

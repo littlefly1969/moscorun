@@ -54,6 +54,10 @@ internal static class WorkoutEndpoints
                 "l'allenamento non la contiene). maxPoints riduce ogni serie conservando minimi e massimi reali di ogni intervallo; " +
                 "totalSamples indica quanti campioni sono salvati.");
 
+        workouts.MapGet("/{id:guid}/science", WorkoutScienceEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("GetWorkoutScience");
+
         return v1;
     }
 

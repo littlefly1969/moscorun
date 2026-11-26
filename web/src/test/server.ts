@@ -127,6 +127,23 @@ export const handlers = [
       ],
     }),
   ),
+  http.get("*/api/v1/workouts/:id/science", () =>
+    HttpResponse.json({
+      workoutId: "wk1",
+      revision: 1,
+      contentSha256: "synthetic",
+      source: "samsung-health",
+      asOf: "2026-11-13T07:05:00Z",
+      methodVersion: "workout-channel-quality-v1",
+      maxGapSeconds: 5,
+      channels: [
+        { metric: "HeartRate", unit: "bpm", status: "observed", sampleCount: 3, validCount: 3,
+          conflictingCount: 0, coverage: 0.5, timeWeightedMean: 140 },
+        { metric: "Power", unit: "W", status: "missing", sampleCount: 0, validCount: 0,
+          conflictingCount: 0, coverage: 0, timeWeightedMean: null },
+      ],
+    }),
+  ),
   http.get("*/api/v1/maps/config", () => HttpResponse.json({ provider: "none", googleApiKey: null })),
 ];
 

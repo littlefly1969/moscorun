@@ -558,6 +558,40 @@
         }
       }
     },
+    "/api/v1/workouts/{id}/science": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetWorkoutScience",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutScienceReport"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/devices": {
       "get": {
         "tags": [
@@ -1578,6 +1612,53 @@
           }
         }
       },
+      "WorkoutChannelReport": {
+        "required": [
+          "metric",
+          "unit",
+          "status",
+          "sampleCount",
+          "validCount",
+          "conflictingCount",
+          "coverage",
+          "timeWeightedMean"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "$ref": "#/components/schemas/SeriesMetric"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "sampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "validCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "conflictingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "coverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "timeWeightedMean": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "WorkoutDetailDto": {
         "required": [
           "summary",
@@ -1631,6 +1712,52 @@
               "string"
             ],
             "description": "Presente solo nelle liste paginate quando esistono altri elementi: va passato come `cursor`."
+          }
+        }
+      },
+      "WorkoutScienceReport": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "source",
+          "asOf",
+          "methodVersion",
+          "maxGapSeconds",
+          "channels"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "maxGapSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkoutChannelReport"
+            }
           }
         }
       },

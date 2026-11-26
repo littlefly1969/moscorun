@@ -267,6 +267,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/workouts/{id}/science": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetWorkoutScience"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/devices": {
     parameters: {
       query?: never;
@@ -688,6 +704,21 @@ export interface components {
       /** Format: date-time */
       to: string;
     };
+    WorkoutChannelReport: {
+      metric: components["schemas"]["SeriesMetric"];
+      unit: string;
+      status: string;
+      /** Format: int32 */
+      sampleCount: number;
+      /** Format: int32 */
+      validCount: number;
+      /** Format: int32 */
+      conflictingCount: number;
+      /** Format: double */
+      coverage: number;
+      /** Format: double */
+      timeWeightedMean: null | number;
+    };
     /** @description Dettaglio: riepilogo più l'elenco delle serie disponibili. */
     WorkoutDetailDto: {
       summary: components["schemas"]["WorkoutSummaryDto"];
@@ -708,6 +739,20 @@ export interface components {
       to: string;
       /** @description Presente solo nelle liste paginate quando esistono altri elementi: va passato come `cursor`. */
       nextCursor?: null | string;
+    };
+    WorkoutScienceReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      /** Format: double */
+      maxGapSeconds: number;
+      channels: components["schemas"]["WorkoutChannelReport"][];
     };
     WorkoutSeriesList: {
       items: components["schemas"]["SeriesDto"][];
@@ -1181,6 +1226,35 @@ export interface operations {
         };
         content: {
           "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetWorkoutScience: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutScienceReport"];
         };
       };
       /** @description Not Found */
