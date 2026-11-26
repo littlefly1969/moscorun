@@ -33,4 +33,4 @@ Ogni modifica passa dagli stessi controlli in locale e in CI. Una PR non va unit
 ## Cosa non è coperto da questi test
 
 - Agente Bluetooth della bilancia e sincronizzazione Android → server: **non ancora implementati** (vedi [README](../README.md)).
-- Server reale (convivenza con i siti e i servizi già presenti, Bluetooth): vedi "Validazione sul server reale" in [deploy-linux.md](deploy-linux.md).
+- Server reale (convivenza con i siti e i servizi già presenti, Bluetooth): vedi [Validazione su un nuovo server](deploy-linux.md#validazione-su-un-nuovo-server).

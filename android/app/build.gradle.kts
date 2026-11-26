@@ -45,7 +45,10 @@ android {
         versionCode = providers.gradleProperty("moscorunVersionCode")
             .orElse(providers.environmentVariable("MOSCORUN_VERSION_CODE")).orElse("2").get().toInt()
             .also { check(it in 1..2100000000) { "versionCode fuori intervallo" } }
-        versionName = "0.5.0"
+        // Official builds: scripts/release-version.py derives name and code from the source tag vX.Y.Z.
+        versionName = providers.gradleProperty("moscorunVersionName")
+            .orElse(providers.environmentVariable("MOSCORUN_VERSION_NAME")).orElse("0.0.0-dev").get()
+            .also { check(it.matches(Regex("""\d{1,3}\.\d{1,2}\.\d{1,2}(-[0-9A-Za-z.]+)?"""))) { "versionName non valido: $it" } }
         // One application only: the source (Samsung Health Data SDK or Health Connect) is a setting, not a variant.
         manifestPlaceholders["GOOGLE_MAPS_ANDROID_API_KEY"] = googleMapsKey.ifBlank { "MAPS_KEY_NOT_CONFIGURED" }
     }
@@ -60,7 +63,13 @@ android {
     }
     buildTypes {
         getByName("debug") { signingConfig = signingConfigs.findByName("stable") }
-        getByName("release") { signingConfig = signingConfigs.findByName("stable") }
+        getByName("release") {
+            signingConfig = signingConfigs.findByName("stable")
+            // The distributed APK: R8 removes unused code and resources, without renaming (see proguard-rules.pro).
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

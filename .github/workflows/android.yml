@@ -43,6 +43,12 @@ jobs:
       # Robolectric) e Lint. Nessun segreto, nessuna firma, nessun APK.
       - name: Test JVM e Lint senza SDK Samsung
         run: bash gradlew -Pmoscorun.withoutSamsungSdk=true testDebugUnitTest lintDebug --no-daemon
+      # R8 della build release sul codice dell'app (con la sorgente sostitutiva): le regole si applicano e il
+      # contratto JSON con il server sopravvive. Il repository privato ripete il controllo con l'SDK reale.
+      - name: R8 release e contratto JSON
+        run: |
+          bash gradlew -Pmoscorun.withoutSamsungSdk=true :app:minifyReleaseWithR8 --no-daemon
+          python3 scripts/check-r8.py
       - name: Anche in questa configurazione nessun APK viene impacchettato
         run: |
           if bash gradlew -Pmoscorun.withoutSamsungSdk=true :app:assembleDebug --continue --no-daemon > "$RUNNER_TEMP/assemble.log" 2>&1; then
