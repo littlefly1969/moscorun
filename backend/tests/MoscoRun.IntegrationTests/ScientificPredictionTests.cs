@@ -63,4 +63,28 @@ public sealed class ScientificPredictionTests(ApiFactory factory)
         await save.Should().ThrowAsync<InvalidOperationException>();
         (await runs.ReadAsync(owner, run.Id, now, ct)).Should().BeNull();
     }
+
+    [Fact]
+    public async Task Valid_backtest_does_not_publish_operational_observations()
+    {
+        var (_, owner) = await factory.CreateUserAsync();
+        var ct = TestContext.Current.CancellationToken;
+        var now = factory.Time.GetUtcNow();
+        var decision = now.AddDays(-1);
+        await using var scope = factory.Services.CreateAsyncScope();
+        var registry = scope.ServiceProvider.GetRequiredService<ScientificModelRegistry>();
+        var store = scope.ServiceProvider.GetRequiredService<ScientificObservationStore>();
+        var runs = scope.ServiceProvider.GetRequiredService<ScientificModelRunStore>();
+        await registry.RegisterAsync(owner, new ScientificModelArtifact("research", "1", "json", [1], "f1",
+            decision.AddDays(-2), "{}", "{}"), ct);
+        var input = new ScientificObservation(Guid.NewGuid(), owner, "heartRate", "bpm", 140, decision, decision, "test", ObservationMethod.Measured);
+        await store.AppendAsync(owner, input, ct);
+        var output = new ScientificModelOutput(Guid.NewGuid(), "prediction", "native", 1);
+        var run = new ScientificModelRun(Guid.NewGuid(), "research", "1", ScientificModelRunMode.Backtest,
+            decision, null, [input.Id], [output], "{}");
+        (await runs.SaveAsync(owner, run, ct)).Should().BeTrue();
+        (await runs.ReadAsync(owner, run.Id, now, ct))!.Run.Outputs.Should().ContainSingle().Which.Should().Be(output);
+        (await store.ReadAsOfAsync(owner, now, ct)).Should().ContainSingle().Which.Id.Should().Be(input.Id);
+        (await runs.ReadLatestStateAsync(owner, run.ModelId, run.Version, now, ct)).Should().BeNull();
+    }
 }
