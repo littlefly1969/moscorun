@@ -73,8 +73,8 @@ public static class DailyMetricEngine
     private static bool Eligible(ScientificObservation observation, string metric, string source, DateTimeOffset asOf) =>
         string.Equals(observation.Metric, metric, StringComparison.Ordinal) &&
         string.Equals(observation.Source, source, StringComparison.Ordinal) && observation.IsAvailableAt(asOf) &&
-        observation.Method is ObservationMethod.Measured or ObservationMethod.ProviderReported or
-            ObservationMethod.ProviderEstimated or ObservationMethod.SelfReported &&
+        observation.Method is (ObservationMethod.Measured or ObservationMethod.ProviderReported or
+            ObservationMethod.ProviderEstimated or ObservationMethod.SelfReported) &&
         observation.InputIds.Count == 0;
 
     private static DailyMetricPoint SelectDay(
@@ -107,7 +107,7 @@ public static class DailyMetricEngine
     });
 
     private static DailyMetricPoint Compatible(DailyMetricPoint point, DailyMetricPoint current) =>
-        point.Status == "observed" && (current.Status != "observed" ||
+        point.Status == "observed" && current.Status == "observed" && (
             !string.Equals(point.Method, current.Method, StringComparison.Ordinal) ||
             !string.Equals(point.ProviderAlgorithm, current.ProviderAlgorithm, StringComparison.Ordinal))
             ? point with { Status = "incompatible-method", Value = null }
