@@ -69,14 +69,19 @@ function optional(form: FormData, key: string) {
 export function WorkoutIntensityPanel({ workoutId }: { workoutId: string }) {
   const analysis = useMutation({
     mutationFn: (query: Protocol) =>
-      unwrap(api.GET("/api/v1/workouts/{id}/science/intensity", { params: { path: { id: workoutId }, query } })),
+      unwrap(
+        api.GET("/api/v1/workouts/{id}/science/intensity", { params: { path: { id: workoutId }, query } }),
+      ),
   });
   const submit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const metric = form.get("metric");
     const thresholds = form.get("thresholds");
-    if ((metric !== "HeartRate" && metric !== "Speed" && metric !== "Power") || typeof thresholds !== "string") {
+    if (
+      (metric !== "HeartRate" && metric !== "Speed" && metric !== "Power") ||
+      typeof thresholds !== "string"
+    ) {
       return;
     }
     const query: Protocol = { metric, thresholds };

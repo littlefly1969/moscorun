@@ -28,7 +28,10 @@ describe("intensità della seduta", () => {
     );
     renderApp("/allenamenti/wk1");
     const panel = await screen.findByRole("region", { name: "Zone d'intensità e carico cardiaco" });
-    await userEvent.type(within(panel).getByLabelText("Soglie (virgola tra valori, punto decimale)"), "130,150");
+    await userEvent.type(
+      within(panel).getByLabelText("Soglie (virgola tra valori, punto decimale)"),
+      "130,150",
+    );
     await userEvent.click(within(panel).getByRole("button", { name: "Analizza intensità" }));
     expect(await within(panel).findByText(/Copertura temporale: 75/)).toBeInTheDocument();
     expect(within(panel).getByText("140")).toBeInTheDocument();
