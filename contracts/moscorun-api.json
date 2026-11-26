@@ -1355,6 +1355,94 @@
         }
       }
     },
+    "/api/v1/workouts/{id}/science/reserve": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetWorkoutReserve",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SeriesMetric"
+            }
+          },
+          {
+            "name": "criticalIntensity",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "capacity",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "initialRemaining",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "recoveryTimeConstantSeconds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutReserveReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/devices": {
       "get": {
         "tags": [
@@ -3336,6 +3424,27 @@
           }
         }
       },
+      "ReserveState": {
+        "required": [
+          "cumulativeSeconds",
+          "remaining",
+          "exhausted"
+        ],
+        "type": "object",
+        "properties": {
+          "cumulativeSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "remaining": {
+            "type": "number",
+            "format": "double"
+          },
+          "exhausted": {
+            "type": "boolean"
+          }
+        }
+      },
       "RollingLoadSummary": {
         "required": [
           "recentMean",
@@ -4728,6 +4837,134 @@
               "string"
             ],
             "description": "Presente solo nelle liste paginate quando esistono altri elementi: va passato come `cursor`."
+          }
+        }
+      },
+      "WorkoutReserveProtocol": {
+        "required": [
+          "metric",
+          "criticalIntensity",
+          "capacity",
+          "initialRemaining",
+          "recoveryTimeConstantSeconds"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "$ref": "#/components/schemas/SeriesMetric"
+          },
+          "criticalIntensity": {
+            "type": "number",
+            "format": "double"
+          },
+          "capacity": {
+            "type": "number",
+            "format": "double"
+          },
+          "initialRemaining": {
+            "type": "number",
+            "format": "double"
+          },
+          "recoveryTimeConstantSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "WorkoutReserveReport": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "source",
+          "asOf",
+          "methodVersion",
+          "protocol",
+          "unit",
+          "status",
+          "workoutDurationSeconds",
+          "supportedSeconds",
+          "evaluatedSeconds",
+          "evaluatedSegments",
+          "minimumRemaining",
+          "lastRemaining",
+          "exhaustionSeconds",
+          "points"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "protocol": {
+            "$ref": "#/components/schemas/WorkoutReserveProtocol"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "workoutDurationSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "supportedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "evaluatedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "evaluatedSegments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minimumRemaining": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "lastRemaining": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "exhaustionSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReserveState"
+            }
           }
         }
       },

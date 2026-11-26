@@ -443,6 +443,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/workouts/{id}/science/reserve": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetWorkoutReserve"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/devices": {
     parameters: {
       query?: never;
@@ -1100,6 +1116,13 @@ export interface components {
       /** @description Credenziale da configurare nell'agente. Viene mostrata solo ora. */
       token: string;
     };
+    ReserveState: {
+      /** Format: double */
+      cumulativeSeconds: number;
+      /** Format: double */
+      remaining: number;
+      exhausted: boolean;
+    };
     /** @description Confronto descrittivo di medie giornaliere in finestre disgiunte, non score di rischio. */
     RollingLoadSummary: {
       /** Format: double */
@@ -1534,6 +1557,46 @@ export interface components {
       to: string;
       /** @description Presente solo nelle liste paginate quando esistono altri elementi: va passato come `cursor`. */
       nextCursor?: null | string;
+    };
+    WorkoutReserveProtocol: {
+      metric: components["schemas"]["SeriesMetric"];
+      /** Format: double */
+      criticalIntensity: number;
+      /** Format: double */
+      capacity: number;
+      /** Format: double */
+      initialRemaining: number;
+      /** Format: double */
+      recoveryTimeConstantSeconds: number;
+    };
+    WorkoutReserveReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      protocol: components["schemas"]["WorkoutReserveProtocol"];
+      unit: string;
+      status: string;
+      /** Format: double */
+      workoutDurationSeconds: number;
+      /** Format: double */
+      supportedSeconds: number;
+      /** Format: double */
+      evaluatedSeconds: number;
+      /** Format: int32 */
+      evaluatedSegments: number;
+      /** Format: double */
+      minimumRemaining: null | number;
+      /** Format: double */
+      lastRemaining: null | number;
+      /** Format: double */
+      exhaustionSeconds: null | number;
+      points: components["schemas"]["ReserveState"][];
     };
     WorkoutScienceReport: {
       /** Format: uuid */
@@ -2472,6 +2535,50 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["WorkoutCardiacRecoveryReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetWorkoutReserve: {
+    parameters: {
+      query: {
+        metric: components["schemas"]["SeriesMetric"];
+        criticalIntensity: number;
+        capacity: number;
+        initialRemaining: number;
+        recoveryTimeConstantSeconds: number;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutReserveReport"];
         };
       };
       /** @description Bad Request */

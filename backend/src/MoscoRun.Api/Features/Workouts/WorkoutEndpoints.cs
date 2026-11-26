@@ -76,6 +76,9 @@ internal static class WorkoutEndpoints
         workouts.MapGet("/{id:guid}/science/cardiac-recovery", WorkoutCardiacRecoveryEndpoints.GetAsync)
             .RequireAuthorization(Policies.User)
             .WithName("GetWorkoutCardiacRecovery");
+        workouts.MapGet("/{id:guid}/science/reserve", WorkoutReserveEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("GetWorkoutReserve");
         v1.MapGet("/science/daily", DailyScienceEndpoints.GetAsync)
             .RequireAuthorization(Policies.User)
             .WithTags("Cruscotto")
