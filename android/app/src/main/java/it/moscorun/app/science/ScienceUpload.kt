@@ -1,10 +1,13 @@
 package it.moscorun.app.science
 
 import com.google.gson.GsonBuilder
+import it.moscorun.app.server.WireFormat
 
 /** Body of POST /api/v1/ingest/observations (contracts/moscorun-api.json, IngestObservationsRequest). */
+@WireFormat
 data class ObservationNative(val metric: String, val unit: String, val value: Double?, val mappingVersion: String)
 
+@WireFormat
 data class ObservationItem(
     val externalId: String,
     val revision: String,
@@ -18,6 +21,7 @@ data class ObservationItem(
     val native: ObservationNative,
 )
 
+@WireFormat
 data class ObservationBatch(val source: String, val samples: List<ObservationItem>)
 
 object ScienceUpload {
