@@ -82,8 +82,25 @@ namespace MoscoRun.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid[]")
                         .HasColumnName("input_ids");
 
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("external_id");
+
+                    b.Property<string>("ExternalRevision")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("external_revision");
+
+                    b.Property<long?>("ExternalRevisionOrder")
+                        .HasColumnType("bigint")
+                        .HasColumnName("external_revision_order");
+
                     b.HasKey("OwnerId", "Id")
                         .HasName("pk_scientific_observations");
+
+                    b.HasIndex("OwnerId", "Source", "ExternalId", "Metric")
+                        .HasDatabaseName("ix_scientific_observations_external_lookup");
 
                     b.HasIndex("OwnerId", "Time", "AvailableAt")
                         .HasDatabaseName("ix_scientific_observations_owner_id_time_available_at");
@@ -94,6 +111,39 @@ namespace MoscoRun.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("ck_scientific_observations_value", "value IS NULL OR (value > '-Infinity'::double precision AND value < 'Infinity'::double precision)");
                         });
+                });
+
+            modelBuilder.Entity("MoscoRun.Infrastructure.Persistence.ScientificSyncCheckpointRow", b =>
+                {
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<string>("Source")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Stream")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("stream");
+
+                    b.Property<string>("Cursor")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("cursor");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("OwnerId", "Source", "Stream")
+                        .HasName("pk_scientific_sync_checkpoints");
+
+                    b.ToTable("scientific_sync_checkpoints", "moscorun");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
@@ -781,6 +831,16 @@ namespace MoscoRun.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_scientific_observations_asp_net_users_owner_id");
+                });
+
+            modelBuilder.Entity("MoscoRun.Infrastructure.Persistence.ScientificSyncCheckpointRow", b =>
+                {
+                    b.HasOne("MoscoRun.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_scientific_sync_checkpoints_asp_net_users_owner_id");
                 });
 
 #pragma warning restore 612, 618

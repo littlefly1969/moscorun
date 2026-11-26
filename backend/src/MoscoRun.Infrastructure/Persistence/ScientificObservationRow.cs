@@ -25,5 +25,11 @@ internal sealed class ScientificObservationRow
 
     public string? DerivationVersion { get; init; }
 
+    public string? ExternalId { get; init; }
+
+    public string? ExternalRevision { get; init; }
+
+    public long? ExternalRevisionOrder { get; init; }
+
     public Guid[] InputIds { get; init; } = [];
 }

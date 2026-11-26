@@ -15,7 +15,8 @@ public sealed class ScientificImportStore(MoscoRunDbContext db, TimeProvider clo
     {
         ArgumentNullException.ThrowIfNull(item);
         if (string.IsNullOrWhiteSpace(item.ExternalId) || string.IsNullOrWhiteSpace(item.Revision) ||
-            string.IsNullOrWhiteSpace(item.Source) || string.IsNullOrWhiteSpace(item.Metric))
+            string.IsNullOrWhiteSpace(item.Source) || string.IsNullOrWhiteSpace(item.Metric) ||
+            item.ExternalId.Length > 512 || item.Revision.Length > 200 || item.RevisionOrder < 0)
         {
             throw new ArgumentException("Identità esterna incompleta.", nameof(item));
         }
@@ -44,7 +45,7 @@ public sealed class ScientificImportStore(MoscoRunDbContext db, TimeProvider clo
             var existing = await db.Set<ScientificObservationRow>().AsNoTracking()
                 .Where(o => o.OwnerId == ownerId && ids.Contains(o.Id))
                 .ToDictionaryAsync(o => o.Id, ct);
-            var pending = Pending(ownerId, observations, existing);
+            var pending = Pending(ownerId, observations, items, existing);
 
             if (pending.Count == 0)
             {
@@ -68,14 +69,16 @@ public sealed class ScientificImportStore(MoscoRunDbContext db, TimeProvider clo
     }
 
     private static List<ScientificObservationRow> Pending(Guid ownerId, ScientificObservation[] observations,
-        Dictionary<Guid, ScientificObservationRow> existing)
+        IReadOnlyList<ScientificImportItem> items, Dictionary<Guid, ScientificObservationRow> existing)
     {
         var pending = new List<ScientificObservationRow>();
-        foreach (var observation in observations)
+        for (var i = 0; i < observations.Length; i++)
         {
+            var observation = observations[i];
+            var item = items[i];
             if (existing.TryGetValue(observation.Id, out var saved))
             {
-                if (!Matches(saved, observation))
+                if (!Matches(saved, observation, item))
                 {
                     throw new InvalidOperationException("Revisione già presente con contenuto diverso.");
                 }
@@ -95,6 +98,9 @@ public sealed class ScientificImportStore(MoscoRunDbContext db, TimeProvider clo
                 Source = observation.Source,
                 Method = observation.Method.ToString(),
                 ProviderAlgorithm = observation.ProviderAlgorithm,
+                ExternalId = item.ExternalId,
+                ExternalRevision = item.Revision,
+                ExternalRevisionOrder = item.RevisionOrder,
             });
         }
 
@@ -128,9 +134,11 @@ public sealed class ScientificImportStore(MoscoRunDbContext db, TimeProvider clo
         return new DateTimeOffset(ticks - (ticks % 10), TimeSpan.Zero);
     }
 
-    private static bool Matches(ScientificObservationRow saved, ScientificObservation observation) =>
+    private static bool Matches(ScientificObservationRow saved, ScientificObservation observation, ScientificImportItem item) =>
         string.Equals(saved.Metric, observation.Metric, StringComparison.Ordinal) && string.Equals(saved.Unit, observation.Unit, StringComparison.Ordinal) && saved.Value == observation.Value &&
         saved.Time == observation.Time && string.Equals(saved.Source, observation.Source, StringComparison.Ordinal) &&
         string.Equals(saved.Method, observation.Method.ToString(), StringComparison.Ordinal) && string.Equals(saved.ProviderAlgorithm, observation.ProviderAlgorithm, StringComparison.Ordinal) &&
-        saved.DerivationVersion is null && saved.InputIds.Length == 0;
+        saved.DerivationVersion is null && saved.InputIds.Length == 0 &&
+        string.Equals(saved.ExternalId, item.ExternalId, StringComparison.Ordinal) &&
+        string.Equals(saved.ExternalRevision, item.Revision, StringComparison.Ordinal) && saved.ExternalRevisionOrder == item.RevisionOrder;
 }
