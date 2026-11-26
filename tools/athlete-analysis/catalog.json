@@ -665,6 +665,34 @@
       "category": "feedback",
       "availability": "capability-dependent",
       "interpretation": "self_reported"
+    },
+    {
+      "metric": "sleepBedtimeMinute",
+      "unit": "min",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "sleepWakeMinute",
+      "unit": "min",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "sleepInBedDuration",
+      "unit": "s",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "sleepNightConfirmed",
+      "unit": "1",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
     }
   ]
 }

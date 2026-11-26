@@ -100,6 +100,10 @@ public static class ScientificMetricCatalog
         ["sweatProtocolConfirmed"] = "1",
         ["maximalFlatRun"] = "1",
         ["comparableRunningPower"] = "1",
+        ["sleepBedtimeMinute"] = "min",
+        ["sleepWakeMinute"] = "min",
+        ["sleepInBedDuration"] = "s",
+        ["sleepNightConfirmed"] = "1",
     };
 
     public const int SchemaVersion = 1;

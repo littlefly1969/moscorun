@@ -18,6 +18,7 @@ public sealed class AthleteFeedbackStore(MoscoRunDbContext db, ScientificImportS
     {
         "energyIntake", "carbohydrateIntake", "proteinIntake", "fatIntake", "fluidIntake",
         "sodiumIntake", "caffeineIntake", "sleepDuration", "napDuration",
+        SleepDiaryMetrics.Bedtime, SleepDiaryMetrics.Wake, SleepDiaryMetrics.InBed,
         "restingEnergyExpenditure", "fatFreeMass", NutritionFeedbackMetrics.Thermogenesis,
         NutritionFeedbackMetrics.NonExerciseNet, NutritionFeedbackMetrics.ExerciseNet,
         NutritionFeedbackMetrics.BeforeWeight, NutritionFeedbackMetrics.AfterWeight, NutritionFeedbackMetrics.Urine,
@@ -141,6 +142,7 @@ public sealed class AthleteFeedbackStore(MoscoRunDbContext db, ScientificImportS
             var completeness = NutritionFeedbackMetrics.IsAttestation(v.Metric);
             if ((!completeness && !Scores.Contains(v.Metric) && !Quantities.Contains(v.Metric)) ||
                 (completeness && v.Value is not (null or 0 or 1)) ||
+                (SleepDiaryMetrics.IsDiaryMetric(v.Metric) && (entry.WorkoutId is not null || !SleepDiaryMetrics.ValidValue(v.Metric, v.Value))) ||
                 (string.Equals(v.Metric, ScientificFeedbackKeys.DailyCompleteMetric, StringComparison.Ordinal) && entry.WorkoutId is not null) ||
                 ((string.Equals(v.Metric, NutritionFeedbackMetrics.SweatProtocol, StringComparison.Ordinal) ||
                     string.Equals(v.Metric, AttestedRaceEngine.AttestationMetric, StringComparison.Ordinal) ||

@@ -12,6 +12,7 @@ public static class NutritionFeedbackMetrics
     public const string SweatProtocol = "sweatProtocolConfirmed";
 
     public static bool IsAttestation(string metric) =>
+        string.Equals(metric, SleepDiaryMetrics.Confirmed, StringComparison.Ordinal) ||
         string.Equals(metric, Complete, StringComparison.Ordinal) ||
         string.Equals(metric, SweatProtocol, StringComparison.Ordinal) ||
         string.Equals(metric, AttestedRaceEngine.AttestationMetric, StringComparison.Ordinal) ||
