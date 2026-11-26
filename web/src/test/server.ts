@@ -134,8 +134,19 @@ export const handlers = [
       contentSha256: "synthetic",
       source: "samsung-health",
       asOf: "2026-11-13T07:05:00Z",
-      methodVersion: "workout-channel-quality-v1",
+      methodVersion: "workout-channel-quality-v2",
       maxGapSeconds: 5,
+      performanceCurves: [
+        {
+          metric: "Speed",
+          unit: "m/s",
+          methodVersion: "observed-curve-native-zoh-v1",
+          points: [
+            { durationSeconds: 5, mean: 4, start: "2026-11-13T06:00:00Z", end: "2026-11-13T06:00:05Z" },
+            { durationSeconds: 3600, mean: null, start: null, end: null },
+          ],
+        },
+      ],
       channels: [
         {
           metric: "HeartRate",
