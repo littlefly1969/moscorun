@@ -31,7 +31,7 @@ internal static class ScienceFeedbackProtocol
         new("caffeineIntake", "mg"), new(NutritionFeedbackMetrics.Complete, "1"),
         new(NutritionFeedbackMetrics.BeforeWeight, "kg"), new(NutritionFeedbackMetrics.AfterWeight, "kg"),
         new(NutritionFeedbackMetrics.Urine, "mL"), new(NutritionFeedbackMetrics.SweatProtocol, "1"),
-        new(AttestedRaceEngine.AttestationMetric, "1"),
+        new(AttestedRaceEngine.AttestationMetric, "1"), new(AttestedPerformanceEngine.PowerAttestation, "1"),
     ];
 
     public static bool ValidContext(DateOnly? day, Guid? workoutId, DateTimeOffset now) =>

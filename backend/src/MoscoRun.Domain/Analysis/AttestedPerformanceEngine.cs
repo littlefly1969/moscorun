@@ -3,6 +3,7 @@ namespace MoscoRun.Domain.Analysis;
 /// <summary>Prestazioni di campo da prove disponibili nel solo blocco di fit, non misure di laboratorio.</summary>
 public static class AttestedPerformanceEngine
 {
+    public const string PowerAttestation = "comparableRunningPower";
     public const string RobustMethodVersion = "distance-time-theil-sen-v1";
 
     public static AttestedPerformanceProfile Build(IReadOnlyList<RaceCalibrationEvidence> evidence)

@@ -143,7 +143,8 @@ public sealed class AthleteFeedbackStore(MoscoRunDbContext db, ScientificImportS
                 (completeness && v.Value is not (null or 0 or 1)) ||
                 (string.Equals(v.Metric, ScientificFeedbackKeys.DailyCompleteMetric, StringComparison.Ordinal) && entry.WorkoutId is not null) ||
                 ((string.Equals(v.Metric, NutritionFeedbackMetrics.SweatProtocol, StringComparison.Ordinal) ||
-                    string.Equals(v.Metric, AttestedRaceEngine.AttestationMetric, StringComparison.Ordinal)) && entry.WorkoutId is null) ||
+                    string.Equals(v.Metric, AttestedRaceEngine.AttestationMetric, StringComparison.Ordinal) ||
+                    string.Equals(v.Metric, AttestedPerformanceEngine.PowerAttestation, StringComparison.Ordinal)) && entry.WorkoutId is null) ||
                 (v.Value is { } number && (!double.IsFinite(number) || number < 0 ||
                     (Scores.Contains(v.Metric) && number > 10))))
             {

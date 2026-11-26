@@ -57,12 +57,49 @@ public sealed class AttestedRaceReader(MoscoRunDbContext db)
             .ToDictionary(group => group.Key, group => group.MaxBy(row => row.RevisionOrder)!, StringComparer.Ordinal);
         var ids = latest.Values.SelectMany(row => row.ObservationIds).Distinct().ToArray();
         var attestations = await db.Set<ScientificObservationRow>().AsNoTracking().Where(row =>
-            row.OwnerId == owner && ids.Contains(row.Id) && row.Metric == AttestedRaceEngine.AttestationMetric &&
+            row.OwnerId == owner && ids.Contains(row.Id) && (row.Metric == AttestedRaceEngine.AttestationMetric || row.Metric == AttestedPerformanceEngine.PowerAttestation) &&
             row.AvailableAt <= asOf).ToDictionaryAsync(row => row.Id, ct);
         var evidence = runs.Select(workout => Evidence(workout,
             latest.GetValueOrDefault(ScientificFeedbackKeys.Session(workout.Id, workout.Revision)), attestations))
             .OfType<AttestedRaceEffort>().ToArray();
+        evidence = await AttachPowerAsync(runs, evidence, latest, attestations, split, ct);
         return AttestedRaceEngine.Build(owner, source, start, split, end, asOf, target, evidence);
+    }
+
+    private async Task<AttestedRaceEffort[]> AttachPowerAsync(Workout[] workouts, AttestedRaceEffort[] evidence,
+        Dictionary<string, AthleteFeedbackEntryRow> latest, Dictionary<Guid, ScientificObservationRow> attestations,
+        DateTimeOffset split, CancellationToken ct)
+    {
+        var eligible = evidence.Where(item => item.EndedAt < split && item.AvailableAt <= split &&
+            (item.EndedAt - item.StartedAt).TotalSeconds is >= PerformancePhysiology.MinimumDurationSeconds and <= PerformancePhysiology.MaximumDurationSeconds &&
+            PowerConfirmed(latest[ScientificFeedbackKeys.Session(item.WorkoutId, item.Revision)], attestations)).ToArray();
+        if (eligible.Length is 0 or > 128)
+        {
+            return evidence;
+        }
+
+        var ids = eligible.Select(item => item.WorkoutId).ToArray();
+        var byId = workouts.ToDictionary(item => item.Id);
+        var power = new Dictionary<Guid, double?>();
+        foreach (var id in ids)
+        {
+            var series = await db.WorkoutSeries.AsNoTracking().SingleOrDefaultAsync(item =>
+                item.WorkoutId == id && item.Metric == SeriesMetric.Power, ct);
+            power[id] = series is null ? null : NativeWorkIntegral.MeanPower(byId[id], series);
+        }
+
+        return evidence.Select(item => item with { MeanPowerWatts = power.GetValueOrDefault(item.WorkoutId) }).ToArray();
+    }
+
+    private static bool PowerConfirmed(AthleteFeedbackEntryRow entry, Dictionary<Guid, ScientificObservationRow> observations)
+    {
+        var values = entry.ObservationIds.Where(observations.ContainsKey).Select(id => observations[id])
+            .Where(row => string.Equals(row.Metric, AttestedPerformanceEngine.PowerAttestation, StringComparison.Ordinal) &&
+                row.WorkoutId == entry.WorkoutId && row.Time == entry.Time && row.AvailableAt <= entry.AvailableAt &&
+                string.Equals(row.Unit, "1", StringComparison.Ordinal) &&
+                string.Equals(row.Source, "athlete-feedback", StringComparison.Ordinal) &&
+                string.Equals(row.Method, nameof(ObservationMethod.SelfReported), StringComparison.Ordinal)).ToArray();
+        return values.Length == 1 && values[0].Value == 1;
     }
 
     private static AttestedRaceEffort? Evidence(Workout workout, AthleteFeedbackEntryRow? entry,
@@ -75,7 +112,8 @@ public sealed class AttestedRaceReader(MoscoRunDbContext db)
         }
 
         var values = entry.ObservationIds.Where(observations.ContainsKey).Select(id => observations[id])
-            .Where(row => row.WorkoutId == workout.Id && row.Time == entry.Time &&
+            .Where(row => string.Equals(row.Metric, AttestedRaceEngine.AttestationMetric, StringComparison.Ordinal) &&
+                row.WorkoutId == workout.Id && row.Time == entry.Time &&
                 row.AvailableAt <= entry.AvailableAt &&
                 string.Equals(row.Unit, "1", StringComparison.Ordinal) &&
                 string.Equals(row.Source, "athlete-feedback", StringComparison.Ordinal) &&
