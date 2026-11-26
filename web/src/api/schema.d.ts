@@ -836,7 +836,7 @@ export interface components {
       /** Format: double */
       fatigue: number;
       /** Format: double */
-      netResponse: number;
+      netResponse?: number;
     };
     HrvSummary: {
       /** Format: int32 */

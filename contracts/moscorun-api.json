@@ -2486,8 +2486,7 @@
         "required": [
           "date",
           "fitness",
-          "fatigue",
-          "netResponse"
+          "fatigue"
         ],
         "type": "object",
         "properties": {
