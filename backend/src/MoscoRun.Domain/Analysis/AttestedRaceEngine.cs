@@ -47,7 +47,8 @@ public static class AttestedRaceEngine
             model.MaximumDistanceMeters, model.ReferenceDistanceMeters, model.ReferenceSeconds, model.Exponent,
             model.MedianAbsoluteLogResidual, model.Count);
         return new AttestedRaceReport(source, Protocol, PersonalRaceCalibration.MethodVersion, asOf, start, split, end,
-            targetMeters, status, summary, prediction, interval, Array.AsReadOnly(evidence));
+            targetMeters, status, summary, prediction, interval, Array.AsReadOnly(evidence),
+            AttestedPerformanceEngine.Build(evidence));
     }
 
     private static RaceCalibrationEvidence Evidence(AttestedRaceEffort item, Guid owner, PersonalRaceModel? model,
