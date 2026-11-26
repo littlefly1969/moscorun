@@ -57,7 +57,8 @@ function Results({ report }: { report: Schemas["SleepPerformanceReport"] }) {
 
 export function SleepPerformancePanel() {
   const analysis = useMutation({
-    mutationFn: (query: Protocol) => unwrap(api.GET("/api/v1/science/sleep-performance", { params: { query } })),
+    mutationFn: (query: Protocol) =>
+      unwrap(api.GET("/api/v1/science/sleep-performance", { params: { query } })),
   });
   const submit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
