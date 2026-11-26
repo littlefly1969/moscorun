@@ -13,6 +13,7 @@ import { StatCard } from "../dashboard/StatCard";
 import { RouteMap } from "./RouteMap";
 import { useWorkout } from "./queries";
 import { WorkoutSciencePanel } from "./WorkoutSciencePanel";
+import { WorkoutDurabilityPanel } from "./WorkoutDurabilityPanel";
 
 const HeartRateChart = lazy(() => import("./HeartRateChart").then((m) => ({ default: m.HeartRateChart })));
 
@@ -65,6 +66,11 @@ export function WorkoutDetailPage() {
       </section>
 
       <WorkoutSciencePanel workoutId={w.id} revision={w.revision} />
+      <WorkoutDurabilityPanel
+        key={`${w.id}:${w.revision}`}
+        workoutId={w.id}
+        duration={(Date.parse(w.endedAt) - Date.parse(w.startedAt)) / 1000}
+      />
 
       {hasHeartRate && (
         <section className="card" aria-labelledby="hr-title">
