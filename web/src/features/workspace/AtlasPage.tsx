@@ -131,8 +131,8 @@ function MetricInspector({
       {metric.id === "weight" && <Link to="/forma">Consulta anche le pesate della bilancia →</Link>}
       {metric.access === "catalog" && (
         <p className="sw-muted">
-          Il catalogo descrive una capacità prevista. Non esiste ancora una lettura generale di questa
-          metrica in questa vista; non si può dedurre che il sensore non la registri.
+          Il catalogo descrive una capacità prevista. La lettura non è ancora collegata a questa vista.
+          Non si può dedurre che il sensore non la registri.
         </p>
       )}
     </aside>
@@ -152,7 +152,9 @@ export function AtlasPage() {
       queryKey: ["workspace", "daily", metric.id, scope],
       queryFn: () => {
         if (!scope) throw new Error("Contesto non selezionato");
-        return unwrap(api.GET("/api/v1/science/daily", { params: { query: { metric: metric.id, ...scope } } }));
+        return unwrap(
+          api.GET("/api/v1/science/daily", { params: { query: { metric: metric.id, ...scope } } }),
+        );
       },
       enabled: scope != null,
     })),

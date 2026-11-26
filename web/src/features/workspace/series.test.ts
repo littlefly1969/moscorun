@@ -3,7 +3,13 @@ import { nearestSample, observedSamples, windowBounds } from "./series";
 describe("supporto osservato del cronoscopio", () => {
   it("non sostituisce i campioni mancanti con zero", () => {
     expect(
-      observedSamples({ metric: "HeartRate", unit: "bpm", times: [3, 1, 2], values: [0, 120], totalSamples: 3 }),
+      observedSamples({
+        metric: "HeartRate",
+        unit: "bpm",
+        times: [3, 1, 2],
+        values: [0, 120],
+        totalSamples: 3,
+      }),
     ).toEqual([
       { time: 1, value: 120 },
       { time: 3, value: 0 },

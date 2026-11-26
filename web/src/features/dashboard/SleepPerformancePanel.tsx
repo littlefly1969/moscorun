@@ -15,14 +15,17 @@ const format = (value: number | null) => (value == null ? "—" : number.format(
 
 function EvidenceMap({ report }: { report: Schemas["SleepPerformanceReport"] }) {
   const valid = report.status === "descriptive-association" && report.pairedTests >= 7;
-  const hours = valid && report.sleepHoursCorrelation != null && Number.isFinite(report.sleepHoursCorrelation);
+  const hours =
+    valid && report.sleepHoursCorrelation != null && Number.isFinite(report.sleepHoursCorrelation);
   const efficiency =
     valid && report.sleepEfficiencyCorrelation != null && Number.isFinite(report.sleepEfficiencyCorrelation);
   return (
     <figure className="sw-figure">
       <svg viewBox="0 0 620 220" role="img" aria-label="Mappa delle associazioni statistiche disponibili">
         {hours && <path d="M210 54L410 110" stroke="currentColor" strokeWidth="2" strokeDasharray="5 4" />}
-        {efficiency && <path d="M210 166L410 110" stroke="currentColor" strokeWidth="2" strokeDasharray="5 4" />}
+        {efficiency && (
+          <path d="M210 166L410 110" stroke="currentColor" strokeWidth="2" strokeDasharray="5 4" />
+        )}
         <g fill="none" stroke="currentColor">
           <rect x="12" y="24" width="198" height="60" rx="3" />
           <rect x="12" y="136" width="198" height="60" rx="3" />

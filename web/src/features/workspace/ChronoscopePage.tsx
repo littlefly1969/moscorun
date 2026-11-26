@@ -45,7 +45,7 @@ function Trace({
             : "Nessun campione entro 5 s"}
         </small>
         <small>
-          {samples.length}/{series.totalSamples} campioni restituiti
+          {samples.length}/{series.totalSamples} campioni validi restituiti
         </small>
       </div>
       <figure className="sw-figure">
@@ -154,8 +154,8 @@ function Timeline({ workout }: { workout: WorkoutSummary }) {
           <Trace key={item.metric} series={item} left={bounds.left} right={bounds.right} cursor={cursor} />
         ))}
       <p className="sw-muted">
-        Anteprima a campioni restituiti dal server (massimo 2000 per serie). Nessuna interpolazione,
-        nessuna sostituzione con zero; le scale verticali sono indipendenti.
+        Anteprima a campioni restituiti dal server (massimo 2000 per serie). Nessuna interpolazione, nessuna
+        sostituzione con zero; le scale verticali sono indipendenti.
       </p>
     </>
   );

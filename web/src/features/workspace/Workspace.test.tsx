@@ -18,7 +18,9 @@ describe("ambiente scientifico", () => {
     expect(screen.getByRole("complementary", { name: "Dettaglio metrica" })).toHaveTextContent(
       "Lettura non collegata",
     );
-    await userEvent.click(within(catalog).getByRole("button", { name: "Preferita: Tempo di contatto a terra" }));
+    await userEvent.click(
+      within(catalog).getByRole("button", { name: "Preferita: Tempo di contatto a terra" }),
+    );
     await userEvent.clear(screen.getByLabelText("Cerca metrica"));
     await userEvent.click(screen.getByLabelText("Solo preferite (sessione)"));
     expect(within(catalog).getAllByRole("row")).toHaveLength(2);
@@ -38,7 +40,11 @@ describe("ambiente scientifico", () => {
           methodVersion: "daily-observation-median-mad-v1",
           asOf: "2026-11-26T12:00:00Z",
           status: observed ? "observed" : "missing",
-          current: { day: query.get("day"), value: observed ? 0 : null, status: observed ? "observed" : "missing" },
+          current: {
+            day: query.get("day"),
+            value: observed ? 0 : null,
+            status: observed ? "observed" : "missing",
+          },
           history: [],
           baseline: null,
         });
@@ -60,7 +66,9 @@ describe("ambiente scientifico", () => {
     const select = await screen.findByLabelText("Seduta di riferimento");
     await screen.findByRole("option", { name: /Corsa/ });
     await userEvent.selectOptions(select, "wk1");
-    expect(await screen.findByRole("img", { name: "Frequenza cardiaca nella finestra temporale" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("img", { name: "Frequenza cardiaca nella finestra temporale" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("slider")).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Frequenza cardiaca" })).toHaveTextContent("120");
   });
@@ -68,6 +76,8 @@ describe("ambiente scientifico", () => {
   it("non disegna relazioni personali prima di un calcolo", async () => {
     renderApp("/evidenze");
     expect(await screen.findByText("Nessuna relazione calcolata in questa sessione.")).toBeInTheDocument();
-    expect(screen.queryByRole("img", { name: "Mappa delle associazioni statistiche disponibili" })).toBeNull();
+    expect(
+      screen.queryByRole("img", { name: "Mappa delle associazioni statistiche disponibili" }),
+    ).toBeNull();
   });
 });
