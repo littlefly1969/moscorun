@@ -98,6 +98,23 @@ export const handlers = [
       to: "2026-11-12T07:00:00Z",
     }),
   ),
+  http.get("*/api/v1/science/feedback", ({ request }) => {
+    const query = new URL(request.url).searchParams;
+    const workoutId = query.get("workoutId");
+    return HttpResponse.json({
+      day: query.get("day"),
+      workoutId,
+      workoutRevision: workoutId ? 1 : null,
+      revision: null,
+      availableAt: null,
+      values: [{ metric: workoutId ? "rpe" : "fatigue", unit: "0-10", value: null }],
+      note: null,
+      status: "missing",
+      activeDurationSeconds: workoutId ? 3000 : null,
+      sessionRpeLoad: null,
+      sessionLoadMethodVersion: "session-rpe-active-minutes-v1",
+    });
+  }),
   http.get("*/api/v1/devices", () => HttpResponse.json([device({ id: "d1" })])),
   http.get("*/api/v1/workouts", () =>
     HttpResponse.json({ items: [workout()], from: "2026-08-14T00:00:00Z", to: "2026-11-14T00:00:00Z" }),
