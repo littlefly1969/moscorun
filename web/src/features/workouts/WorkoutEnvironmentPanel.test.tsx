@@ -38,7 +38,12 @@ describe("contesto ambientale", () => {
             },
             heatExposure: selected ? { aboveThresholdMinutes: 10, degreeMinutes: 50 } : null,
             metrics: [
-              { metric: "airTemperature", unit: "Cel", coverage: selected ? 1 : 0, weightedMean: selected ? 30 : null },
+              {
+                metric: "airTemperature",
+                unit: "Cel",
+                coverage: selected ? 1 : 0,
+                weightedMean: selected ? 30 : null,
+              },
             ],
           },
         });
