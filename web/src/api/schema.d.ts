@@ -253,6 +253,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/science/sleep-performance": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetSleepPerformance"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/device": {
     parameters: {
       query?: never;
@@ -1757,6 +1773,56 @@ export interface components {
       /** Format: double */
       meanEfficiencyPercent: null | number;
     };
+    SleepPerformancePair: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      workoutRevision: number;
+      contentSha256: string;
+      /** Format: int64 */
+      feedbackRevision: number;
+      /** Format: date-time */
+      testStartedAt: string;
+      /** Format: date-time */
+      testEndedAt: string;
+      /** Format: date-time */
+      testAvailableAt: string;
+      /** Format: double */
+      speedMetersPerSecond: number;
+      /** Format: date */
+      sleepDay: string;
+      /** Format: int64 */
+      sleepRevision: null | number;
+      /** Format: date-time */
+      sleepAvailableAt: null | string;
+      status: string;
+      /** Format: double */
+      sleepHours: null | number;
+      /** Format: double */
+      sleepEfficiencyPercent: null | number;
+    };
+    SleepPerformanceReport: {
+      methodVersion: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      /** Format: date */
+      lastTestDay: string;
+      /** Format: int32 */
+      windowDays: number;
+      /** Format: int32 */
+      lagDays: number;
+      /** Format: double */
+      distanceMeters: number;
+      status: string;
+      /** Format: int32 */
+      pairedTests: number;
+      /** Format: double */
+      sleepHoursCorrelation: null | number;
+      /** Format: double */
+      sleepEfficiencyCorrelation: null | number;
+      evidence: components["schemas"]["SleepPerformancePair"][];
+    };
     SleepTimingSummary: {
       /** Format: int32 */
       nightCount: number;
@@ -2695,6 +2761,41 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["SleepDiaryReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  GetSleepPerformance: {
+    parameters: {
+      query: {
+        source: string;
+        last: string;
+        days: number;
+        lag: number;
+        distanceMeters: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SleepPerformanceReport"];
         };
       };
       /** @description Bad Request */

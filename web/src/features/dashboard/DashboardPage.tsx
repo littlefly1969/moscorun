@@ -11,6 +11,7 @@ import { PersonalAdaptationPanel } from "./PersonalAdaptationPanel";
 import { PacingScenarioPanel } from "./PacingScenarioPanel";
 import { PersonalResearchPanel } from "./PersonalResearchPanel";
 import { SleepDiaryPanel } from "./SleepDiaryPanel";
+import { SleepPerformancePanel } from "./SleepPerformancePanel";
 import { ScienceFeedbackPanel } from "../science/ScienceFeedbackPanel";
 
 // La libreria dei grafici è il pacchetto più pesante: caricata a parte, dopo i dati essenziali.
@@ -101,6 +102,7 @@ export function DashboardPage() {
       <PacingScenarioPanel />
       <PersonalResearchPanel />
       <SleepDiaryPanel />
+      <SleepPerformancePanel />
 
       <section className="card" aria-labelledby="sources-title">
         <h2 id="sources-title">Sorgenti dati</h2>

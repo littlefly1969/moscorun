@@ -808,6 +808,82 @@
         }
       }
     },
+    "/api/v1/science/sleep-performance": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetSleepPerformance",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "last",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "lag",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "distanceMeters",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SleepPerformanceReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/device": {
       "get": {
         "tags": [
@@ -5639,6 +5715,165 @@
               "number"
             ],
             "format": "double"
+          }
+        }
+      },
+      "SleepPerformancePair": {
+        "required": [
+          "workoutId",
+          "workoutRevision",
+          "contentSha256",
+          "feedbackRevision",
+          "testStartedAt",
+          "testEndedAt",
+          "testAvailableAt",
+          "speedMetersPerSecond",
+          "sleepDay",
+          "sleepRevision",
+          "sleepAvailableAt",
+          "status",
+          "sleepHours",
+          "sleepEfficiencyPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workoutRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "feedbackRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "testStartedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "testEndedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "testAvailableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "speedMetersPerSecond": {
+            "type": "number",
+            "format": "double"
+          },
+          "sleepDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "sleepRevision": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "sleepAvailableAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "sleepHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "sleepEfficiencyPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SleepPerformanceReport": {
+        "required": [
+          "methodVersion",
+          "source",
+          "asOf",
+          "lastTestDay",
+          "windowDays",
+          "lagDays",
+          "distanceMeters",
+          "status",
+          "pairedTests",
+          "sleepHoursCorrelation",
+          "sleepEfficiencyCorrelation",
+          "evidence"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastTestDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "windowDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lagDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "type": "string"
+          },
+          "pairedTests": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sleepHoursCorrelation": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "sleepEfficiencyCorrelation": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SleepPerformancePair"
+            }
           }
         }
       },
