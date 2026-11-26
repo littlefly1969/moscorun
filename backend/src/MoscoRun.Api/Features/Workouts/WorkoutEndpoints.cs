@@ -82,6 +82,14 @@ internal static class WorkoutEndpoints
         workouts.MapPost("/{id:guid}/science/twin", CalibratedTwinEndpoints.PostAsync)
             .RequireAuthorization(Policies.User)
             .WithName("SimulateCalibratedTwin");
+        workouts.MapGet("/{id:guid}/science/biomechanics", ExtendedBiomechanicsEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("GetExtendedBiomechanics");
+        MapDashboardScienceEndpoints(v1);
+    }
+
+    private static void MapDashboardScienceEndpoints(RouteGroupBuilder v1)
+    {
         v1.MapGet("/science/daily", DailyScienceEndpoints.GetAsync)
             .RequireAuthorization(Policies.User)
             .WithTags("Cruscotto")
