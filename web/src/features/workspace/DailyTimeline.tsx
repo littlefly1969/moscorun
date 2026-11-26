@@ -2,6 +2,7 @@ import { useQueries } from "@tanstack/react-query";
 import { useState, type SubmitEvent } from "react";
 import { api, unwrap, type Schemas } from "../../api/client";
 import { metricCatalog, type MetricDefinition } from "./metricCatalog";
+import { ScienceSourceField } from "../science/ScienceSourceField";
 
 const dayMs = 86400000;
 const daily = metricCatalog.filter((metric) => metric.access === "daily");
@@ -125,10 +126,7 @@ export function DailyTimeline() {
     <>
       <form onSubmit={submit}>
         <div className="sw-controls">
-          <label>
-            Sorgente storica
-            <input name="source" defaultValue="samsung-health" maxLength={200} required />
-          </label>
+          <ScienceSourceField label="Sorgente storica" />
           <label>
             Ultimo giorno UTC
             <input name="day" type="date" defaultValue={yesterday} max={yesterday} required />

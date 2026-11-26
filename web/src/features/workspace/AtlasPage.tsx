@@ -3,6 +3,7 @@ import { useState, type SubmitEvent } from "react";
 import { Link } from "react-router";
 import { api, unwrap, type Schemas } from "../../api/client";
 import { metricCatalog, metricFamilies, type MetricDefinition } from "./metricCatalog";
+import { ScienceSourceField } from "../science/ScienceSourceField";
 
 interface Scope {
   source: string;
@@ -271,10 +272,7 @@ export function AtlasPage() {
         </span>
       </div>
       <form className="sw-controls" onSubmit={submit}>
-        <label>
-          Sorgente scientifica
-          <input name="source" required maxLength={200} defaultValue="samsung-health" />
-        </label>
+        <ScienceSourceField label="Sorgente scientifica" />
         <label>
           Giorno UTC
           <input name="day" type="date" max={yesterday} defaultValue={yesterday} required />

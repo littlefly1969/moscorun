@@ -32,7 +32,7 @@ describe("ambiente scientifico", () => {
         const query = new URL(request.url).searchParams;
         const metric = query.get("metric");
         const observed = metric === "fatigue";
-        expect(query.get("source")).toBe("samsung-health");
+        expect(query.get("source")).toBe("health-connect");
         return HttpResponse.json({
           metric,
           unit: "bpm",
@@ -201,5 +201,18 @@ describe("ambiente scientifico", () => {
     expect(trace).toHaveTextContent("Non osservato nel giorno");
     await userEvent.click(screen.getByRole("button", { name: /^Seduta$/ }));
     expect(await screen.findByLabelText("Seduta di riferimento")).toBeInTheDocument();
+  });
+});
+
+describe("sorgente scientifica", () => {
+  it("propone le sorgenti dell'acquisizione con Health Connect predefinita", async () => {
+    renderApp("/");
+    const field = await screen.findByLabelText("Sorgente scientifica");
+    expect(field).toHaveValue("health-connect");
+    expect(
+      within(field)
+        .getAllByRole("option")
+        .map((option) => option.getAttribute("value")),
+    ).toEqual(["health-connect", "samsung-health", "garmin-connect"]);
   });
 });

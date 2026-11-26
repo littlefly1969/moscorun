@@ -24,7 +24,7 @@ describe("cruscotto", () => {
       http.get("*/api/v1/science/daily", ({ request }) => {
         const params = new URL(request.url).searchParams;
         expect(params.get("metric")).toBe("weight");
-        expect(params.get("source")).toBe("samsung-health");
+        expect(params.get("source")).toBe("health-connect");
         expect(params.get("baselineDays")).toBe("28");
         return HttpResponse.json({
           metric: "weight",

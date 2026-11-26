@@ -64,7 +64,7 @@ test("percorso completo: dispositivo, pesata dall'agente, cruscotto", async ({ p
   // 2. L'agente invia due pesate (una ripetuta: deve restare una sola).
   const weight = 70 + Math.round(Math.random() * 1000) / 100;
   const event = `e2e-${testInfo.project.name}-${Date.now()}`;
-  const headers = { Authorization: `*** };
+  const headers = { Authorization: `Bearer ${token}` };
   const body = {
     sourceEventId: event,
     measuredAt: new Date().toISOString(),
@@ -158,7 +158,7 @@ test("allenamento dal telefono: elenco, dettaglio e percorso senza cartografia",
       },
     ],
   };
-  const headers = { Authorization: `*** };
+  const headers = { Authorization: `Bearer ${token}` };
   expect((await request.post("/api/v1/ingest/workouts", { headers, data: body })).status()).toBe(201);
   expect((await request.get("/api/v1/workouts", { headers })).status()).toBe(200);
 
