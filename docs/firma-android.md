@@ -30,7 +30,7 @@ I Secrets di firma vivono **solo** nel repository privato `littlefly1969/MoscoRu
 2. **Settings → Secrets and variables → Actions → New repository secret**.
 3. Nome: `MOSCORUN_SIGNING_BUNDLE`.
 4. Valore: contenuto completo di `MOSCORUN_SIGNING_BUNDLE.txt` estratto dal backup riservato.
-5. Salvare e avviare il workflow **MoscoRun - APK ufficiale privato** indicando lo SHA del main sorgente approvato e il `versionCode`.
+5. Salvare e avviare il workflow **MoscoRun - APK ufficiale privato**, indicando il tag di rilascio del sorgente (`vX.Y.Z`; vuoto = ultimo tag di main).
 
 Alternativa con GitHub CLI autenticata:
 
@@ -50,7 +50,7 @@ Con il backup riservato fuori dal repository:
 cd android
 python3 scripts/restore-signing.py --bundle /percorso/riservato/MOSCORUN_SIGNING_BUNDLE.txt --directory /percorso/riservato/firma-moscorun
 export MOSCORUN_SIGNING_PROPERTIES=/percorso/riservato/firma-moscorun/signing.properties
-bash gradlew testDebugUnitTest lintDebug assembleDebug
+bash gradlew testDebugUnitTest lintDebug assembleRelease   # oppure assembleDebug per lo sviluppo
 ```
 
 Sono necessari JDK 17 e `keytool`. Occorre anche l'AAR Samsung (vedi [android/README.md](../android/README.md)). `signing.properties`, PKCS12 e bundle sono esclusi da Git. Non usarli in rami o workflow di terzi non fidati.
@@ -58,7 +58,7 @@ Sono necessari JDK 17 e `keytool`. Occorre anche l'AAR Samsung (vedi [android/RE
 ## Aggiornamenti
 
 - Conservare `applicationId`, certificato e chiave privata: cambiare uno di questi elementi può impedire un aggiornamento diretto o richiedere nuove restrizioni Google.
-- Il `versionCode` dell'APK ufficiale è un input esplicito del workflow privato: deve essere maggiore di quello di ogni APK già distribuito (la verifica della monotonicità è manuale, registrare SHA e codice a ogni rilascio). Per compilazioni locali specificare `-PmoscorunVersionCode=<numero>` coerente e non inferiore alla versione installata.
+- L'APK ufficiale è la build **release** (R8 senza offuscamento, risorse ridotte, non debuggabile). `versionName` e `versionCode` derivano dal tag di rilascio del sorgente con `android/scripts/release-version.py`: `versionCode = X·10 000 000 + Y·100 000 + Z·1 000 + build` (per v0.8.0: 800000), quindi cresce con la versione semantica e supera sempre le build debug distribuite in passato (fino a 1101). Il workflow privato rifiuta un codice non superiore all'ultima release `apk-<versionCode>` già pubblicata e non sovrascrive mai una release esistente. `build` (0-999) serve solo a rifirmare lo stesso tag. Per compilazioni locali: `-PmoscorunVersionName=<X.Y.Z>` e `-PmoscorunVersionCode=<numero>` non inferiore alla versione installata.
 - I vecchi `it.moscorun.probe*` e `it.littlefly.moscorun.hc` sono app separate, da disinstallare a mano. La prima installazione della nuova identità richiede nuovi consensi Health Connect e, dove previsto, nuova abilitazione Samsung per il pacchetto definitivo. Samsung Health conserva i propri dati originali.
 - L'eventuale futura distribuzione con Play App Signing richiederà verificare il certificato usato da Google Play e autorizzarlo in Maps. Non viene configurata in questo incremento.
 

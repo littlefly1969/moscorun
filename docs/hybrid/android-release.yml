@@ -3,24 +3,34 @@ name: MoscoRun - APK ufficiale privato
 on:
   workflow_dispatch:
     inputs:
-      source_sha:
-        description: "SHA completo del main sorgente revisionato e approvato"
-        required: true
+      release_tag:
+        description: "Tag di rilascio del sorgente da firmare (vX.Y.Z); vuoto = ultimo tag presente su main"
+        required: false
         type: string
-      version_code:
-        description: "VersionCode maggiore dell'ultimo distribuito"
-        required: true
+      build:
+        description: "Ricompilazione dello stesso tag (0-999): aumentare solo per rifirmare un tag già distribuito"
+        required: false
+        default: "0"
         type: string
 permissions:
   contents: read
 concurrency:
   group: android-official-release
   cancel-in-progress: false
+env:
+  # Ultimo versionCode distribuito prima delle release firmate (build debug del 2026-11-25).
+  MOSCORUN_LEGACY_VERSION_CODE: "1101"
 jobs:
   build:
+    name: Compila, firma e verifica la build release
     if: github.event.repository.private && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
+    outputs:
+      source_tag: ${{ steps.source.outputs.tag }}
+      source_sha: ${{ steps.source.outputs.sha }}
+      version_name: ${{ steps.version.outputs.name }}
+      version_code: ${{ steps.version.outputs.code }}
     defaults:
       run:
         working-directory: source/android
@@ -30,35 +40,56 @@ jobs:
           repository: littlefly1969/Moscorun
           ref: main
           path: source
+          fetch-depth: 0
           persist-credentials: false
           token: ${{ secrets.MOSCORUN_SOURCE_READ_TOKEN || github.token }}
-      - name: Verifica commit approvato, identita e versione
+      # Si firma solo un tag vX.Y.Z creato dal rilascio continuo del sorgente (CI verde su quel commit) e
+      # raggiungibile da main: mai un ramo, una PR o un commit qualsiasi.
+      - name: Seleziona il tag di rilascio approvato
+        id: source
         working-directory: source
         env:
-          APPROVED_SHA: ${{ inputs.source_sha }}
-          VERSION_CODE: ${{ inputs.version_code }}
+          REQUESTED_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -Eeuo pipefail
+          tag="${REQUESTED_TAG:-$(git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-9]*' HEAD)}"
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Tag non valido: $tag"; exit 1; }
+          sha="$(git rev-parse --verify "refs/tags/$tag^{commit}")" || { echo "::error::Tag inesistente: $tag"; exit 1; }
+          git merge-base --is-ancestor "$sha" HEAD || { echo "::error::$tag non appartiene a main"; exit 1; }
+          git checkout --quiet --detach "$sha"
+          echo "Sorgente: $tag ($sha)"
+          { echo "tag=$tag"; echo "sha=$sha"; } >> "$GITHUB_OUTPUT"
+      - name: Verifica identita Android ufficiale
+        working-directory: source
         run: |
           python3 - <<'PY'
           import json
-          import os
-          import re
-          import subprocess
           from pathlib import Path
-
-          sha = os.environ["APPROVED_SHA"]
-          version = os.environ["VERSION_CODE"]
-          if not re.fullmatch(r"[0-9a-f]{40}", sha):
-              raise SystemExit("SHA completo non valido")
-          if subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip() != sha:
-              raise SystemExit("main sorgente non coincide con lo SHA approvato")
-          if not re.fullmatch(r"[1-9][0-9]{0,9}", version) or int(version) > 2100000000:
-              raise SystemExit("VersionCode non valido")
           identity = json.loads(Path("android/signing/identity.json").read_text())
           if identity["applicationId"] != "it.littlefly.moscorun" or identity["sha256"] != "5D:96:9C:4E:B0:ED:0C:28:3A:CE:AB:17:E2:38:C7:CC:6C:2F:BB:B0:AE:15:9E:A8:8A:B7:07:D6:08:B6:55:42":
               raise SystemExit("Identita Android non ufficiale")
-          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
-              env.write(f"MOSCORUN_VERSION_CODE={version}\n")
           PY
+      # versionName e versionCode derivano dal tag; il codice deve superare ogni APK già pubblicato qui.
+      - name: Calcola la versione
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_TAG: ${{ steps.source.outputs.tag }}
+          BUILD: ${{ inputs.build || '0' }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$BUILD" =~ ^[0-9]{1,3}$ ]] || { echo "::error::Numero di build non valido"; exit 1; }
+          test -f scripts/release-version.py \
+            || { echo "::error::$SOURCE_TAG precede le build release: scegliere un tag più recente."; exit 1; }
+          published="$(gh release list --repo "$GITHUB_REPOSITORY" --limit 1000 --json tagName --jq '.[].tagName' \
+            | sed -n 's/^apk-\([0-9]\{1,10\}\)$/\1/p' | sort -n | tail -n 1)"
+          floor="${published:-$MOSCORUN_LEGACY_VERSION_CODE}"
+          ((floor >= MOSCORUN_LEGACY_VERSION_CODE)) || floor="$MOSCORUN_LEGACY_VERSION_CODE"
+          python3 scripts/release-version.py --tag "$SOURCE_TAG" --build "$((10#$BUILD))" --floor "$floor" \
+            --github-env "$GITHUB_ENV"
+          # shellcheck disable=SC1090
+          source <(grep '^MOSCORUN_VERSION_' "$GITHUB_ENV" | tail -n 2)
+          { echo "name=$MOSCORUN_VERSION_NAME"; echo "code=$MOSCORUN_VERSION_CODE"; } >> "$GITHUB_OUTPUT"
       - name: Verifica configurazione Google Maps
         env:
           GOOGLE_MAPS_ANDROID_API_KEY: ${{ secrets.GOOGLE_MAPS_ANDROID_API_KEY }}
@@ -84,7 +115,7 @@ jobs:
           cache-disabled: true
       - name: Installa piattaforma Android
         run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
-      - name: Test degli script di firma e di verifica APK
+      - name: Test degli script di firma, versione, R8 e verifica APK
         run: python3 -m unittest discover -s scripts/tests -v
       - name: Senza l'SDK Samsung la build si ferma con una diagnostica esplicita
         run: |
@@ -108,24 +139,74 @@ jobs:
         run: |
           python3 scripts/restore-signing.py --directory "$RUNNER_TEMP/moscorun-signing"
           echo "MOSCORUN_SIGNING_PROPERTIES=$RUNNER_TEMP/moscorun-signing/signing.properties" >> "$GITHUB_ENV"
-      - name: Compila l'APK MoscoRun con firma stabile
+      # Build release: R8 (rimozione codice e risorse inutilizzati, senza offuscamento) e lintVitalRelease.
+      - name: Compila l'APK release con firma stabile
         env:
           GOOGLE_MAPS_ANDROID_API_KEY: ${{ secrets.GOOGLE_MAPS_ANDROID_API_KEY }}
-        run: bash gradlew assembleDebug --no-daemon
-      - name: Verifica che l'APK sia uno solo, con firma, identificativo, etichetta e versione attesi
-        run: python3 scripts/verify-apks.py
-      - name: Prepara l'artefatto con il solo APK
-        run: |
-          mkdir -p "$RUNNER_TEMP/apk"
-          cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/apk/MoscoRun-${MOSCORUN_VERSION_CODE}.apk"
-          test "$(find "$RUNNER_TEMP/apk" -type f | wc -l)" -eq 1
-      - name: Pubblica APK solo nel repository privato
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: MoscoRun-apk-${{ github.run_number }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/apk/*.apk
-          if-no-files-found: error
-          retention-days: 7
+        run: bash gradlew assembleRelease --no-daemon
       - name: Rimuovi materiale di firma dal runner
         if: always()
         run: rm -rf -- "$RUNNER_TEMP/moscorun-signing"
+      - name: Contratto JSON integro dopo R8, con l'SDK Samsung reale
+        run: python3 scripts/check-r8.py
+      - name: Verifica APK unico, release, firma, identificativo, etichetta, versione e permessi
+        run: python3 scripts/verify-apks.py
+      - name: Prepara APK, impronte e rapporti R8
+        run: |
+          set -Eeuo pipefail
+          out="$RUNNER_TEMP/release"
+          apk="MoscoRun-${MOSCORUN_VERSION_NAME}-${MOSCORUN_VERSION_CODE}.apk"
+          mkdir -p "$out"
+          cp app/build/outputs/apk/release/app-release.apk "$out/$apk"
+          cp app/build/reports/signing/identity.json "$out/apk-identity.json"
+          reports=(r8/release)
+          if [[ -d app/build/outputs/mapping/release ]]; then reports+=(mapping/release); fi
+          tar -czf "$out/r8-reports.tar.gz" -C app/build/outputs "${reports[@]}"
+          (cd "$out" && sha256sum -- * > SHA256SUMS && cat SHA256SUMS)
+          test "$(find "$out" -name '*.apk' | wc -l)" -eq 1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: moscorun-release
+          path: ${{ runner.temp }}/release/
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Pubblica la release nel repository privato
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: moscorun-release
+          path: release
+      - name: Crea la release apk-<versionCode> (mai sovrascritta)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_TAG: ${{ needs.build.outputs.source_tag }}
+          SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
+          VERSION_NAME: ${{ needs.build.outputs.version_name }}
+          VERSION_CODE: ${{ needs.build.outputs.version_code }}
+        run: |
+          set -Eeuo pipefail
+          (cd release && sha256sum --check SHA256SUMS)
+          tag="apk-$VERSION_CODE"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "::error::La release $tag esiste già: una versione distribuita non si sostituisce."; exit 1
+          fi
+          {
+            echo "MoscoRun $VERSION_NAME per Android (versionCode $VERSION_CODE), build release firmata."
+            echo
+            echo "- Sorgente: [$SOURCE_TAG](https://github.com/littlefly1969/Moscorun/releases/tag/$SOURCE_TAG), commit \`$SOURCE_SHA\`"
+            echo "- Installazione: aggiornamento in place sopra la versione presente (stessa firma)."
+            echo
+            echo '```'
+            cat release/SHA256SUMS
+            echo '```'
+          } > notes.md
+          gh release create "$tag" release/*.apk release/apk-identity.json release/r8-reports.tar.gz release/SHA256SUMS \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "MoscoRun $VERSION_NAME ($VERSION_CODE)" \
+            --notes-file notes.md
