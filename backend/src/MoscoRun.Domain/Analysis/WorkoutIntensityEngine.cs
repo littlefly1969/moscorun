@@ -73,7 +73,7 @@ public static class WorkoutIntensityEngine
         return (reserve, trimp, reserve is null ? "invalid-load" : "observed-support-only");
     }
 
-    private static IReadOnlyList<IntensitySlice> Slices(IReadOnlyList<SignalSample> samples,
+    private static System.Collections.ObjectModel.ReadOnlyCollection<IntensitySlice> Slices(IReadOnlyList<SignalSample> samples,
         DateTimeOffset start, DateTimeOffset end, SeriesMetric metric)
     {
         var slots = samples.Where(sample => sample.Time >= start && sample.Time <= end)
