@@ -520,6 +520,13 @@
       "interpretation": "method_required"
     },
     {
+      "metric": "windDirection",
+      "unit": "deg",
+      "category": "environment",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
       "metric": "barometricPressure",
       "unit": "hPa",
       "category": "environment",
@@ -585,6 +592,111 @@
     {
       "metric": "motivation",
       "unit": "0-10",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "trainingDayComplete",
+      "unit": "1",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "nutritionDiaryComplete",
+      "unit": "1",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "thermicEffectOfFood",
+      "unit": "kcal",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "nonExerciseEnergyExpenditureNet",
+      "unit": "kcal",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "exerciseEnergyExpenditureNet",
+      "unit": "kcal",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "preExerciseWeight",
+      "unit": "kg",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "postExerciseWeight",
+      "unit": "kg",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "exerciseUrineVolume",
+      "unit": "mL",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "sweatProtocolConfirmed",
+      "unit": "1",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "maximalFlatRun",
+      "unit": "1",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "comparableRunningPower",
+      "unit": "1",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "sleepBedtimeMinute",
+      "unit": "min",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "sleepWakeMinute",
+      "unit": "min",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "sleepInBedDuration",
+      "unit": "s",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
+    },
+    {
+      "metric": "sleepNightConfirmed",
+      "unit": "1",
       "category": "feedback",
       "availability": "capability-dependent",
       "interpretation": "self_reported"

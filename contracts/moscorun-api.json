@@ -187,6 +187,703 @@
         }
       }
     },
+    "/api/v1/science/daily": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetDailyScience",
+        "parameters": [
+          {
+            "name": "metric",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "baselineDays",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "asOf",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyMetricReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/science/feedback": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetScienceFeedback",
+        "parameters": [
+          {
+            "name": "day",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "workoutId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScienceFeedbackReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "SaveScienceFeedback",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScienceFeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScienceFeedbackReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/science/load": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetDailySessionLoad",
+        "parameters": [
+          {
+            "name": "last",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailySessionLoadReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/science/race-calibration": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetAttestedRace",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "split",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "targetMeters",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttestedRaceReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/science/rr": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetRrChunks",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "context",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "screened",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "timestampsAreBeatEnds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "chunkId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RrChunkReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/science/adaptation": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetPersonalAdaptation",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "split",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "distanceMeters",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalAdaptationReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/science/pacing": {
+      "post": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "SimulatePacing",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PacingScenarioRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PacingScenarioReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/science/research": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetPersonalResearch",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "split",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "distanceMeters",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "penalty",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalResearchReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/science/sleep": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetSleepDiary",
+        "parameters": [
+          {
+            "name": "last",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SleepDiaryReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/science/sleep-performance": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetSleepPerformance",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "last",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "lag",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "distanceMeters",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SleepPerformanceReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/device": {
       "get": {
         "tags": [
@@ -558,6 +1255,670 @@
         }
       }
     },
+    "/api/v1/workouts/{id}/science": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetWorkoutScience",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutScienceReport"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}/science/durability": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetWorkoutDurability",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SeriesMetric"
+            }
+          },
+          {
+            "name": "startOffsetSeconds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "windowSeconds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "windowCount",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "minimumCoverage",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "onsetLossPercent",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "minimumConsecutiveWindows",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutDurabilityReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}/science/intensity": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetWorkoutIntensity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SeriesMetric"
+            }
+          },
+          {
+            "name": "thresholds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "restingBpm",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "maximumBpm",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "trimpA",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "trimpB",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutIntensityReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}/science/steps": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetRunningSteps",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "cadenceIsStepsPerMinute",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunningStepReport"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}/science/cardiac-recovery": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetWorkoutCardiacRecovery",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "endOffsetSeconds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "confirmed",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "equilibriumBpm",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutCardiacRecoveryReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}/science/reserve": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetWorkoutReserve",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SeriesMetric"
+            }
+          },
+          {
+            "name": "criticalIntensity",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "capacity",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "initialRemaining",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "recoveryTimeConstantSeconds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutReserveReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}/science/twin": {
+      "post": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "SimulateCalibratedTwin",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalibratedTwinRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalibratedTwinReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}/science/biomechanics": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetExtendedBiomechanics",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "protocolConfirmed",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "cadenceIsStepsPerMinute",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "balanceIsLeftPercent",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "chunkIds",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendedBiomechanicsReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}/science/environment": {
+      "post": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetWorkoutEnvironment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkoutEnvironmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutEnvironmentReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}/science/distance-load": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetRunningDistanceLoad",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunningDistanceReport"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/devices": {
       "get": {
         "tags": [
@@ -649,6 +2010,333 @@
   },
   "components": {
     "schemas": {
+      "AdaptationAssessment": {
+        "required": [
+          "count",
+          "meanError",
+          "meanAbsoluteError",
+          "rootMeanSquaredError"
+        ],
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "meanError": {
+            "type": "number",
+            "format": "double"
+          },
+          "meanAbsoluteError": {
+            "type": "number",
+            "format": "double"
+          },
+          "rootMeanSquaredError": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "AdaptationModelSummary": {
+        "required": [
+          "parameters",
+          "initial",
+          "offset",
+          "trainingRmse",
+          "trainingCount",
+          "candidateCount",
+          "baselineMeanSpeed"
+        ],
+        "type": "object",
+        "properties": {
+          "parameters": {
+            "$ref": "#/components/schemas/FitnessFatigueParameters"
+          },
+          "initial": {
+            "$ref": "#/components/schemas/FitnessFatigueState"
+          },
+          "offset": {
+            "type": "number",
+            "format": "double"
+          },
+          "trainingRmse": {
+            "type": "number",
+            "format": "double"
+          },
+          "trainingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "candidateCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baselineMeanSpeed": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "AdaptationTestEvidence": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "feedbackRevision",
+          "startedAt",
+          "endedAt",
+          "availableAt",
+          "role",
+          "observedSpeedMetersPerSecond",
+          "predictedSpeedMetersPerSecond",
+          "baselineSpeedMetersPerSecond"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "feedbackRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "role": {
+            "type": "string"
+          },
+          "observedSpeedMetersPerSecond": {
+            "type": "number",
+            "format": "double"
+          },
+          "predictedSpeedMetersPerSecond": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "baselineSpeedMetersPerSecond": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "AthleteFeedbackValue": {
+        "required": [
+          "metric",
+          "unit",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "AttestedPerformanceProfile": {
+        "required": [
+          "speedMethodVersion",
+          "robustSpeedMethodVersion",
+          "cooperMethodVersion",
+          "ordinaryLeastSquares",
+          "robustCriticalSpeed",
+          "cooperTests",
+          "criticalSpeedCandidateIds",
+          "powerMethodVersion",
+          "criticalPower",
+          "criticalPowerCandidateIds"
+        ],
+        "type": "object",
+        "properties": {
+          "speedMethodVersion": {
+            "type": "string"
+          },
+          "robustSpeedMethodVersion": {
+            "type": "string"
+          },
+          "cooperMethodVersion": {
+            "type": "string"
+          },
+          "ordinaryLeastSquares": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CriticalSpeedFit"
+              }
+            ]
+          },
+          "robustCriticalSpeed": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CriticalSpeedFit"
+              }
+            ]
+          },
+          "cooperTests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CooperTestResult"
+            }
+          },
+          "criticalSpeedCandidateIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "powerMethodVersion": {
+            "type": "string"
+          },
+          "criticalPower": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CriticalPowerFit"
+              }
+            ]
+          },
+          "criticalPowerCandidateIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "AttestedRaceReport": {
+        "required": [
+          "source",
+          "protocol",
+          "methodVersion",
+          "asOf",
+          "trainingStart",
+          "split",
+          "end",
+          "targetMeters",
+          "status",
+          "model",
+          "prediction",
+          "interval",
+          "evidence",
+          "performance"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "trainingStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "split": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "targetMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "type": "string"
+          },
+          "model": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RaceCalibrationModelSummary"
+              }
+            ]
+          },
+          "prediction": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RacePrediction"
+              }
+            ]
+          },
+          "interval": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PredictionInterval"
+              }
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RaceCalibrationEvidence"
+            }
+          },
+          "performance": {
+            "$ref": "#/components/schemas/AttestedPerformanceProfile"
+          }
+        }
+      },
       "AttributionStatus": {
         "enum": [
           "Assumed",
@@ -656,6 +2344,199 @@
           "Rejected"
         ],
         "description": "Quanto è certa l'associazione della pesata alla persona."
+      },
+      "BenchmarkReport": {
+        "required": [
+          "sessionCount",
+          "athleteCount",
+          "model",
+          "baseline",
+          "meanAbsoluteErrorImprovement",
+          "intervalCount",
+          "empiricalCoverage",
+          "meanIntervalWidth"
+        ],
+        "type": "object",
+        "properties": {
+          "sessionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "athleteCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "model": {
+            "$ref": "#/components/schemas/BenchmarkScore"
+          },
+          "baseline": {
+            "$ref": "#/components/schemas/BenchmarkScore"
+          },
+          "meanAbsoluteErrorImprovement": {
+            "type": "number",
+            "format": "double"
+          },
+          "intervalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "empiricalCoverage": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "meanIntervalWidth": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "BenchmarkScore": {
+        "required": [
+          "bias",
+          "meanAbsoluteError",
+          "rootMeanSquaredError"
+        ],
+        "type": "object",
+        "properties": {
+          "bias": {
+            "type": "number",
+            "format": "double"
+          },
+          "meanAbsoluteError": {
+            "type": "number",
+            "format": "double"
+          },
+          "rootMeanSquaredError": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BiomechanicsChunkMetadata": {
+        "required": [
+          "id",
+          "metric",
+          "unit",
+          "externalId",
+          "revision",
+          "revisionOrder",
+          "method",
+          "providerAlgorithm",
+          "deviceId",
+          "firstSample",
+          "lastSample",
+          "availableAt",
+          "sampleCount",
+          "contentSha256"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "metric": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "string"
+          },
+          "revisionOrder": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "method": {
+            "type": "string"
+          },
+          "providerAlgorithm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "deviceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "firstSample": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSample": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "contentSha256": {
+            "type": "string"
+          }
+        }
+      },
+      "BiomechanicsMetricSummary": {
+        "required": [
+          "metric",
+          "unit",
+          "supportedSeconds",
+          "coverage",
+          "weightedMean",
+          "weightedCvPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "supportedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "coverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "weightedMean": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "weightedCvPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
       },
       "BoundsDto": {
         "required": [
@@ -688,6 +2569,248 @@
           }
         }
       },
+      "CalibratedTwinReport": {
+        "required": [
+          "methodVersion",
+          "asOf",
+          "status",
+          "calibration",
+          "request",
+          "parameters",
+          "segments"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "calibration": {
+            "$ref": "#/components/schemas/WorkoutCardiacRecoveryReport"
+          },
+          "request": {
+            "$ref": "#/components/schemas/CalibratedTwinRequest"
+          },
+          "parameters": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TwinParameters"
+              }
+            ]
+          },
+          "segments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TwinSegmentResult"
+            }
+          }
+        }
+      },
+      "CalibratedTwinRequest": {
+        "required": [
+          "recoveryProtocol",
+          "initialBpm",
+          "restingBpm",
+          "maximumBpm",
+          "maximumFitRmseBpm",
+          "transferAssumptionConfirmed",
+          "segments"
+        ],
+        "type": "object",
+        "properties": {
+          "recoveryProtocol": {
+            "$ref": "#/components/schemas/WorkoutCardiacRecoveryProtocol"
+          },
+          "initialBpm": {
+            "type": "number",
+            "format": "double"
+          },
+          "restingBpm": {
+            "type": "number",
+            "format": "double"
+          },
+          "maximumBpm": {
+            "type": "number",
+            "format": "double"
+          },
+          "maximumFitRmseBpm": {
+            "type": "number",
+            "format": "double"
+          },
+          "transferAssumptionConfirmed": {
+            "type": "boolean"
+          },
+          "segments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TwinSegment"
+            }
+          }
+        }
+      },
+      "CardiacRecoveryPoint": {
+        "required": [
+          "elapsedSeconds",
+          "target",
+          "observedAt",
+          "heartRateBpm",
+          "dropFromEndBpm"
+        ],
+        "type": "object",
+        "properties": {
+          "elapsedSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "target": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "observedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "heartRateBpm": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "dropFromEndBpm": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "CardiacResponseFit": {
+        "required": [
+          "timeConstantSeconds",
+          "rootMeanSquaredErrorBpm",
+          "sampleCount"
+        ],
+        "type": "object",
+        "properties": {
+          "timeConstantSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "rootMeanSquaredErrorBpm": {
+            "type": "number",
+            "format": "double"
+          },
+          "sampleCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CooperTestResult": {
+        "required": [
+          "workoutId",
+          "revision",
+          "endedAt",
+          "distanceMeters",
+          "durationSeconds",
+          "estimatedVo2MaxMlKgMin"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "durationSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "estimatedVo2MaxMlKgMin": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CriticalPowerFit": {
+        "required": [
+          "criticalWatts",
+          "workReserveJoules",
+          "rootMeanSquaredErrorJoules",
+          "effortCount"
+        ],
+        "type": "object",
+        "properties": {
+          "criticalWatts": {
+            "type": "number",
+            "format": "double"
+          },
+          "workReserveJoules": {
+            "type": "number",
+            "format": "double"
+          },
+          "rootMeanSquaredErrorJoules": {
+            "type": "number",
+            "format": "double"
+          },
+          "effortCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CriticalSpeedFit": {
+        "required": [
+          "criticalSpeedMetersPerSecond",
+          "distanceReserveMeters",
+          "rootMeanSquaredErrorMeters",
+          "effortCount"
+        ],
+        "type": "object",
+        "properties": {
+          "criticalSpeedMetersPerSecond": {
+            "type": "number",
+            "format": "double"
+          },
+          "distanceReserveMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "rootMeanSquaredErrorMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "effortCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "CurrentUser": {
         "required": [
           "id",
@@ -707,6 +2830,292 @@
             "type": [
               "null",
               "string"
+            ]
+          }
+        }
+      },
+      "DailyMetricPoint": {
+        "required": [
+          "day",
+          "status",
+          "value",
+          "observationId",
+          "time",
+          "availableAt",
+          "method",
+          "providerAlgorithm"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "observationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "time": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "availableAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "method": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "providerAlgorithm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "DailyMetricReport": {
+        "required": [
+          "metric",
+          "unit",
+          "source",
+          "asOf",
+          "methodVersion",
+          "baselineDays",
+          "current",
+          "history",
+          "status",
+          "baseline",
+          "currentVersusMedianPercent",
+          "weightTrendKgPerWeek"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "baselineDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "current": {
+            "$ref": "#/components/schemas/DailyMetricPoint"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailyMetricPoint"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "baseline": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecoveryDeviation"
+              }
+            ]
+          },
+          "currentVersusMedianPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "weightTrendKgPerWeek": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "DailyRunningDistancePoint": {
+        "required": [
+          "day",
+          "status",
+          "runningSessions",
+          "totalMeters",
+          "longestMeters",
+          "attestationAvailableAt"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "runningSessions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalMeters": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "longestMeters": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "attestationAvailableAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "DailySessionLoadPoint": {
+        "required": [
+          "day",
+          "status",
+          "sessions",
+          "ratedSessions",
+          "load",
+          "availableAt",
+          "attestationAvailableAt"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "sessions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ratedSessions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "load": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "availableAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "attestationAvailableAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "DailySessionLoadReport": {
+        "required": [
+          "lastDay",
+          "asOf",
+          "methodVersion",
+          "unit",
+          "days",
+          "recentWeek",
+          "rolling"
+        ],
+        "type": "object",
+        "properties": {
+          "lastDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailySessionLoadPoint"
+            }
+          },
+          "recentWeek": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TrainingLoadSummary"
+              }
+            ]
+          },
+          "rolling": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RollingLoadSummary"
+              }
             ]
           }
         }
@@ -860,6 +3269,296 @@
           "PhoneBridge"
         ],
         "description": "Tipo di agente che invia dati al server."
+      },
+      "DfaAlpha1Result": {
+        "required": [
+          "alpha1",
+          "intervalCount",
+          "scaleCount"
+        ],
+        "type": "object",
+        "properties": {
+          "alpha1": {
+            "type": "number",
+            "format": "double"
+          },
+          "intervalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "scaleCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DurabilityProfile": {
+        "required": [
+          "baselineStart",
+          "baselineEfficiency",
+          "lossPercent",
+          "onset",
+          "onsetConfirmedAt",
+          "lossPercentagePointsPerHour",
+          "medianAbsoluteResidualPercentagePoints"
+        ],
+        "type": "object",
+        "properties": {
+          "baselineStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "baselineEfficiency": {
+            "type": "number",
+            "format": "double"
+          },
+          "lossPercent": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "onset": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "onsetConfirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lossPercentagePointsPerHour": {
+            "type": "number",
+            "format": "double"
+          },
+          "medianAbsoluteResidualPercentagePoints": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "Profilo descrittivo del deterioramento, con onset e trend sullo stesso protocollo di finestre."
+      },
+      "EnvironmentalExposure": {
+        "required": [
+          "observedMinutes",
+          "aboveThresholdMinutes",
+          "degreeMinutes"
+        ],
+        "type": "object",
+        "properties": {
+          "observedMinutes": {
+            "type": "number",
+            "format": "double"
+          },
+          "aboveThresholdMinutes": {
+            "type": "number",
+            "format": "double"
+          },
+          "degreeMinutes": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "EnvironmentalMetricSummary": {
+        "required": [
+          "metric",
+          "unit",
+          "supportedSeconds",
+          "coverage",
+          "weightedMean"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "supportedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "coverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "weightedMean": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ExtendedBiomechanicsReport": {
+        "required": [
+          "workoutId",
+          "workoutRevision",
+          "workoutContentSha256",
+          "source",
+          "asOf",
+          "methodVersion",
+          "status",
+          "durationSeconds",
+          "truncated",
+          "protocolConfirmed",
+          "cadenceIsStepsPerMinute",
+          "balanceIsLeftPercent",
+          "chunks",
+          "selected",
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workoutRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "workoutContentSha256": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "durationSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "protocolConfirmed": {
+            "type": "boolean"
+          },
+          "cadenceIsStepsPerMinute": {
+            "type": "boolean"
+          },
+          "balanceIsLeftPercent": {
+            "type": "boolean"
+          },
+          "chunks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BiomechanicsChunkMetadata"
+            }
+          },
+          "selected": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BiomechanicsChunkMetadata"
+            }
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BiomechanicsMetricSummary"
+            }
+          }
+        }
+      },
+      "FitnessFatigueParameters": {
+        "required": [
+          "fitnessTimeConstantDays",
+          "fatigueTimeConstantDays",
+          "fitnessGain",
+          "fatigueGain"
+        ],
+        "type": "object",
+        "properties": {
+          "fitnessTimeConstantDays": {
+            "type": "number",
+            "format": "double"
+          },
+          "fatigueTimeConstantDays": {
+            "type": "number",
+            "format": "double"
+          },
+          "fitnessGain": {
+            "type": "number",
+            "format": "double"
+          },
+          "fatigueGain": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "Costanti di decadimento in giorni e guadagni per unità del medesimo carico."
+      },
+      "FitnessFatigueState": {
+        "required": [
+          "date",
+          "fitness",
+          "fatigue"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "fitness": {
+            "type": "number",
+            "format": "double"
+          },
+          "fatigue": {
+            "type": "number",
+            "format": "double"
+          },
+          "netResponse": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "HrvSummary": {
+        "required": [
+          "intervalCount",
+          "meanRrMilliseconds",
+          "rmssdMilliseconds",
+          "sdnnMilliseconds"
+        ],
+        "type": "object",
+        "properties": {
+          "intervalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "meanRrMilliseconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "rmssdMilliseconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "sdnnMilliseconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
       },
       "HttpValidationProblemDetails": {
         "type": "object",
@@ -1084,6 +3783,36 @@
         },
         "description": "Allenamento svolto inviato dal telefono. Reinviare lo stesso contenuto è sicuro."
       },
+      "IntensityDistribution": {
+        "required": [
+          "zoneMinutes",
+          "missingMinutes",
+          "totalMinutes",
+          "coverage"
+        ],
+        "type": "object",
+        "properties": {
+          "zoneMinutes": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "missingMinutes": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalMinutes": {
+            "type": "number",
+            "format": "double"
+          },
+          "coverage": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "LineStringGeometry": {
         "required": [
           "type",
@@ -1144,6 +3873,758 @@
           }
         }
       },
+      "NutritionFeedbackReport": {
+        "required": [
+          "methodVersion",
+          "source",
+          "status",
+          "diaryComplete",
+          "durationHours",
+          "totalExpenditureKcal",
+          "energyBalanceKcal",
+          "energyAvailabilityKcalPerKg",
+          "carbohydrateGramsPerHour",
+          "fluidMillilitersPerHour",
+          "sodiumMilligramsPerHour",
+          "estimatedSweatLitersPerHour"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "diaryComplete": {
+            "type": "boolean"
+          },
+          "durationHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "totalExpenditureKcal": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "energyBalanceKcal": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "energyAvailabilityKcalPerKg": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "carbohydrateGramsPerHour": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "fluidMillilitersPerHour": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "sodiumMilligramsPerHour": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "estimatedSweatLitersPerHour": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ObservedPerformanceCurve": {
+        "required": [
+          "metric",
+          "unit",
+          "methodVersion",
+          "points"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "$ref": "#/components/schemas/SeriesMetric"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObservedPerformancePoint"
+            }
+          }
+        }
+      },
+      "ObservedPerformancePoint": {
+        "required": [
+          "durationSeconds",
+          "mean",
+          "start",
+          "end"
+        ],
+        "type": "object",
+        "properties": {
+          "durationSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mean": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "start": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "end": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "PacingRaceReference": {
+        "required": [
+          "source",
+          "from",
+          "split",
+          "until"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "split": {
+            "type": "string",
+            "format": "date"
+          },
+          "until": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "PacingScenarioReport": {
+        "required": [
+          "methodVersion",
+          "asOf",
+          "status",
+          "targetSource",
+          "distanceMeters",
+          "targetSeconds",
+          "segments",
+          "splits",
+          "prediction",
+          "interval",
+          "evidence"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "targetSource": {
+            "type": "string"
+          },
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "targetSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "segments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PacingSegment"
+            }
+          },
+          "splits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PacingSplit"
+            }
+          },
+          "prediction": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RacePrediction"
+              }
+            ]
+          },
+          "interval": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PredictionInterval"
+              }
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RaceCalibrationEvidence"
+            }
+          }
+        }
+      },
+      "PacingScenarioRequest": {
+        "required": [
+          "segments",
+          "targetSeconds",
+          "raceReference"
+        ],
+        "type": "object",
+        "properties": {
+          "segments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PacingSegment"
+            }
+          },
+          "targetSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "raceReference": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PacingRaceReference"
+              }
+            ]
+          }
+        }
+      },
+      "PacingSegment": {
+        "required": [
+          "distanceMeters",
+          "relativeTimeCost"
+        ],
+        "type": "object",
+        "properties": {
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "relativeTimeCost": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "Moltiplicatore relativo di costo/tempo noto prima della simulazione; non inferito dal dislivello da solo."
+      },
+      "PacingSplit": {
+        "required": [
+          "distanceMeters",
+          "segmentSeconds",
+          "cumulativeSeconds"
+        ],
+        "type": "object",
+        "properties": {
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "segmentSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "cumulativeSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PersonalAdaptationReport": {
+        "required": [
+          "methodVersion",
+          "source",
+          "loadMethodVersion",
+          "firstDay",
+          "splitDay",
+          "untilDay",
+          "asOf",
+          "distanceMeters",
+          "status",
+          "loads",
+          "tests",
+          "model",
+          "holdout",
+          "baselineHoldout",
+          "currentPredictedSpeedMetersPerSecond"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "loadMethodVersion": {
+            "type": "string"
+          },
+          "firstDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "splitDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "untilDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "type": "string"
+          },
+          "loads": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailySessionLoadPoint"
+            }
+          },
+          "tests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdaptationTestEvidence"
+            }
+          },
+          "model": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AdaptationModelSummary"
+              }
+            ]
+          },
+          "holdout": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AdaptationAssessment"
+              }
+            ]
+          },
+          "baselineHoldout": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AdaptationAssessment"
+              }
+            ]
+          },
+          "currentPredictedSpeedMetersPerSecond": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "PersonalResearchFold": {
+        "required": [
+          "fold",
+          "status",
+          "trainingCount",
+          "testCount",
+          "full",
+          "ablated"
+        ],
+        "type": "object",
+        "properties": {
+          "fold": {
+            "$ref": "#/components/schemas/ResearchFold"
+          },
+          "status": {
+            "type": "string"
+          },
+          "trainingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "testCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "full": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BenchmarkReport"
+              }
+            ]
+          },
+          "ablated": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BenchmarkReport"
+              }
+            ]
+          }
+        }
+      },
+      "PersonalResearchReport": {
+        "required": [
+          "methodVersion",
+          "modelVersion",
+          "source",
+          "asOf",
+          "firstDay",
+          "splitDay",
+          "untilDay",
+          "distanceMeters",
+          "penalty",
+          "status",
+          "features",
+          "candidateTests",
+          "examples",
+          "folds"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "modelVersion": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "firstDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "splitDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "untilDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "penalty": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "type": "string"
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "candidateTests": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "examples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResearchExampleEvidence"
+            }
+          },
+          "folds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonalResearchFold"
+            }
+          }
+        }
+      },
+      "PredictionInterval": {
+        "required": [
+          "lowerSeconds",
+          "upperSeconds",
+          "calibrationCount",
+          "nominalCoverage"
+        ],
+        "type": "object",
+        "properties": {
+          "lowerSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "upperSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "calibrationCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nominalCoverage": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "Intervallo calibrato empiricamente sui residui disponibili; copertura non garantita in serie dipendenti."
+      },
+      "RaceCalibrationEvidence": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "endedAt",
+          "availableAt",
+          "feedbackRevision",
+          "distanceMeters",
+          "durationSeconds",
+          "role",
+          "predictedSeconds",
+          "absoluteErrorSeconds",
+          "meanPowerWatts"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "feedbackRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "durationSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "role": {
+            "type": "string"
+          },
+          "predictedSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "absoluteErrorSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "meanPowerWatts": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "RaceCalibrationModelSummary": {
+        "required": [
+          "minimumDistanceMeters",
+          "maximumDistanceMeters",
+          "referenceDistanceMeters",
+          "referenceSeconds",
+          "exponent",
+          "medianAbsoluteLogResidual",
+          "trainingCount"
+        ],
+        "type": "object",
+        "properties": {
+          "minimumDistanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "maximumDistanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "referenceDistanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "referenceSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "exponent": {
+            "type": "number",
+            "format": "double"
+          },
+          "medianAbsoluteLogResidual": {
+            "type": "number",
+            "format": "double"
+          },
+          "trainingCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "RacePrediction": {
+        "required": [
+          "distanceMeters",
+          "predictedSeconds",
+          "methodVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "predictedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "methodVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "RecoveryDeviation": {
+        "required": [
+          "baselineCount",
+          "baselineMedian",
+          "medianAbsoluteDeviation",
+          "robustZScore"
+        ],
+        "type": "object",
+        "properties": {
+          "baselineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baselineMedian": {
+            "type": "number",
+            "format": "double"
+          },
+          "medianAbsoluteDeviation": {
+            "type": "number",
+            "format": "double"
+          },
+          "robustZScore": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "RegisterDeviceRequest": {
         "required": [
           "name",
@@ -1183,6 +4664,128 @@
             "description": "Credenziale da configurare nell'agente. Viene mostrata solo ora."
           }
         }
+      },
+      "ResearchExampleEvidence": {
+        "required": [
+          "workoutId",
+          "priorWorkoutId",
+          "predictionAt",
+          "featuresAvailableAt",
+          "targetAt",
+          "targetAvailableAt",
+          "priorSpeedMetersPerSecond",
+          "recentLoadMean",
+          "priorLoadMean",
+          "observedSpeedMetersPerSecond"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "priorWorkoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "predictionAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "featuresAvailableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "targetAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "targetAvailableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "priorSpeedMetersPerSecond": {
+            "type": "number",
+            "format": "double"
+          },
+          "recentLoadMean": {
+            "type": "number",
+            "format": "double"
+          },
+          "priorLoadMean": {
+            "type": "number",
+            "format": "double"
+          },
+          "observedSpeedMetersPerSecond": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ResearchFold": {
+        "required": [
+          "cutoff",
+          "asOf"
+        ],
+        "type": "object",
+        "properties": {
+          "cutoff": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "description": "Fine training e termine della finestra di test (incluso tempo di disponibilità)."
+      },
+      "ReserveState": {
+        "required": [
+          "cumulativeSeconds",
+          "remaining",
+          "exhausted"
+        ],
+        "type": "object",
+        "properties": {
+          "cumulativeSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "remaining": {
+            "type": "number",
+            "format": "double"
+          },
+          "exhausted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RollingLoadSummary": {
+        "required": [
+          "recentMean",
+          "priorMean",
+          "recentToPriorRatio"
+        ],
+        "type": "object",
+        "properties": {
+          "recentMean": {
+            "type": "number",
+            "format": "double"
+          },
+          "priorMean": {
+            "type": "number",
+            "format": "double"
+          },
+          "recentToPriorRatio": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        },
+        "description": "Confronto descrittivo di medie giornaliere in finestre disgiunte, non score di rischio."
       },
       "RouteFeature": {
         "required": [
@@ -1262,6 +4865,430 @@
           }
         }
       },
+      "RrChunkAnalysis": {
+        "required": [
+          "methodVersion",
+          "context",
+          "status",
+          "sampleCount",
+          "observedSpanSeconds",
+          "intervalDurationSeconds",
+          "hrvMethodVersion",
+          "hrv",
+          "dfaMethodVersion",
+          "dfa"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "sampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "observedSpanSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "intervalDurationSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "hrvMethodVersion": {
+            "type": "string"
+          },
+          "hrv": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/HrvSummary"
+              }
+            ]
+          },
+          "dfaMethodVersion": {
+            "type": "string"
+          },
+          "dfa": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DfaAlpha1Result"
+              }
+            ]
+          }
+        }
+      },
+      "RrChunkMetadata": {
+        "required": [
+          "id",
+          "externalId",
+          "revision",
+          "revisionOrder",
+          "unit",
+          "method",
+          "providerAlgorithm",
+          "workoutId",
+          "firstSample",
+          "lastSample",
+          "availableAt",
+          "sampleCount",
+          "contentSha256"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "string"
+          },
+          "revisionOrder": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "providerAlgorithm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "workoutId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "firstSample": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSample": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "contentSha256": {
+            "type": "string"
+          }
+        }
+      },
+      "RrChunkReport": {
+        "required": [
+          "source",
+          "day",
+          "asOf",
+          "truncated",
+          "chunks",
+          "selected",
+          "analysis"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "chunks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RrChunkMetadata"
+            }
+          },
+          "selected": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RrChunkMetadata"
+              }
+            ]
+          },
+          "analysis": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RrChunkAnalysis"
+              }
+            ]
+          }
+        }
+      },
+      "RunningDistanceEvidence": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "source",
+          "activityType",
+          "startedAt",
+          "endedAt",
+          "availableAt",
+          "distanceMeters"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "activityType": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "distanceMeters": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "RunningDistanceReport": {
+        "required": [
+          "methodVersion",
+          "asOf",
+          "priorCutoff",
+          "priorFirstDay",
+          "priorLastDay",
+          "current",
+          "status",
+          "completeDays",
+          "days",
+          "priorRuns",
+          "priorLongestMeters",
+          "increasePercent"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "priorCutoff": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "priorFirstDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "priorLastDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "current": {
+            "$ref": "#/components/schemas/RunningDistanceEvidence"
+          },
+          "status": {
+            "type": "string"
+          },
+          "completeDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailyRunningDistancePoint"
+            }
+          },
+          "priorRuns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RunningDistanceEvidence"
+            }
+          },
+          "priorLongestMeters": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "increasePercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "RunningStepReport": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "source",
+          "asOf",
+          "methodVersion",
+          "status",
+          "maxGapSeconds",
+          "cadenceIsStepsPerMinute",
+          "durationSeconds",
+          "pairedSeconds",
+          "coverage",
+          "meanSpeedMetersPerSecond",
+          "meanCadenceStepsPerMinute",
+          "meanStepLengthMeters",
+          "stepLengthCvPercent",
+          "cadenceCvPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "maxGapSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "cadenceIsStepsPerMinute": {
+            "type": "boolean"
+          },
+          "durationSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "pairedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "coverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "meanSpeedMetersPerSecond": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "meanCadenceStepsPerMinute": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "meanStepLengthMeters": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "stepLengthCvPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "cadenceCvPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "SampleInput": {
         "required": [
           "time",
@@ -1282,6 +5309,164 @@
               "number"
             ],
             "format": "double"
+          }
+        }
+      },
+      "ScienceFeedbackInput": {
+        "required": [
+          "metric",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ScienceFeedbackReport": {
+        "required": [
+          "day",
+          "workoutId",
+          "workoutRevision",
+          "revision",
+          "availableAt",
+          "values",
+          "note",
+          "status",
+          "activeDurationSeconds",
+          "sessionRpeLoad",
+          "sessionLoadMethodVersion",
+          "nutrition"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "workoutId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workoutRevision": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "revision": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "availableAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AthleteFeedbackValue"
+            }
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "activeDurationSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "sessionRpeLoad": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "sessionLoadMethodVersion": {
+            "type": "string"
+          },
+          "nutrition": {
+            "$ref": "#/components/schemas/NutritionFeedbackReport"
+          }
+        }
+      },
+      "ScienceFeedbackRequest": {
+        "required": [
+          "day",
+          "workoutId",
+          "workoutRevision",
+          "revision",
+          "values",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "workoutId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workoutRevision": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScienceFeedbackInput"
+            }
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1389,6 +5574,331 @@
           null
         ]
       },
+      "SleepDiaryNight": {
+        "required": [
+          "day",
+          "status",
+          "revision",
+          "availableAt",
+          "bedtimeMinute",
+          "wakeMinute",
+          "asleepSeconds",
+          "inBedSeconds",
+          "efficiencyPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "revision": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "availableAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "bedtimeMinute": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "wakeMinute": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "asleepSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "inBedSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "efficiencyPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SleepDiaryReport": {
+        "required": [
+          "methodVersion",
+          "lastDay",
+          "asOf",
+          "windowDays",
+          "completeNights",
+          "status",
+          "nights",
+          "bedtime",
+          "wake",
+          "meanEfficiencyPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "lastDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "windowDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "completeNights": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string"
+          },
+          "nights": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SleepDiaryNight"
+            }
+          },
+          "bedtime": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SleepTimingSummary"
+              }
+            ]
+          },
+          "wake": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SleepTimingSummary"
+              }
+            ]
+          },
+          "meanEfficiencyPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SleepPerformancePair": {
+        "required": [
+          "workoutId",
+          "workoutRevision",
+          "contentSha256",
+          "feedbackRevision",
+          "testStartedAt",
+          "testEndedAt",
+          "testAvailableAt",
+          "speedMetersPerSecond",
+          "sleepDay",
+          "sleepRevision",
+          "sleepAvailableAt",
+          "status",
+          "sleepHours",
+          "sleepEfficiencyPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workoutRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "feedbackRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "testStartedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "testEndedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "testAvailableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "speedMetersPerSecond": {
+            "type": "number",
+            "format": "double"
+          },
+          "sleepDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "sleepRevision": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "sleepAvailableAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "sleepHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "sleepEfficiencyPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SleepPerformanceReport": {
+        "required": [
+          "methodVersion",
+          "source",
+          "asOf",
+          "lastTestDay",
+          "windowDays",
+          "lagDays",
+          "distanceMeters",
+          "status",
+          "pairedTests",
+          "sleepHoursCorrelation",
+          "sleepEfficiencyCorrelation",
+          "evidence"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastTestDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "windowDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lagDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "type": "string"
+          },
+          "pairedTests": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sleepHoursCorrelation": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "sleepEfficiencyCorrelation": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SleepPerformancePair"
+            }
+          }
+        }
+      },
+      "SleepTimingSummary": {
+        "required": [
+          "nightCount",
+          "meanMinuteOfDay",
+          "circularStandardDeviationMinutes"
+        ],
+        "type": "object",
+        "properties": {
+          "nightCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "meanMinuteOfDay": {
+            "type": "number",
+            "format": "double"
+          },
+          "circularStandardDeviationMinutes": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "SourceFreshness": {
         "required": [
           "deviceId",
@@ -1433,6 +5943,47 @@
         "properties": {
           "version": {
             "type": "string"
+          }
+        }
+      },
+      "TerrainSummary": {
+        "required": [
+          "supportedSeconds",
+          "horizontalDistanceMeters",
+          "netGradePercent",
+          "rawAscentMeters",
+          "rawDescentMeters"
+        ],
+        "type": "object",
+        "properties": {
+          "supportedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "horizontalDistanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "netGradePercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "rawAscentMeters": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "rawDescentMeters": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -1484,6 +6035,121 @@
               "number"
             ],
             "description": "Precisione orizzontale in metri.",
+            "format": "double"
+          }
+        }
+      },
+      "TrainingLoadSummary": {
+        "required": [
+          "totalLoad",
+          "meanDailyLoad",
+          "monotony",
+          "strain"
+        ],
+        "type": "object",
+        "properties": {
+          "totalLoad": {
+            "type": "number",
+            "format": "double"
+          },
+          "meanDailyLoad": {
+            "type": "number",
+            "format": "double"
+          },
+          "monotony": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "strain": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "TwinParameters": {
+        "required": [
+          "calibrationVersion",
+          "calibrationCutoff",
+          "heartRateTimeConstantSeconds",
+          "restingHeartRateBpm",
+          "maximumHeartRateBpm"
+        ],
+        "type": "object",
+        "properties": {
+          "calibrationVersion": {
+            "type": "string"
+          },
+          "calibrationCutoff": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "heartRateTimeConstantSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "restingHeartRateBpm": {
+            "type": "number",
+            "format": "double"
+          },
+          "maximumHeartRateBpm": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "Parametri individuali espliciti, con riferimento al modello e al cutoff di calibrazione."
+      },
+      "TwinSegment": {
+        "required": [
+          "durationSeconds",
+          "equilibriumHeartRateBpm",
+          "externalSpeedMetersPerSecond"
+        ],
+        "type": "object",
+        "properties": {
+          "durationSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "equilibriumHeartRateBpm": {
+            "type": "number",
+            "format": "double"
+          },
+          "externalSpeedMetersPerSecond": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "Ingresso ipotetico: durata ed equilibrio cardiaco da modello calibrato, non da una FC futura osservata."
+      },
+      "TwinSegmentResult": {
+        "required": [
+          "cumulativeSeconds",
+          "cumulativeMeters",
+          "endHeartRateBpm",
+          "meanHeartRateBpm"
+        ],
+        "type": "object",
+        "properties": {
+          "cumulativeSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "cumulativeMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "endHeartRateBpm": {
+            "type": "number",
+            "format": "double"
+          },
+          "meanHeartRateBpm": {
+            "type": "number",
             "format": "double"
           }
         }
@@ -1578,6 +6244,150 @@
           }
         }
       },
+      "WorkoutCardiacRecoveryProtocol": {
+        "required": [
+          "endOffsetSeconds",
+          "mode",
+          "confirmed",
+          "equilibriumBpm"
+        ],
+        "type": "object",
+        "properties": {
+          "endOffsetSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "equilibriumBpm": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "WorkoutCardiacRecoveryReport": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "source",
+          "asOf",
+          "methodVersion",
+          "maximumAgeSeconds",
+          "protocol",
+          "status",
+          "points",
+          "fit",
+          "fitStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "maximumAgeSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "protocol": {
+            "$ref": "#/components/schemas/WorkoutCardiacRecoveryProtocol"
+          },
+          "status": {
+            "type": "string"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CardiacRecoveryPoint"
+            }
+          },
+          "fit": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CardiacResponseFit"
+              }
+            ]
+          },
+          "fitStatus": {
+            "type": "string"
+          }
+        }
+      },
+      "WorkoutChannelReport": {
+        "required": [
+          "metric",
+          "unit",
+          "status",
+          "sampleCount",
+          "validCount",
+          "conflictingCount",
+          "coverage",
+          "timeWeightedMean"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "$ref": "#/components/schemas/SeriesMetric"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "sampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "validCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "conflictingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "coverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "timeWeightedMean": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "WorkoutDetailDto": {
         "required": [
           "summary",
@@ -1596,6 +6406,453 @@
           }
         },
         "description": "Dettaglio: riepilogo più l'elenco delle serie disponibili."
+      },
+      "WorkoutDurabilityProtocol": {
+        "required": [
+          "metric",
+          "startOffsetSeconds",
+          "windowSeconds",
+          "windowCount",
+          "minimumCoverage",
+          "onsetLossPercent",
+          "minimumConsecutiveWindows"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "$ref": "#/components/schemas/SeriesMetric"
+          },
+          "startOffsetSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "windowSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "windowCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minimumCoverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "onsetLossPercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "minimumConsecutiveWindows": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "WorkoutDurabilityReport": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "source",
+          "asOf",
+          "methodVersion",
+          "windowMethodVersion",
+          "maxGapSeconds",
+          "protocol",
+          "status",
+          "windows",
+          "profile"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "windowMethodVersion": {
+            "type": "string"
+          },
+          "maxGapSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "protocol": {
+            "$ref": "#/components/schemas/WorkoutDurabilityProtocol"
+          },
+          "status": {
+            "type": "string"
+          },
+          "windows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkoutDurabilityWindow"
+            }
+          },
+          "profile": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DurabilityProfile"
+              }
+            ]
+          }
+        }
+      },
+      "WorkoutDurabilityWindow": {
+        "required": [
+          "offsetSeconds",
+          "pairedSeconds",
+          "coverage",
+          "meanExternalLoad",
+          "meanHeartRateBpm"
+        ],
+        "type": "object",
+        "properties": {
+          "offsetSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pairedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "coverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "meanExternalLoad": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "meanHeartRateBpm": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "WorkoutEnvironmentAnalysis": {
+        "required": [
+          "methodVersion",
+          "durationSeconds",
+          "metrics",
+          "heatExposure",
+          "terrain"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "durationSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EnvironmentalMetricSummary"
+            }
+          },
+          "heatExposure": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EnvironmentalExposure"
+              }
+            ]
+          },
+          "terrain": {
+            "$ref": "#/components/schemas/TerrainSummary"
+          }
+        }
+      },
+      "WorkoutEnvironmentProtocol": {
+        "required": [
+          "heatThresholdCelsius",
+          "maximumWeatherGapSeconds",
+          "maximumGpsGapSeconds",
+          "maximumHorizontalAccuracyMeters",
+          "minimumHorizontalDistanceMeters",
+          "weatherRepresentative",
+          "windDirectionIsFrom"
+        ],
+        "type": "object",
+        "properties": {
+          "heatThresholdCelsius": {
+            "type": "number",
+            "format": "double"
+          },
+          "maximumWeatherGapSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "maximumGpsGapSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "maximumHorizontalAccuracyMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "minimumHorizontalDistanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "weatherRepresentative": {
+            "type": "boolean"
+          },
+          "windDirectionIsFrom": {
+            "type": "boolean"
+          }
+        }
+      },
+      "WorkoutEnvironmentReport": {
+        "required": [
+          "workoutId",
+          "workoutRevision",
+          "workoutContentSha256",
+          "asOf",
+          "source",
+          "weatherStatus",
+          "protocol",
+          "truncated",
+          "chunks",
+          "selected",
+          "analysis"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workoutRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "workoutContentSha256": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string"
+          },
+          "weatherStatus": {
+            "type": "string"
+          },
+          "protocol": {
+            "$ref": "#/components/schemas/WorkoutEnvironmentProtocol"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "chunks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BiomechanicsChunkMetadata"
+            }
+          },
+          "selected": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BiomechanicsChunkMetadata"
+            }
+          },
+          "analysis": {
+            "$ref": "#/components/schemas/WorkoutEnvironmentAnalysis"
+          }
+        }
+      },
+      "WorkoutEnvironmentRequest": {
+        "required": [
+          "source",
+          "chunkIds",
+          "protocol"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "chunkIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "protocol": {
+            "$ref": "#/components/schemas/WorkoutEnvironmentProtocol"
+          }
+        }
+      },
+      "WorkoutIntensityProtocol": {
+        "required": [
+          "metric",
+          "upperBoundaries",
+          "restingBpm",
+          "maximumBpm",
+          "trimpA",
+          "trimpB"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "$ref": "#/components/schemas/SeriesMetric"
+          },
+          "upperBoundaries": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "restingBpm": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "maximumBpm": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "trimpA": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "trimpB": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "WorkoutIntensityReport": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "source",
+          "asOf",
+          "methodVersion",
+          "maxGapSeconds",
+          "protocol",
+          "status",
+          "unit",
+          "distribution",
+          "observedMean",
+          "supportedHeartRateReserveLoad",
+          "supportedExponentialTrimp",
+          "heartRateStatus",
+          "trimpMethodVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "maxGapSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "protocol": {
+            "$ref": "#/components/schemas/WorkoutIntensityProtocol"
+          },
+          "status": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "distribution": {
+            "$ref": "#/components/schemas/IntensityDistribution"
+          },
+          "observedMean": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "supportedHeartRateReserveLoad": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "supportedExponentialTrimp": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "heartRateStatus": {
+            "type": "string"
+          },
+          "trimpMethodVersion": {
+            "type": "string"
+          }
+        }
       },
       "WorkoutList": {
         "required": [
@@ -1631,6 +6888,187 @@
               "string"
             ],
             "description": "Presente solo nelle liste paginate quando esistono altri elementi: va passato come `cursor`."
+          }
+        }
+      },
+      "WorkoutReserveProtocol": {
+        "required": [
+          "metric",
+          "criticalIntensity",
+          "capacity",
+          "initialRemaining",
+          "recoveryTimeConstantSeconds"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "$ref": "#/components/schemas/SeriesMetric"
+          },
+          "criticalIntensity": {
+            "type": "number",
+            "format": "double"
+          },
+          "capacity": {
+            "type": "number",
+            "format": "double"
+          },
+          "initialRemaining": {
+            "type": "number",
+            "format": "double"
+          },
+          "recoveryTimeConstantSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "WorkoutReserveReport": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "source",
+          "asOf",
+          "methodVersion",
+          "protocol",
+          "unit",
+          "status",
+          "workoutDurationSeconds",
+          "supportedSeconds",
+          "evaluatedSeconds",
+          "evaluatedSegments",
+          "minimumRemaining",
+          "lastRemaining",
+          "exhaustionSeconds",
+          "points"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "protocol": {
+            "$ref": "#/components/schemas/WorkoutReserveProtocol"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "workoutDurationSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "supportedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "evaluatedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "evaluatedSegments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minimumRemaining": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "lastRemaining": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "exhaustionSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReserveState"
+            }
+          }
+        }
+      },
+      "WorkoutScienceReport": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "source",
+          "asOf",
+          "methodVersion",
+          "maxGapSeconds",
+          "channels",
+          "performanceCurves"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "maxGapSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkoutChannelReport"
+            }
+          },
+          "performanceCurves": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObservedPerformanceCurve"
+            }
           }
         }
       },
@@ -1783,10 +7221,10 @@
       "name": "Acquisizione"
     },
     {
-      "name": "Dispositivi"
+      "name": "Cruscotto"
     },
     {
-      "name": "Cruscotto"
+      "name": "Dispositivi"
     },
     {
       "name": "Mappe"

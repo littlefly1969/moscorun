@@ -150,8 +150,8 @@ public sealed class Workout
         DeviceId = deviceId;
         Revision = recording.Revision;
         ActivityType = recording.ActivityType;
-        StartedAt = TrimToMicroseconds(recording.StartedAt);
-        EndedAt = TrimToMicroseconds(recording.EndedAt);
+        StartedAt = WorkoutTime.Floor(recording.StartedAt);
+        EndedAt = WorkoutTime.Floor(recording.EndedAt);
         UtcOffsetMinutes = recording.UtcOffsetMinutes;
         ActiveDuration = recording.ActiveDuration is { } d ? TimeSpan.FromMilliseconds(Math.Round(d.TotalMilliseconds)) : null;
         DistanceM = Round(recording.DistanceM, 2);
@@ -217,6 +217,13 @@ public sealed class Workout
         return utc.AddTicks(-(utc.Ticks % 10));
     }
 
+    /// <summary>Durata valutata alla risoluzione di salvataggio: inizio e fine nello stesso millisecondo non bastano.</summary>
+    private static bool HasValidSpan(WorkoutRecording r)
+    {
+        var duration = WorkoutTime.Floor(r.EndedAt) - WorkoutTime.Floor(r.StartedAt);
+        return duration > TimeSpan.Zero && duration <= MaxDuration;
+    }
+
     private static List<DomainError> Validate(WorkoutRecording r, DateTimeOffset now)
     {
         var errors = new List<DomainError>();
@@ -242,7 +249,7 @@ public sealed class Workout
             Add("workout.revision.invalid", "revision non può essere negativa.", "revision");
         }
 
-        if (r.EndedAt <= r.StartedAt || r.EndedAt - r.StartedAt > MaxDuration)
+        if (!HasValidSpan(r))
         {
             Add("workout.time.invalid", "endedAt deve seguire startedAt e la durata non può superare 7 giorni.", "endedAt");
         }

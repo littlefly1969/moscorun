@@ -10,8 +10,19 @@ import {
   formatPace,
 } from "../../lib/format";
 import { StatCard } from "../dashboard/StatCard";
+import { ScienceFeedbackPanel } from "../science/ScienceFeedbackPanel";
 import { RouteMap } from "./RouteMap";
 import { useWorkout } from "./queries";
+import { WorkoutSciencePanel } from "./WorkoutSciencePanel";
+import { WorkoutDurabilityPanel } from "./WorkoutDurabilityPanel";
+import { WorkoutIntensityPanel } from "./WorkoutIntensityPanel";
+import { RunningStepPanel } from "./RunningStepPanel";
+import { ExtendedBiomechanicsPanel } from "./ExtendedBiomechanicsPanel";
+import { WorkoutEnvironmentPanel } from "./WorkoutEnvironmentPanel";
+import { RunningDistancePanel } from "./RunningDistancePanel";
+import { CardiacRecoveryPanel } from "./CardiacRecoveryPanel";
+import { WorkoutReservePanel } from "./WorkoutReservePanel";
+import { CalibratedTwinPanel } from "./CalibratedTwinPanel";
 
 const HeartRateChart = lazy(() => import("./HeartRateChart").then((m) => ({ default: m.HeartRateChart })));
 
@@ -62,6 +73,26 @@ export function WorkoutDetailPage() {
         <h2 id="route-title">Percorso</h2>
         <RouteMap workoutId={w.id} hasTrack={w.trackPointCount > 0} />
       </section>
+
+      <WorkoutSciencePanel workoutId={w.id} revision={w.revision} />
+      <ScienceFeedbackPanel workoutId={w.id} workoutRevision={w.revision} />
+      <WorkoutIntensityPanel key={`${w.id}:${w.revision}:intensity`} workoutId={w.id} />
+      <CardiacRecoveryPanel key={`${w.id}:${w.revision}:cardiac`} workoutId={w.id} />
+      <WorkoutReservePanel key={`${w.id}:${w.revision}:reserve`} workoutId={w.id} />
+      <CalibratedTwinPanel key={`${w.id}:${w.revision}:twin`} workoutId={w.id} />
+      {w.activityType.toUpperCase() === "RUNNING" && (
+        <>
+          <RunningStepPanel key={`${w.id}:${w.revision}:steps`} workoutId={w.id} />
+          <ExtendedBiomechanicsPanel key={`${w.id}:${w.revision}:biomechanics`} workoutId={w.id} />
+          <WorkoutEnvironmentPanel key={`${w.id}:${w.revision}:environment`} workoutId={w.id} />
+          <RunningDistancePanel key={`${w.id}:${w.revision}:distance-load`} workoutId={w.id} />
+        </>
+      )}
+      <WorkoutDurabilityPanel
+        key={`${w.id}:${w.revision}`}
+        workoutId={w.id}
+        duration={(Date.parse(w.endedAt) - Date.parse(w.startedAt)) / 1000}
+      />
 
       {hasHeartRate && (
         <section className="card" aria-labelledby="hr-title">

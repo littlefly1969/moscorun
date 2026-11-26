@@ -222,19 +222,94 @@ else
   pass "saltato"
 fi
 
-step "Backup e ripristino con dati reali"
+step "Backup e ripristino con dati reali e fixture scientifiche"
+[[ "${CI:-}" == true ]] || fail "scenario distruttivo consentito solo sullo stack isolato CI"
+sql "$(cat <<'SQL'
+DO $scientific_fixture$
+DECLARE athlete uuid;
+BEGIN
+  SELECT id INTO STRICT athlete FROM moscorun."AspNetUsers" ORDER BY id LIMIT 1;
+  INSERT INTO moscorun.scientific_observations
+    (owner_id,id,metric,unit,value,time,available_at,source,method,input_ids,external_id,external_revision,external_revision_order)
+  VALUES (athlete,'00000000-0000-4000-8000-000000000001','heartRate','bpm',145,'2026-11-24 08:00Z','2026-11-25 08:00Z',
+    'ci-backup','Measured','{}','sample-1','r1',1);
+  INSERT INTO moscorun.scientific_observations
+    (owner_id,id,metric,unit,value,time,available_at,source,method,input_ids,external_id,external_revision,native_metric,native_unit,native_value,mapping_version)
+  VALUES (athlete,'00000000-0000-4000-8000-000000000002','rpe','0-10',7,'2026-11-24 08:00Z','2026-11-25 08:00Z',
+    'athlete-feedback','SelfReported','{}','entry-1','r1','rpe','0-10',7,'ci-v1');
+  INSERT INTO moscorun.scientific_observations
+    (owner_id,id,metric,unit,value,time,available_at,source,method,input_ids,derivation_version)
+  VALUES (athlete,'00000000-0000-4000-8000-000000000003','ciPrediction','native',42,'2026-11-25 08:00Z','2026-11-25 08:00Z',
+    'ci-twin','ModelInferred',ARRAY['00000000-0000-4000-8000-000000000001'::uuid],'v1');
+  INSERT INTO moscorun.scientific_sync_checkpoints (owner_id,source,stream,cursor,updated_at)
+    VALUES (athlete,'ci-backup','samples','fixture-cursor','2026-11-25 08:00Z');
+  INSERT INTO moscorun.scientific_feedback_entries (owner_id,id,entry_id,revision,revision_order,time,available_at,note,observation_ids)
+    VALUES (athlete,'00000000-0000-4000-8000-000000000004','entry-1','r1',1,'2026-11-24 08:00Z','2026-11-25 08:00Z',
+      'Nota sintetica CI',ARRAY['00000000-0000-4000-8000-000000000002'::uuid]);
+  INSERT INTO moscorun.scientific_signal_chunks
+    (owner_id,id,source,external_id,revision,revision_order,metric,unit,method,first_ticks,last_ticks,available_ticks,
+      sample_count,codec_version,data,content_hash)
+    VALUES (athlete,'00000000-0000-4000-8000-000000000005','ci-backup','chunk-1','r1',1,'ecg','mV','Measured',
+      639311040000000000,639311040000000001,639311904000000000,2,1,
+      decode('8b108000802ff0004adf08015f633937dd9abf3f01802ff0004adf0800000000000000000003','hex'),
+      decode('5cd3b2182659b3eaa896be1c2b30a0f0a3ce00441d005eb39413f3baccc56564','hex'));
+  INSERT INTO moscorun.scientific_model_artifacts
+    (owner_id,model_id,version,format,artifact,artifact_hash,feature_schema_version,training_cutoff,registered_at,validation_json,configuration_json)
+    VALUES (athlete,'ci-twin','v1','json',decode('7b7d','hex'),
+      decode('44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a','hex'),'features-v1',
+      '2026-11-24 08:00Z','2026-11-25 08:00Z','{}','{}');
+  INSERT INTO moscorun.scientific_model_runs
+    (owner_id,id,model_id,version,mode,decision_at,target_at,available_at,input_ids,output_ids,outputs_json,state_json)
+    VALUES (athlete,'00000000-0000-4000-8000-000000000006','ci-twin','v1','Operational','2026-11-25 08:00Z',
+      '2026-11-26 08:00Z','2026-11-25 08:00Z',ARRAY['00000000-0000-4000-8000-000000000001'::uuid],
+      ARRAY['00000000-0000-4000-8000-000000000003'::uuid],
+      '[{"Id":"00000000-0000-4000-8000-000000000003","Metric":"ciPrediction","Unit":"native","Value":42,"Lower":40,"Upper":45}]',
+      '{"fitness":42}');
+  INSERT INTO moscorun.scientific_lifecycle_audit (owner_id,operation_id,action,at,counts_json)
+    VALUES (athlete,'00000000-0000-4000-8000-000000000007','export','2026-11-25 08:00Z','{"Observations":3}');
+  INSERT INTO moscorun.scientific_lifecycle_fences (owner_id,blocked_at)
+    VALUES (athlete,'2026-11-25 08:00Z');
+END $scientific_fixture$;
+SQL
+)" >/dev/null
+
+readonly SCIENTIFIC_TABLES=(scientific_model_runs scientific_model_artifacts scientific_feedback_entries
+  scientific_signal_chunks scientific_sync_checkpoints scientific_observations scientific_lifecycle_audit scientific_lifecycle_fences)
+scientific_digest() {
+  local table digest
+  for table in "${SCIENTIFIC_TABLES[@]}"; do
+    digest="$(sql "select count(*)::text || ':' || coalesce(md5(string_agg(to_jsonb(t)::text, ',' order by to_jsonb(t)::text)), '') from moscorun.$table t")"
+    [[ -n "$digest" && "$digest" != 0:* ]] || fail "fixture assente: $table"
+    printf '%s %s\n' "$table" "$digest"
+  done
+}
+science_before="$(scientific_digest)"
 "$SCRIPT" backup
 backup="$(<"$DEPLOY_DIR/.state/last-backup")"
+[[ -s "$backup.sha256" ]] || fail "checksum backup mancante"
+"$SCRIPT" verify-backup "$backup"
+cp "$backup" "$WORK/corrupt.dump"
+cp "$backup.sha256" "$WORK/corrupt.dump.sha256"
+printf 'corruzione sintetica' >>"$WORK/corrupt.dump"
+if "$SCRIPT" verify-backup "$WORK/corrupt.dump"; then fail "checksum corrotto accettato"; fi
+if echo RIPRISTINA | "$SCRIPT" restore "$WORK/corrupt.dump"; then fail "ripristino corrotto accettato"; fi
+session_valid || fail "backup corrotto ha interrotto la sessione"
+[[ "$(scientific_digest)" == "$science_before" ]] || fail "dati modificati da restore corrotto"
 weighings="$(sql "select count(*) from moscorun.weighings")"
 users="$(sql "select count(*) from moscorun.\"AspNetUsers\"")"
 ((weighings > 0)) || fail "servono pesate (create dagli E2E) per verificare il ripristino"
 sql "delete from moscorun.weighings" >/dev/null
+for table in "${SCIENTIFIC_TABLES[@]}"; do
+  sql "delete from moscorun.$table" >/dev/null
+  [[ "$(sql "select count(*) from moscorun.$table")" == 0 ]] || fail "simulazione perdita non riuscita: $table"
+done
 [[ "$(sql "select count(*) from moscorun.weighings")" == 0 ]] || fail "simulazione della perdita non riuscita"
 echo RIPRISTINA | "$SCRIPT" restore "$backup"
 [[ "$(sql "select count(*) from moscorun.weighings")" == "$weighings" ]] || fail "pesate non ripristinate"
 [[ "$(sql "select count(*) from moscorun.\"AspNetUsers\"")" == "$users" ]] || fail "utenti non ripristinati"
+[[ "$(scientific_digest)" == "$science_before" ]] || fail "dati scientifici o lineage non ripristinati integralmente"
 session_valid || fail "sessione non valida dopo il ripristino"
 smoke
-pass "ripristinate $weighings pesate e $users utenti"
+pass "ripristinate $weighings pesate, $users utenti e tutte le tabelle scientifiche"
 
 printf '\nTutti gli scenari superati.\n'

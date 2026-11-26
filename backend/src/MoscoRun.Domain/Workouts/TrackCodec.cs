@@ -124,7 +124,7 @@ public static class TrackCodec
 
     /// <summary>Il punto come verrà salvato: stessa risoluzione del formato binario.</summary>
     public static TrackPoint Normalize(TrackPoint p) => new(
-        DateTimeOffset.FromUnixTimeMilliseconds(p.Time.ToUnixTimeMilliseconds()),
+        WorkoutTime.Floor(p.Time),
         ToFixed(p.Latitude, CoordinateScale) / CoordinateScale,
         ToFixed(p.Longitude, CoordinateScale) / CoordinateScale,
         p.AltitudeM is { } a ? ToFixed(a, CentimetreScale) / CentimetreScale : null,
