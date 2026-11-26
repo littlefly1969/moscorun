@@ -20,6 +20,6 @@ public sealed class AthleteFeedbackStoreTests(ApiFactory factory)
         var result = await scope.ServiceProvider.GetRequiredService<ScientificObservationStore>()
             .ReadAsOfAsync(owner, factory.Time.GetUtcNow(), ct);
         result.Should().OnlyContain(o => o.Method == ObservationMethod.SelfReported);
-        result.Single(o => o.Metric == "hunger").Value.Should().BeNull();
+        result.Single(o => string.Equals(o.Metric, "hunger", StringComparison.Ordinal)).Value.Should().BeNull();
     }
 }

@@ -2,8 +2,6 @@ using MoscoRun.Domain.Analysis;
 
 namespace MoscoRun.Infrastructure.Persistence;
 
-public sealed record AthleteFeedbackValue(string Metric, string Unit, double? Value);
-
 /// <summary>Persistenza di feedback numerici dichiarati dall'atleta, non misurazioni cliniche.</summary>
 public sealed class AthleteFeedbackStore(ScientificImportStore store)
 {
