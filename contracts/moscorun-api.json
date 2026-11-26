@@ -772,6 +772,101 @@
         }
       }
     },
+    "/api/v1/science/feedback": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetScienceFeedback",
+        "parameters": [
+          {
+            "name": "day",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "workoutId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScienceFeedbackReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "SaveScienceFeedback",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScienceFeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScienceFeedbackReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
     "/api/v1/devices": {
       "get": {
         "tags": [
@@ -863,6 +958,29 @@
   },
   "components": {
     "schemas": {
+      "AthleteFeedbackValue": {
+        "required": [
+          "metric",
+          "unit",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "AttributionStatus": {
         "enum": [
           "Assumed",
@@ -1777,6 +1895,160 @@
               "number"
             ],
             "format": "double"
+          }
+        }
+      },
+      "ScienceFeedbackInput": {
+        "required": [
+          "metric",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ScienceFeedbackReport": {
+        "required": [
+          "day",
+          "workoutId",
+          "workoutRevision",
+          "revision",
+          "availableAt",
+          "values",
+          "note",
+          "status",
+          "activeDurationSeconds",
+          "sessionRpeLoad",
+          "sessionLoadMethodVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "workoutId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workoutRevision": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "revision": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "availableAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AthleteFeedbackValue"
+            }
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "activeDurationSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "sessionRpeLoad": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "sessionLoadMethodVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "ScienceFeedbackRequest": {
+        "required": [
+          "day",
+          "workoutId",
+          "workoutRevision",
+          "revision",
+          "values",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "workoutId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workoutRevision": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScienceFeedbackInput"
+            }
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
