@@ -121,6 +121,17 @@ class MainActivity : ComponentActivity(), AppHost {
         }
     }
 
+    override suspend fun scienceAvailability() = graph.science.availability()
+
+    override fun requestSciencePermissions(done: () -> Unit) {
+        scope.launch {
+            val requestable = graph.science.requestable()
+            if (requestable.isEmpty()) { done(); return@launch }
+            afterPermissions = done
+            healthConnectPermissions.launch(requestable)
+        }
+    }
+
     override fun syncNow() {
         // A run of the user replaces one that is only waiting; one that is working is left to finish.
         if (!graph.sync.running) SyncScheduler.runSoon(this, replace = true)

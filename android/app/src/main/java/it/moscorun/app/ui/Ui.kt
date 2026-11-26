@@ -12,6 +12,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import it.moscorun.app.model.Provider
 import it.moscorun.app.model.TrackPoint
+import it.moscorun.app.science.ScienceAvailability
 import it.moscorun.app.server.MoscoRunServer
 import it.moscorun.app.settings.AppPreferences
 import it.moscorun.app.settings.SecureSettings
@@ -57,6 +58,12 @@ interface AppHost {
 
     /** Optional permissions still missing for [provider], in words for the user. */
     suspend fun sourceHints(provider: Provider): List<String>
+
+    /** What the scientific part can read now, in words for the user. */
+    suspend fun scienceAvailability(): ScienceAvailability
+
+    /** Shows the Health Connect consent screen for the scientific data; [done] runs when the user comes back. */
+    fun requestSciencePermissions(done: () -> Unit)
 
     /** Shows the consent screen of the source; [done] runs when the user comes back. */
     fun requestSourcePermissions(provider: Provider, done: () -> Unit)

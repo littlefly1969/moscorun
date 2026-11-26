@@ -1,9 +1,16 @@
 package it.moscorun.app.sync
 
 import it.moscorun.app.model.Provider
+import it.moscorun.app.science.FakeScienceReader
+import it.moscorun.app.science.FakeScienceServer
+import it.moscorun.app.science.MemoryScienceStore
+import it.moscorun.app.science.ScienceOutcome
+import it.moscorun.app.science.observation
 import it.moscorun.app.server.DeviceIdentity
 import it.moscorun.app.server.Failure
 import it.moscorun.app.server.ReadResult
+import it.moscorun.app.server.UploadOutcome
+import it.moscorun.app.server.UploadResult
 import it.moscorun.app.settings.AppPreferences
 import it.moscorun.app.settings.FakeCipher
 import it.moscorun.app.settings.MemoryPreferences
@@ -36,6 +43,60 @@ class SyncRunnerTest {
         { if (it == Provider.SAMSUNG_HEALTH) samsung else healthConnect }, { _, token -> tokens += token; server }, legacy, now = { NOW })
 
     private fun run(runner: SyncRunner = runner()) = runBlocking { runner.run() }
+
+    private val scienceReader = FakeScienceReader(observations = listOf(observation("hc:1", daysAgo(1))))
+    private val scienceServer = FakeScienceServer()
+    private val sciencePositions = MemoryScienceStore()
+
+    private fun scienceRunner() = SyncRunner(settings, prefs, store,
+        { if (it == Provider.SAMSUNG_HEALTH) samsung else healthConnect }, { _, token -> tokens += token; server },
+        now = { NOW }, science = { scienceReader }, scienceStore = sciencePositions)
+
+    @Test fun `scientific data follows the workouts and its summary joins the run message`() {
+        settings.save(SERVER, TOKEN)
+        server.science = scienceServer
+
+        val result = run(scienceRunner())
+
+        assertEquals(RunOutcome.COMPLETED, result.outcome)
+        assertEquals(listOf("s1", "s2"), server.storedIds.sorted())
+        assertEquals(listOf("hc:1"), scienceServer.stored)
+        assertNotNull(sciencePositions.scienceSyncedUntil(SyncScope.of(SERVER, FakeServer.ACCOUNT), "health-connect"))
+        assertTrue(result.message, result.message.contains("Dati scientifici aggiornati"))
+        assertEquals(result.message, store.status(SyncScope.of(SERVER, FakeServer.ACCOUNT)).message)
+    }
+
+    @Test fun `scientific data waits while the workouts are not up to date`() {
+        settings.save(SERVER, TOKEN)
+        server.science = scienceServer
+        server.intercept = { _, _ -> UploadResult(UploadOutcome.RETRY, "occupato") }
+
+        val result = run(scienceRunner())
+
+        assertEquals(RunOutcome.RETRY_LATER, result.outcome)
+        assertTrue(scienceReader.windows.isEmpty())
+        assertTrue(scienceServer.stored.isEmpty())
+    }
+
+    @Test fun `a server without scientific ingestion leaves the workouts result as it is`() {
+        settings.save(SERVER, TOKEN)
+
+        val result = run(scienceRunner())
+
+        assertEquals(RunOutcome.COMPLETED, result.outcome)
+        assertTrue(result.message, result.message.contains("aggiornarlo"))
+        assertFalse(prefs.authBlocked)
+    }
+
+    @Test fun `a token refused for scientific data stops everything like a refused workout`() {
+        settings.save(SERVER, TOKEN)
+        server.science = scienceServer.apply { outcome = ScienceOutcome.UNAUTHORIZED }
+
+        val result = run(scienceRunner())
+
+        assertEquals(RunOutcome.AUTH_REQUIRED, result.outcome)
+        assertTrue(prefs.authBlocked)
+    }
 
     @Test fun `without a configuration nothing is read or sent`() {
         val result = run()

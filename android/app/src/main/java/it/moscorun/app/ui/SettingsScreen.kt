@@ -13,6 +13,7 @@ import android.widget.RadioButton
 import android.widget.Spinner
 import android.widget.TextView
 import it.moscorun.app.model.Provider
+import it.moscorun.app.science.ScienceMetric
 import it.moscorun.app.settings.AppPreferences
 import it.moscorun.app.settings.ServerSetup
 import it.moscorun.app.settings.TokenState
@@ -28,13 +29,15 @@ class SettingsScreen(private val setup: (AppHost) -> ServerSetup) : Screen() {
     private var serverMessage: String? = null
     private var draftUrl = ""
     private var recheckSource: (() -> Unit)? = null
+    private var recheckScience: (() -> Unit)? = null
 
-    override fun resumed() { if (attached) recheckSource?.invoke() }
+    override fun resumed() { if (attached) { recheckSource?.invoke(); recheckScience?.invoke() } }
 
     override fun build(): View = page {
         heading("MoscoRun", "Impostazioni")
         serverCard()
         sourceCard()
+        scienceCard()
         scheduleCard()
         card {
             label("Informazioni", 17f, bold = true)
@@ -139,6 +142,30 @@ class SettingsScreen(private val setup: (AppHost) -> ServerSetup) : Screen() {
         if (state is SourceStatus.Ready && missing.isNotEmpty()) grant.text = "Rivedi i permessi"
         hints.text = missing.joinToString("\n") { "• $it" }
         hints.visibility = if (missing.isEmpty()) View.GONE else View.VISIBLE
+    }
+
+    private fun LinearLayout.scienceCard() = card {
+        label("Dati scientifici", 17f, bold = true)
+        label("Sonno, frequenza cardiaca a riposo, HRV, saturazione, respirazione e VO2max, letti da Health Connect anche se " +
+            "gli allenamenti arrivano da Samsung Health. Sono facoltativi e si inviano dopo gli allenamenti.", 13f, color = Palette.muted)
+        val status = label("Verifica dei permessi…", 13f, color = Palette.muted)
+        val grant = action("Concedi i permessi") {
+            host.requestSciencePermissions { if (attached) host.refresh() }
+        }.apply { visibility = View.GONE }
+        recheckScience = { visible.launch { showScience(status, grant) } }
+        recheckScience?.invoke()
+    }
+
+    private suspend fun showScience(status: TextView, grant: Button) {
+        val availability = host.scienceAvailability()
+        val missing = ScienceMetric.entries - availability.metrics
+        status.text = when {
+            availability.metrics.isEmpty() -> availability.message ?: "Nessun dato scientifico concesso."
+            missing.isEmpty() -> "Tutti i dati concessi." + (availability.message?.let { " $it" } ?: "")
+            else -> "Non concessi: ${missing.joinToString(", ") { it.label }}."
+        }
+        status.setTextColor(if (missing.isEmpty()) Palette.green else Palette.warning)
+        grant.visibility = if (missing.isNotEmpty()) View.VISIBLE else View.GONE
     }
 
     private fun confirmProvider(provider: Provider) {

@@ -13,6 +13,12 @@ public static class Policies
     /// che mostra i percorsi salvati sul server. Gli agenti della bilancia restano limitati all'acquisizione.
     /// </summary>
     public const string WorkoutReader = "workout-reader";
+
+    /// <summary>
+    /// Acquisizione dei dati scientifici (osservazioni e segnali dei wearable): solo il telefono (PhoneBridge).
+    /// Gli agenti della bilancia restano limitati alle pesate.
+    /// </summary>
+    public const string ScientificIngest = "scientific-ingest";
 }
 
 public static class MoscoRunClaims
