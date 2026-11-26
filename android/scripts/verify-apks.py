@@ -35,7 +35,7 @@ def select_apk(apks):
     return apks[0]
 
 
-def check_apk(name, certs, badging, manifest, identity, version_code=None):
+def check_apk(name, certs, badging, manifest, identity, version_code=None, version_name=None):
     """Validate the tool outputs for one APK and return the report entry. Raises Rejected with the reason."""
     digests = re.findall(r"Signer #\d+ certificate SHA-256 digest: ([0-9a-fA-F]+)", certs)
     if digests != [identity["sha256"].replace(":", "").lower()]:
@@ -46,6 +46,10 @@ def check_apk(name, certs, badging, manifest, identity, version_code=None):
         raise Rejected(f"Identificativo inatteso in {name}: {found}. L'unica app è {identity['applicationId']}.")
     if version_code is not None and package[2] != str(version_code):
         raise Rejected(f"Versione inattesa: {name}")
+    if version_name is not None and package[3] != version_name:
+        raise Rejected(f"Nome di versione inatteso in {name}: {package[3]}")
+    if re.search(r"^application-debuggable", badging, re.MULTILINE):
+        raise Rejected(f"{name} è una build di debug: si distribuisce solo la build release.")
     label = re.search(r"^application-label:'([^']*)'", badging, re.MULTILINE)
     if not label or label[1] != identity["name"]:
         found = label[1] if label else "assente"
@@ -81,7 +85,8 @@ def main():
         badging = subprocess.check_output([str(tools / "aapt"), "dump", "badging", str(apk)], text=True)
         manifest = subprocess.check_output(
             [str(tools / "aapt"), "dump", "xmltree", str(apk), "AndroidManifest.xml"], text=True)
-        result = check_apk(apk.name, certs, badging, manifest, identity, os.environ.get("MOSCORUN_VERSION_CODE"))
+        result = check_apk(apk.name, certs, badging, manifest, identity, os.environ.get("MOSCORUN_VERSION_CODE"),
+                           os.environ.get("MOSCORUN_VERSION_NAME"))
     except Rejected as error:
         raise SystemExit(f"::error::{error}")
     args.report.parent.mkdir(parents=True, exist_ok=True)

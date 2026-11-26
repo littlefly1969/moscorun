@@ -15,7 +15,7 @@ Le sezioni "Destinazione privata" e "Prova prima del cutover" restano come runbo
 ## Prova prima del cutover
 
 - Revisionare workflow e intero commit sorgente, inclusi Gradle, plugin e script: codice approvato su main, CI verde sullo stesso SHA, nessuna PR/fork da firmare. Il modello rifiuta se il main scaricato non coincide con lo SHA completo immesso e se l'identità Android non coincide.
-- Indicare manualmente un versionCode maggiore di tutti gli APK già distribuiti, registrare SHA e codice versione nel privato. Il nuovo contatore Actions riparte; non va usato per aggiornamenti in place. La verifica della monotonicità resta manuale.
+- Il workflow firma solo un tag `vX.Y.Z` del sorgente raggiungibile da main (creato dal rilascio continuo dopo CI verde). versionName e versionCode derivano dal tag (`android/scripts/release-version.py`); la monotonicità è verificata contro le release `apk-<versionCode>` già pubblicate nel privato e contro l'ultima build debug distribuita (1101).
 - Avviare la build da Actions del repo privato su main. Verificare test JVM, lint, integrità SDK, firma, package, APK, e installazione in aggiornamento sul telefono.
 - Il nuovo workflow nel sorgente esegue esclusivamente test Python con chiavi temporanee e manifest sintetici. Non è una build Android completa; non riceve segreti reali e non pubblica APK. La pipeline privata è necessaria per test JVM/Lint e APK.
 - Dopo prova privata riuscita, fare merge della PR di separazione, verificare CI del sorgente e rimuovere i Secrets Android dal sorgente. Eliminare gli asset SDK e la release originale solo dopo verifica privata. Non modificare server o database.

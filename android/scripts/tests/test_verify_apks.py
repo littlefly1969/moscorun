@@ -11,9 +11,9 @@ CERTS = "Signer #1 certificate SHA-256 digest: abcd\n"
 MAPS_KEY = "AIza" + "x" * 35
 
 
-def badging(package="it.littlefly.moscorun", label="MoscoRun", extra=()):
+def badging(package="it.littlefly.moscorun", label="MoscoRun", extra=(), debuggable=False):
     lines = [f"package: name='{package}' versionCode='42' versionName='0.5.0'", f"application-label:'{label}'",
-             "uses-permission: name='android.permission.INTERNET'"]
+             "uses-permission: name='android.permission.INTERNET'"] + (["application-debuggable"] if debuggable else [])
     lines += [f"uses-permission: name='{permission}'" for permission in extra]
     return "\n".join(lines) + "\n"
 
@@ -37,8 +37,8 @@ class SelectApkTest(unittest.TestCase):
 
 
 class CheckApkTest(unittest.TestCase):
-    def check(self, certs=CERTS, badge=None, xml=None, version="42"):
-        return verify.check_apk("app-debug.apk", certs, badge or badging(), xml or manifest(), IDENTITY, version)
+    def check(self, certs=CERTS, badge=None, xml=None, version="42", name="0.5.0"):
+        return verify.check_apk("app-release.apk", certs, badge or badging(), xml or manifest(), IDENTITY, version, name)
 
     def test_the_single_moscorun_apk_passes(self):
         result = self.check()
@@ -68,6 +68,14 @@ class CheckApkTest(unittest.TestCase):
     def test_an_unexpected_version_is_rejected(self):
         with self.assertRaisesRegex(verify.Rejected, "Versione inattesa"):
             self.check(version="43")
+
+    def test_an_unexpected_version_name_is_rejected(self):
+        with self.assertRaisesRegex(verify.Rejected, "Nome di versione inatteso"):
+            self.check(name="0.5.1")
+
+    def test_a_debuggable_build_is_never_distributed(self):
+        with self.assertRaisesRegex(verify.Rejected, "build di debug"):
+            self.check(badge=badging(debuggable=True))
 
     def test_location_foreground_service_and_exact_alarms_are_rejected(self):
         for permission in verify.FORBIDDEN_PERMISSIONS:

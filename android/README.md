@@ -62,8 +62,9 @@ Servono JDK 17, piattaforma Android API 36, Build Tools 36.0.0 e:
 cd android
 python3 -m unittest discover -s scripts/tests -v   # script di firma e di verifica dell'APK
 bash gradlew testDebugUnitTest lintDebug           # test JVM (anche Robolectric) e analisi statica
-bash gradlew assembleDebug                         # app/build/outputs/apk/debug/app-debug.apk
-python3 scripts/verify-apks.py                     # un solo APK, firma, identificativo, etichetta, permessi
+bash gradlew assembleRelease                       # app/build/outputs/apk/release/app-release.apk (R8)
+python3 scripts/check-r8.py                        # R8 non ha tolto campi del contratto JSON (@WireFormat)
+python3 scripts/verify-apks.py                     # un solo APK release: firma, identificativo, etichetta, versione, permessi
 ```
 
 Senza l'AAR Samsung (per esempio in una PR da fork) si possono comunque compilare il codice, eseguire i test JVM e Lint:
@@ -76,13 +77,14 @@ In questa configurazione la sorgente Samsung è sostituita da `src/samsungStub` 
 
 ## Rilascio e ritorno alla versione precedente
 
-1. CI verde sul main sorgente; avviare il workflow privato con quello SHA e un `versionCode` maggiore dell'ultimo distribuito, scaricare `MoscoRun-apk-<n>` e installare l'APK sopra la versione presente (aggiornamento in place).
+1. Un commit `feat`/`fix` su main con CI verde crea il tag `vX.Y.Z`. Avviare il workflow privato **MoscoRun - APK ufficiale privato** (tag vuoto = ultimo tag), scaricare `MoscoRun-X.Y.Z-<versionCode>.apk` dalla release `apk-<versionCode>` del repository privato, controllarne l'impronta con `SHA256SUMS` e installarlo sopra la versione presente (aggiornamento in place: stessa firma, codice maggiore).
 2. Verificare in Impostazioni che il server risulti configurato, poi **Sincronizza ora**.
 3. Per tornare indietro: Android non installa un `versionCode` inferiore sopra uno superiore. Disinstallare l'app (si perdono configurazione e registro locali, **non** i dati sul server) e installare l'APK precedente; al primo avvio reinserire indirizzo e token. Il server riconosce gli allenamenti già presenti e non li duplica.
 
 ## Prove sul telefono (non automatizzabili in CI)
 
 - Aggiornamento in place dalla versione attuale: server e token non vengono richiesti di nuovo.
+- Prima build release (R8): sincronizzazione completa con sorgente Samsung e con Health Connect, mappa del percorso e grafici. R8 è verificato in CI sul contratto JSON, ma le librerie che usano riflessione (SDK Samsung) si provano solo sul telefono.
 - Primo storico di un anno: chiudere forzatamente l'app a metà, riavviare il telefono, togliere la rete; alla ripresa i conteggi sul server non mostrano doppioni.
 - Sincronizzazione automatica con app chiusa: confrontare "Ultimo successo" dopo alcune ore.
 - Cambio sorgente Samsung ↔ Health Connect: i possibili doppioni compaiono in Diagnostica.

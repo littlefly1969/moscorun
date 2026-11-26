@@ -6,10 +6,10 @@ import java.security.MessageDigest
 import java.time.Duration
 
 /** Body of POST /api/v1/ingest/workouts (contracts/moscorun-api.json, IngestWorkoutRequest). */
-data class UploadPoint(val time: String, val lat: Double, val lon: Double, val altitudeM: Double?, val accuracyM: Double?)
-data class UploadSample(val time: String, val value: Double)
-data class UploadSeries(val metric: String, val samples: List<UploadSample>)
-data class UploadPayload(val source: String, val sourceId: String, val revision: Long, val activityType: String,
+@WireFormat data class UploadPoint(val time: String, val lat: Double, val lon: Double, val altitudeM: Double?, val accuracyM: Double?)
+@WireFormat data class UploadSample(val time: String, val value: Double)
+@WireFormat data class UploadSeries(val metric: String, val samples: List<UploadSample>)
+@WireFormat data class UploadPayload(val source: String, val sourceId: String, val revision: Long, val activityType: String,
     val startedAt: String, val endedAt: String, val utcOffsetMinutes: Int?, val activeDurationSeconds: Double?,
     val distanceM: Double?, val energyKcal: Double?, val averageHeartRate: Double?, val maxHeartRate: Double?,
     val track: List<UploadPoint>, val series: List<UploadSeries>)
