@@ -35,6 +35,76 @@ describe("allenamenti", () => {
     expect(within(panel).getByText("140 bpm")).toBeInTheDocument();
   });
 
+  it("esegue il protocollo durability sui dati reali del workout e presenta gli stati mancanti", async () => {
+    let status = "observed";
+    let onset: string | null = null;
+    server.use(
+      http.get("*/api/v1/workouts/:id/science/durability", ({ request }) => {
+        const query = new URL(request.url).searchParams;
+        expect(query.get("windowSeconds")).toBe("300");
+        expect(query.get("minimumCoverage")).toBe("0.8");
+        if (status === "error") return HttpResponse.json({}, { status: 400 });
+        return HttpResponse.json({
+          revision: 1,
+          methodVersion: "durability-profile-theil-sen-v1",
+          maxGapSeconds: 5,
+          protocol: { metric: query.get("metric") },
+          status,
+          windows:
+            status === "missing-channel"
+              ? []
+              : [
+                  {
+                    offsetSeconds: 0,
+                    coverage: 1,
+                    meanExternalLoad: 4,
+                    meanHeartRateBpm: 150,
+                  },
+                  {
+                    offsetSeconds: 300,
+                    coverage: 0,
+                    meanExternalLoad: null,
+                    meanHeartRateBpm: null,
+                  },
+                ],
+          profile:
+            status === "observed"
+              ? {
+                  lossPercent: [0, 5],
+                  lossPercentagePointsPerHour: 5,
+                  onset,
+                  onsetConfirmedAt: onset,
+                }
+              : null,
+        });
+      }),
+    );
+    renderApp("/allenamenti/wk1");
+    const panel = await screen.findByRole("region", { name: "Durability: disaccoppiamento cardiaco" });
+    const analyze = within(panel).getByRole("button", { name: "Analizza durability" });
+    await userEvent.click(analyze);
+    expect(await within(panel).findByText("Trend: 5 punti percentuali/ora.")).toBeInTheDocument();
+    expect(within(panel).getByText("Nessun onset persistente osservato.")).toBeInTheDocument();
+
+    onset = "2026-11-13T06:05:00Z";
+    await userEvent.selectOptions(within(panel).getByLabelText("Carico esterno"), "Power");
+    await userEvent.click(analyze);
+    expect(await within(panel).findByText(/Onset:/)).toBeInTheDocument();
+    expect(within(panel).getByText("Carico (W)")).toBeInTheDocument();
+
+    status = "insufficient-support";
+    await userEvent.click(analyze);
+    expect(await within(panel).findByText(/Supporto accoppiato insufficiente/)).toBeInTheDocument();
+
+    status = "missing-channel";
+    await userEvent.click(analyze);
+    expect(await within(panel).findByText(/Canale di carico o frequenza cardiaca non acquisito/)).toBeInTheDocument();
+
+    status = "error";
+    await userEvent.click(analyze);
+    expect(await within(panel).findByRole("alert")).toHaveTextContent("Analisi non riuscita");
+  });
+
   it("senza allenamenti spiega come inviarli dal telefono", async () => {
     server.use(http.get("*/api/v1/workouts", () => HttpResponse.json({ items: [], from: "x", to: "y" })));
     renderApp("/allenamenti");
