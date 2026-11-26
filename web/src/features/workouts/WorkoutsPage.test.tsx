@@ -33,6 +33,9 @@ describe("allenamenti", () => {
     const panel = await screen.findByRole("region", { name: "Analisi scientifica delle serie" });
     expect(await within(panel).findByText("Non acquisita")).toBeInTheDocument();
     expect(within(panel).getByText("140 bpm")).toBeInTheDocument();
+    expect(within(panel).getByRole("heading", { name: "Curva osservata: Velocità" })).toBeInTheDocument();
+    expect(within(panel).getByText("4 m/s")).toBeInTheDocument();
+    expect(within(panel).getByText("Supporto insufficiente")).toBeInTheDocument();
   });
 
   it("esegue il protocollo durability sui dati reali del workout e presenta gli stati mancanti", async () => {
