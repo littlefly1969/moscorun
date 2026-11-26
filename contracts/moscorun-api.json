@@ -592,6 +592,112 @@
         }
       }
     },
+    "/api/v1/workouts/{id}/science/durability": {
+      "get": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "GetWorkoutDurability",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SeriesMetric"
+            }
+          },
+          {
+            "name": "startOffsetSeconds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "windowSeconds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "windowCount",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "minimumCoverage",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "onsetLossPercent",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "minimumConsecutiveWindows",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutDurabilityReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/devices": {
       "get": {
         "tags": [
@@ -894,6 +1000,58 @@
           "PhoneBridge"
         ],
         "description": "Tipo di agente che invia dati al server."
+      },
+      "DurabilityProfile": {
+        "required": [
+          "baselineStart",
+          "baselineEfficiency",
+          "lossPercent",
+          "onset",
+          "onsetConfirmedAt",
+          "lossPercentagePointsPerHour",
+          "medianAbsoluteResidualPercentagePoints"
+        ],
+        "type": "object",
+        "properties": {
+          "baselineStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "baselineEfficiency": {
+            "type": "number",
+            "format": "double"
+          },
+          "lossPercent": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "onset": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "onsetConfirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lossPercentagePointsPerHour": {
+            "type": "number",
+            "format": "double"
+          },
+          "medianAbsoluteResidualPercentagePoints": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "Profilo descrittivo del deterioramento, con onset e trend sullo stesso protocollo di finestre."
       },
       "HttpValidationProblemDetails": {
         "type": "object",
@@ -1677,6 +1835,154 @@
           }
         },
         "description": "Dettaglio: riepilogo più l'elenco delle serie disponibili."
+      },
+      "WorkoutDurabilityProtocol": {
+        "required": [
+          "metric",
+          "startOffsetSeconds",
+          "windowSeconds",
+          "windowCount",
+          "minimumCoverage",
+          "onsetLossPercent",
+          "minimumConsecutiveWindows"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "$ref": "#/components/schemas/SeriesMetric"
+          },
+          "startOffsetSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "windowSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "windowCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minimumCoverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "onsetLossPercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "minimumConsecutiveWindows": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "WorkoutDurabilityReport": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "source",
+          "asOf",
+          "methodVersion",
+          "windowMethodVersion",
+          "maxGapSeconds",
+          "protocol",
+          "status",
+          "windows",
+          "profile"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "windowMethodVersion": {
+            "type": "string"
+          },
+          "maxGapSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "protocol": {
+            "$ref": "#/components/schemas/WorkoutDurabilityProtocol"
+          },
+          "status": {
+            "type": "string"
+          },
+          "windows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkoutDurabilityWindow"
+            }
+          },
+          "profile": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DurabilityProfile"
+              }
+            ]
+          }
+        }
+      },
+      "WorkoutDurabilityWindow": {
+        "required": [
+          "offsetSeconds",
+          "pairedSeconds",
+          "coverage",
+          "meanExternalLoad",
+          "meanHeartRateBpm"
+        ],
+        "type": "object",
+        "properties": {
+          "offsetSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pairedSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "coverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "meanExternalLoad": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "meanHeartRateBpm": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
       },
       "WorkoutList": {
         "required": [
