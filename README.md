@@ -2,7 +2,9 @@
 
 Assistente personale per allenamenti e forma fisica: raccoglie peso e allenamenti e confronta il lavoro svolto con quello programmato. La prima applicazione è il percorso Roma–Ostia e Berlino; le entità del prodotto restano indipendenti dalle gare.
 
-**Stato (14 novembre 2026):** primo incremento unito in main. Backend, cruscotto web, pipeline e script di installazione sono testati in CI su uno stack reale; l'installazione sul server di casa non è ancora stata validata. **Non implementato:** agente Bluetooth della bilancia (prossime fasi, sotto). La sincronizzazione Android → server è implementata e in prova sul telefono. Sorgenti: [littlefly1969/moscorun](https://github.com/littlefly1969/moscorun); SDK Samsung, firma e APK ufficiale restano in un repository privato separato ([docs/github.md](docs/github.md)).
+**Stato (26 novembre 2026):** backend, cruscotto web, app Android e script di installazione sono rilasciati in continuo (GitHub Releases e GHCR) e testati in CI su uno stack reale. **Non implementato:** agente Bluetooth della bilancia (prossime fasi, sotto). Ogni installazione è self-hosted e personale: un server per atleta, configurato solo da `.env`.
+
+Questo repository contiene tutti i sorgenti. L'SDK Samsung (non ridistribuibile), le chiavi di firma e l'APK ufficiale stanno in un repository privato separato: vedi [docs/github.md](docs/github.md).
 
 ## App Android — MoscoRun
 
@@ -24,15 +26,14 @@ Assistente personale per allenamenti e forma fisica: raccoglie peso e allenament
 | Fase | Contenuto | Prerequisiti |
 | --- | --- | --- |
 | Agente bilancia ([#3](https://github.com/littlefly1969/moscorun/issues/3)) | Raccolta di pacchetti BLE reali e decodifica; coda persistente su disco; invio con retry e backoff; idempotenza per `sourceEventId`; deduplicazione; gestione di correzioni e cancellazioni; token del dispositivo | Bluetooth del server (BlueZ) |
-| Sincronizzazione Android ([#4](https://github.com/littlefly1969/moscorun/issues/4)) | Lettura incrementale da Health Connect (token di modifica); coda locale; retry; idempotenza; gestione di cancellazioni e modifiche a posteriori | Galaxy Watch5 Pro con Samsung Health Data SDK, prova del prototipo sul telefono |
-| Installazione reale | Validazione sul server (vedi [deploy-linux.md](docs/deploy-linux.md)), poi attivazione del timer | Inventario del server |
+| Aggiornamento automatico | Attivazione del timer dopo la [validazione su un nuovo server](docs/deploy-linux.md#validazione-su-un-nuovo-server) | Inventario del server |
 
-I test di questa versione non coprono le due fasi non implementate.
+I test di questa versione non coprono le fasi non implementate.
 
 ## Percorso dei dati
 
 - Bilancia Xiaomi → Bluetooth del server → agente di acquisizione → `POST /api/v1/ingest/weighings` (token del dispositivo).
-- Galaxy Watch → Samsung Health → Health Connect → app Android → API autenticata.
+- Smartwatch Galaxy → Samsung Health → Samsung Health Data SDK (predefinito) oppure Health Connect → app Android → API autenticata.
 - Archivio PostgreSQL → cruscotto React servito dalla stessa applicazione.
 
 Il server legge direttamente la bilancia. Home Assistant non fa parte del percorso dati.
@@ -53,3 +54,11 @@ Il server legge direttamente la bilancia. Home Assistant non fa parte del percor
 ## Dati personali e segreti
 
 Il repository contiene codice e documentazione. Pesate, esportazioni Samsung, database, tracciati e credenziali restano fuori da Git. I segreti di esercizio (password PostgreSQL, amministratore) stanno solo nel file `.env` sul server con permessi `600`; nei GitHub Secrets vanno solo le credenziali usate dalle pipeline. L'applicazione rifiuta di avviarsi con segreti mancanti o con valori segnaposto.
+
+## Licenza
+
+Software proprietario: tutti i diritti riservati, nessuna licenza open source. L'accesso pubblico al repository non concede di riprodurre, modificare o distribuire il codice oltre quanto consentito dalla legge e dai termini di GitHub. Le componenti di terze parti restano soggette alle proprie licenze. Testo completo in [LICENSE](LICENSE).
+
+## Segnalazioni di sicurezza
+
+Le vulnerabilità vanno segnalate in privato, non con issue pubbliche: vedi [SECURITY.md](SECURITY.md).

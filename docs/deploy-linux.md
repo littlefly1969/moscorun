@@ -1,6 +1,6 @@
 # Installazione e aggiornamento sul server Linux
 
-Procedura verificata automaticamente in CI su uno stack reale (installazione con questo script, E2E, scenari operativi: riavvio, reverse proxy, perdita del database, rollback su readiness, backup e ripristino con dati). **Non è ancora stata eseguita sul server reale**: restano da rilevare i dati dell'inventario in fondo e da ripetere le verifiche elencate in "Validazione sul server reale". Fino ad allora l'aggiornamento automatico resta spento.
+Procedura verificata automaticamente in CI su uno stack reale (installazione con questo script, E2E, scenari operativi: riavvio, reverse proxy, perdita del database, rollback su readiness, backup e ripristino con dati). Su ogni nuovo server vanno ripetute le verifiche di [Validazione su un nuovo server](#validazione-su-un-nuovo-server) prima di attivare l'aggiornamento automatico.
 
 ## Come funziona
 
@@ -18,9 +18,10 @@ sudo mkdir -p /opt/moscorun && cd /opt/moscorun
 cp .env.example .env && chmod 600 .env && nano .env
 sudo install -d -m 700 -o "$USER" -g "$USER" /var/backups/moscorun   # cartella dei backup (MOSCORUN_BACKUP_DIR)
 
-# Repository privato: login a GHCR con un token "classic" con il solo permesso read:packages,
-# incollato quando viene chiesta la password (non resta nella cronologia della shell)
-docker login ghcr.io -u littlefly1969
+# Solo se il pacchetto GHCR dell'immagine è privato: login con un token "classic" con il solo
+# permesso read:packages, incollato quando viene chiesta la password (non resta nella cronologia).
+# Con il pacchetto pubblico il login non serve.
+docker login ghcr.io -u <utente GitHub>
 
 # Solo con un PostgreSQL esistente: database e ruolo dedicati (vedi "Database")
 
@@ -153,7 +154,7 @@ Il rollback automatico riporta l'immagine precedente ma **non** lo schema. Per q
 
 ## Aggiornamento automatico
 
-**Da lasciare spento** finché aggiornamento, readiness, backup, ripristino e rollback non sono stati verificati sul server reale. Il timer può essere installato in anticipo: finché `MOSCORUN_AUTO_UPDATE` non vale `1` in `.env` non fa nulla (`./moscorun.sh auto-update` registra solo "aggiornamento automatico disabilitato").
+**Da lasciare spento** finché aggiornamento, readiness, backup, ripristino e rollback non sono stati verificati sul server (vedi [Validazione su un nuovo server](#validazione-su-un-nuovo-server)). Il timer può essere installato in anticipo: finché `MOSCORUN_AUTO_UPDATE` non vale `1` in `.env` non fa nulla (`./moscorun.sh auto-update` registra solo "aggiornamento automatico disabilitato").
 
 ```bash
 sudo cp systemd/moscorun-update.* /etc/systemd/system/
@@ -199,9 +200,9 @@ L'applicazione si rifiuta di partire se manca la stringa di connessione, se la p
 | Backup | Cartella `700`, file `600`, rotazione | Conservare **anche una copia di `.env`** in un luogo sicuro separato |
 | Token dei dispositivi | Solo SHA-256 nel database | Non recuperabili: si revoca e se ne genera uno nuovo |
 
-## Validazione sul server reale (da fare)
+## Validazione su un nuovo server
 
-La CI verifica lo script su un runner Ubuntu amd64 con PostgreSQL incluso. Sul server vanno ripetuti, prima di attivare il timer:
+La CI verifica lo script su un runner Ubuntu amd64 con PostgreSQL incluso. Su ogni nuovo server vanno ripetuti, prima di attivare il timer:
 
 1. Installazione da zero con la configurazione di database e proxy scelta (cookie `Secure`, IP reale nel registro accessi, altri siti di nginx invariati).
 2. `./moscorun.sh backup` e `restore` su un database di prova con dati.
@@ -215,13 +216,12 @@ La CI verifica lo script su un runner Ubuntu amd64 con PostgreSQL incluso. Sul s
 
 Per un'installazione nuova bastano: distribuzione e architettura, RAM e spazio, porte e siti già presenti nel proxy, eventuale PostgreSQL esistente e versione, Bluetooth LE (per l'agente bilancia). Non includere password o token: bastano le informazioni descrittive. Il modello della bilancia non serve, perché l'agente lo rileva da solo durante l'installazione (#3).
 
-Esempio di inventario compilato:
-- **Sistema e risorse:** Ubuntu 26.04.1 LTS, x86_64 a 16 thread, 30 GiB di RAM, Docker 29.1 con Compose 2.40.
-- **Proxy:** nginx 1.28 sulla porta 80, oggi dietro un Apache di frontiera.
-- **Applicazione già presente:** un'altra applicazione su 127.0.0.1:8080/8081, con il proprio PostgreSQL in container. Nessun PostgreSQL di sistema.
+Esempio di inventario compilato (valori di fantasia):
+- **Sistema e risorse:** Ubuntu LTS, x86_64 a 8 thread, 16 GiB di RAM, Docker con Compose v2.
+- **Proxy:** nginx sulla porta 80, dietro un proxy di frontiera che termina l'HTTPS.
+- **Applicazioni già presenti:** un'altra applicazione su `127.0.0.1:8080`, con il proprio PostgreSQL in container; nessun PostgreSQL di sistema.
 - **Scelte per MoscoRun:**
-  - `MOSCORUN_PORT=8085`, che è libera;
+  - `MOSCORUN_PORT` su una porta libera dell'host (es. `8090`);
   - database incluso;
-  - prima configurazione dietro la frontiera, poi TLS su nginx.
-- **Bluetooth:** adattatore Realtek USB presente ma controller non visibile a BlueZ (da sistemare con l'agente, #3).
-- **Frontiera:** Apache su un altro host della rete locale (es. `MOSCORUN_EDGE_PROXIES=192.0.2.10`) finché il TLS non passa a nginx.
+  - prima configurazione dietro la frontiera (`MOSCORUN_EDGE_PROXIES=192.0.2.10`, indirizzo di documentazione RFC 5737), poi TLS su nginx.
+- **Bluetooth:** adattatore USB presente; controller da verificare con `bluetoothctl list` (serve all'agente bilancia, #3).

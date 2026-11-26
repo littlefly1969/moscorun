@@ -43,6 +43,7 @@ Il rilascio non richiede permessi speciali per GitHub Actions né token personal
 
 1. **Code security:** attivare *Dependency graph*, *Dependabot alerts* e *Dependabot security updates*.
 2. **General → Pull Requests:** consentire solo *Squash merging* con titolo della PR come messaggio; attivare *Automatically delete head branches*.
+3. **Dopo il passaggio a pubblico:** in *Code security* attivare anche *Private vulnerability reporting* (il canale indicato in [SECURITY.md](../SECURITY.md)), *Secret scanning* e *Push protection*; i restanti passi sono nei gate di [hybrid-public-readiness.md](hybrid-public-readiness.md#gate-prima-della-pubblicazione).
 
 ## Flusso di rilascio
 
@@ -50,6 +51,6 @@ Il rilascio non richiede permessi speciali per GitHub Actions né token personal
 2. Terminata con successo la CI su main, il workflow **Release** calcola dai commit successivi all'ultimo tag se serve una versione nuova: `feat` → minor, `fix`/`perf`/`security`/`deps` → patch, modifica incompatibile → minor finché la major è 0. Commit di sola documentazione, CI, test o manutenzione non rilasciano.
 3. Verificata la CI verde sul commit esatto, crea tag `vX.Y.Z` e GitHub Release con le note divise per sezione, e pubblica `ghcr.io/littlefly1969/moscorun:X.Y.Z` (+ `X.Y`, `X`, `latest`) per amd64 e arm64.
 4. Se la pubblicazione dell'immagine fallisce, si rilancia a mano *Actions → Release → Run workflow* indicando il tag: il gate viene ripetuto e `latest` non si sposta.
-5. Il server la installa con `./moscorun.sh update` (il timer notturno resta spento fino alla validazione sul server reale).
+5. Il server la installa con `./moscorun.sh update` (il timer notturno resta spento finché il server non ha superato la validazione descritta in [deploy-linux.md](deploy-linux.md#validazione-su-un-nuovo-server)).
 
 Le regole di versione sono provate da `.github/scripts/release-plan.test.sh` nella CI (job *Segreti e script*).
