@@ -189,6 +189,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/science/adaptation": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetPersonalAdaptation"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/device": {
     parameters: {
       query?: never;
@@ -463,6 +479,52 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    AdaptationAssessment: {
+      /** Format: int32 */
+      count: number;
+      /** Format: double */
+      meanError: number;
+      /** Format: double */
+      meanAbsoluteError: number;
+      /** Format: double */
+      rootMeanSquaredError: number;
+    };
+    AdaptationModelSummary: {
+      parameters: components["schemas"]["FitnessFatigueParameters"];
+      initial: components["schemas"]["FitnessFatigueState"];
+      /** Format: double */
+      offset: number;
+      /** Format: double */
+      trainingRmse: number;
+      /** Format: int32 */
+      trainingCount: number;
+      /** Format: int32 */
+      candidateCount: number;
+      /** Format: double */
+      baselineMeanSpeed: number;
+    };
+    AdaptationTestEvidence: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      /** Format: int64 */
+      feedbackRevision: number;
+      /** Format: date-time */
+      startedAt: string;
+      /** Format: date-time */
+      endedAt: string;
+      /** Format: date-time */
+      availableAt: string;
+      role: string;
+      /** Format: double */
+      observedSpeedMetersPerSecond: number;
+      /** Format: double */
+      predictedSpeedMetersPerSecond: null | number;
+      /** Format: double */
+      baselineSpeedMetersPerSecond: null | number;
+    };
     AthleteFeedbackValue: {
       metric: string;
       unit: string;
@@ -755,6 +817,27 @@ export interface components {
       /** Format: double */
       medianAbsoluteResidualPercentagePoints: number;
     };
+    /** @description Costanti di decadimento in giorni e guadagni per unità del medesimo carico. */
+    FitnessFatigueParameters: {
+      /** Format: double */
+      fitnessTimeConstantDays: number;
+      /** Format: double */
+      fatigueTimeConstantDays: number;
+      /** Format: double */
+      fitnessGain: number;
+      /** Format: double */
+      fatigueGain: number;
+    };
+    FitnessFatigueState: {
+      /** Format: date */
+      date: string;
+      /** Format: double */
+      fitness: number;
+      /** Format: double */
+      fatigue: number;
+      /** Format: double */
+      netResponse: number;
+    };
     HrvSummary: {
       /** Format: int32 */
       intervalCount: number;
@@ -915,6 +998,29 @@ export interface components {
       start: null | string;
       /** Format: date-time */
       end: null | string;
+    };
+    PersonalAdaptationReport: {
+      methodVersion: string;
+      source: string;
+      loadMethodVersion: string;
+      /** Format: date */
+      firstDay: string;
+      /** Format: date */
+      splitDay: string;
+      /** Format: date */
+      untilDay: string;
+      /** Format: date-time */
+      asOf: string;
+      /** Format: double */
+      distanceMeters: number;
+      status: string;
+      loads: components["schemas"]["DailySessionLoadPoint"][];
+      tests: components["schemas"]["AdaptationTestEvidence"][];
+      model: null | components["schemas"]["AdaptationModelSummary"];
+      holdout: null | components["schemas"]["AdaptationAssessment"];
+      baselineHoldout: null | components["schemas"]["AdaptationAssessment"];
+      /** Format: double */
+      currentPredictedSpeedMetersPerSecond: null | number;
     };
     /** @description Intervallo calibrato empiricamente sui residui disponibili; copertura non garantita in serie dipendenti. */
     PredictionInterval: {
@@ -1878,6 +1984,41 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  GetPersonalAdaptation: {
+    parameters: {
+      query: {
+        source: string;
+        from: string;
+        split: string;
+        until: string;
+        distanceMeters: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PersonalAdaptationReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
       };
     };
   };

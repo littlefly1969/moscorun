@@ -557,6 +557,82 @@
         }
       }
     },
+    "/api/v1/science/adaptation": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetPersonalAdaptation",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "split",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "distanceMeters",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalAdaptationReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/device": {
       "get": {
         "tags": [
@@ -1370,6 +1446,139 @@
   },
   "components": {
     "schemas": {
+      "AdaptationAssessment": {
+        "required": [
+          "count",
+          "meanError",
+          "meanAbsoluteError",
+          "rootMeanSquaredError"
+        ],
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "meanError": {
+            "type": "number",
+            "format": "double"
+          },
+          "meanAbsoluteError": {
+            "type": "number",
+            "format": "double"
+          },
+          "rootMeanSquaredError": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "AdaptationModelSummary": {
+        "required": [
+          "parameters",
+          "initial",
+          "offset",
+          "trainingRmse",
+          "trainingCount",
+          "candidateCount",
+          "baselineMeanSpeed"
+        ],
+        "type": "object",
+        "properties": {
+          "parameters": {
+            "$ref": "#/components/schemas/FitnessFatigueParameters"
+          },
+          "initial": {
+            "$ref": "#/components/schemas/FitnessFatigueState"
+          },
+          "offset": {
+            "type": "number",
+            "format": "double"
+          },
+          "trainingRmse": {
+            "type": "number",
+            "format": "double"
+          },
+          "trainingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "candidateCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baselineMeanSpeed": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "AdaptationTestEvidence": {
+        "required": [
+          "workoutId",
+          "revision",
+          "contentSha256",
+          "feedbackRevision",
+          "startedAt",
+          "endedAt",
+          "availableAt",
+          "role",
+          "observedSpeedMetersPerSecond",
+          "predictedSpeedMetersPerSecond",
+          "baselineSpeedMetersPerSecond"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "contentSha256": {
+            "type": "string"
+          },
+          "feedbackRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "role": {
+            "type": "string"
+          },
+          "observedSpeedMetersPerSecond": {
+            "type": "number",
+            "format": "double"
+          },
+          "predictedSpeedMetersPerSecond": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "baselineSpeedMetersPerSecond": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "AthleteFeedbackValue": {
         "required": [
           "metric",
@@ -2245,6 +2454,61 @@
         },
         "description": "Profilo descrittivo del deterioramento, con onset e trend sullo stesso protocollo di finestre."
       },
+      "FitnessFatigueParameters": {
+        "required": [
+          "fitnessTimeConstantDays",
+          "fatigueTimeConstantDays",
+          "fitnessGain",
+          "fatigueGain"
+        ],
+        "type": "object",
+        "properties": {
+          "fitnessTimeConstantDays": {
+            "type": "number",
+            "format": "double"
+          },
+          "fatigueTimeConstantDays": {
+            "type": "number",
+            "format": "double"
+          },
+          "fitnessGain": {
+            "type": "number",
+            "format": "double"
+          },
+          "fatigueGain": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "Costanti di decadimento in giorni e guadagni per unità del medesimo carico."
+      },
+      "FitnessFatigueState": {
+        "required": [
+          "date",
+          "fitness",
+          "fatigue",
+          "netResponse"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "fitness": {
+            "type": "number",
+            "format": "double"
+          },
+          "fatigue": {
+            "type": "number",
+            "format": "double"
+          },
+          "netResponse": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "HrvSummary": {
         "required": [
           "intervalCount",
@@ -2731,6 +2995,109 @@
               "string"
             ],
             "format": "date-time"
+          }
+        }
+      },
+      "PersonalAdaptationReport": {
+        "required": [
+          "methodVersion",
+          "source",
+          "loadMethodVersion",
+          "firstDay",
+          "splitDay",
+          "untilDay",
+          "asOf",
+          "distanceMeters",
+          "status",
+          "loads",
+          "tests",
+          "model",
+          "holdout",
+          "baselineHoldout",
+          "currentPredictedSpeedMetersPerSecond"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "loadMethodVersion": {
+            "type": "string"
+          },
+          "firstDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "splitDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "untilDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "type": "string"
+          },
+          "loads": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailySessionLoadPoint"
+            }
+          },
+          "tests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdaptationTestEvidence"
+            }
+          },
+          "model": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AdaptationModelSummary"
+              }
+            ]
+          },
+          "holdout": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AdaptationAssessment"
+              }
+            ]
+          },
+          "baselineHoldout": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AdaptationAssessment"
+              }
+            ]
+          },
+          "currentPredictedSpeedMetersPerSecond": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
