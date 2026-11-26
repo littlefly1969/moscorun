@@ -5,6 +5,7 @@ import { api, unwrap, type Schemas, type WorkoutSummary } from "../../api/client
 import { formatDuration } from "../../lib/format";
 import { observedSamples, nearestSample, windowBounds } from "./series";
 import { WorkoutPicker } from "./WorkoutPicker";
+import { DailyTimeline } from "./DailyTimeline";
 
 const names: Record<string, string> = {
   HeartRate: "Frequenza cardiaca",
@@ -166,6 +167,7 @@ function Timeline({ workout }: { workout: WorkoutSummary }) {
 }
 
 export function ChronoscopePage() {
+  const [mode, setMode] = useState<"workout" | "daily">("workout");
   return (
     <>
       <header className="sw-head">
@@ -173,9 +175,21 @@ export function ChronoscopePage() {
         <h1>Cronoscopio</h1>
         <p>Una sola scala temporale, più tracce indipendenti. Esplora il supporto realmente acquisito.</p>
       </header>
-      <WorkoutPicker>
-        {(workout) => <Timeline key={`${workout.id}:${workout.revision}`} workout={workout} />}
-      </WorkoutPicker>
+      <div className="sw-controls">
+        <button type="button" aria-pressed={mode === "workout"} onClick={() => { setMode("workout"); }}>
+          Seduta
+        </button>
+        <button type="button" aria-pressed={mode === "daily"} onClick={() => { setMode("daily"); }}>
+          Storico giornaliero
+        </button>
+      </div>
+      {mode === "daily" ? (
+        <DailyTimeline />
+      ) : (
+        <WorkoutPicker>
+          {(workout) => <Timeline key={`${workout.id}:${workout.revision}`} workout={workout} />}
+        </WorkoutPicker>
+      )}
     </>
   );
 }

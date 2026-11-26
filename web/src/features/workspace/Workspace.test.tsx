@@ -164,4 +164,29 @@ describe("ambiente scientifico", () => {
     const map = screen.getByRole("img", { name: "Mappa delle associazioni statistiche disponibili" });
     expect(within(map).getByText("r = 0,3")).toBeInTheDocument();
   });
+  it("sincronizza i giorni UTC e non interpola i giorni mancanti", async () => {
+    server.use(
+      http.get("*/api/v1/science/daily", ({ request }) => {
+        const params = new URL(request.url).searchParams;
+        return HttpResponse.json({
+          metric: params.get("metric"),
+          source: params.get("source"),
+          unit: "bpm",
+          asOf: "2026-11-26T12:00:00Z",
+          methodVersion: "daily-observation-median-mad-v1",
+          current: { day: params.get("day"), status: "observed", value: 60, method: "Measured" },
+          history: [],
+        });
+      }),
+    );
+    renderApp("/cronoscopio");
+    await userEvent.click(await screen.findByRole("button", { name: "Storico giornaliero" }));
+    await userEvent.click(screen.getByRole("button", { name: "Carica tracce giornaliere" }));
+    const trace = await screen.findByRole("region", { name: "Frequenza cardiaca a riposo" });
+    expect(trace).toHaveTextContent("60");
+    fireEvent.change(screen.getByRole("slider"), { target: { value: "0" } });
+    expect(trace).toHaveTextContent("Non osservato nel giorno");
+    await userEvent.click(screen.getByRole("button", { name: /^Seduta$/ }));
+    expect(await screen.findByLabelText("Seduta di riferimento")).toBeInTheDocument();
+  });
 });

@@ -9,7 +9,8 @@ cruscotto Forma resta disponibile in /forma. Nessuna modifica a schema, motori, 
   locali alla vista, dettaglio, interrogazione esplicita delle 14 metriche del motore daily e dei valori
   del diario giornaliero, mantenendo separate le fonti.
 - Cronoscopio: archivio sedute paginato, serie reali dal contratto workout/series, scala temporale comune,
-  zoom di finestra e campione più vicino entro 5 s, senza interpolazione o imputazione.
+  zoom di finestra e campione più vicino entro 5 s, senza interpolazione o imputazione. Modalità
+  longitudinale giornaliera con metriche a scelta, cursore UTC esatto e scala comune.
 - Laboratorio: accesso ai pannelli di protocollo esistenti, incluso Research Lab, carico, RR, sonno,
   feedback/nutrizione e analisi della seduta.
 - Simulatore: pannelli esistenti per pacing, previsione gara, adattamento e Digital Twin.
