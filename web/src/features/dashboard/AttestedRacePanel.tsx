@@ -16,7 +16,9 @@ const format = (value: number | null) => (value == null ? "—" : number.format(
 function Report({ report }: { report: Schemas["AttestedRaceReport"] }) {
   return (
     <>
-      <p className="muted">{report.methodVersion} · {report.protocol}</p>
+      <p className="muted">
+        {report.methodVersion} · {report.protocol}
+      </p>
       <dl>
         <dt>Tempo previsto (s)</dt>
         <dd>{format(report.prediction?.predictedSeconds ?? null)}</dd>
@@ -31,7 +33,7 @@ function Report({ report }: { report: Schemas["AttestedRaceReport"] }) {
       </dl>
       {!report.model && <p>Prove massimali disponibili al cutoff insufficienti.</p>}
       {report.model && !report.prediction && <p>Distanza fuori dal supporto del modello.</p>}
-      {report.prediction && !report.interval && <p>Calibrazione temporale insufficiente per un intervallo.</p>}
+      {report.prediction && !report.interval && <p>Intervallo non calibrabile.</p>}
       {report.interval && <p>Intervallo empirico nominale 80%, copertura non garantita.</p>}
       <div className="table-scroll">
         <table>
@@ -63,7 +65,8 @@ function Report({ report }: { report: Schemas["AttestedRaceReport"] }) {
 
 export function AttestedRacePanel() {
   const analysis = useMutation({
-    mutationFn: (query: Protocol) => unwrap(api.GET("/api/v1/science/race-calibration", { params: { query } })),
+    mutationFn: (query: Protocol) =>
+      unwrap(api.GET("/api/v1/science/race-calibration", { params: { query } })),
   });
   const submit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
