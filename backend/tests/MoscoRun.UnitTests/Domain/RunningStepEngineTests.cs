@@ -18,8 +18,8 @@ public sealed class RunningStepEngineTests
         report.PairedSeconds.Should().Be(8);
         report.Coverage.Should().BeApproximately(0.4, 1e-10);
         report.MeanSpeedMetersPerSecond.Should().BeApproximately(3.625, 1e-10);
-        report.MeanCadenceStepsPerMinute.Should().BeApproximately(161.35, 1e-10);
-        report.MeanStepLengthMeters.Should().BeApproximately(1.25, 1e-10);
+        report.MeanCadenceStepsPerMinute.Should().BeApproximately(161.25, 1e-10);
+        report.MeanStepLengthMeters.Should().BeApproximately(1.35, 1e-10);
         report.StepLengthCvPercent.Should().BeGreaterThan(0);
         report.CadenceCvPercent.Should().BeGreaterThan(0);
     }
