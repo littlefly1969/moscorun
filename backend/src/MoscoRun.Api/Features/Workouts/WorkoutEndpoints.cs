@@ -57,6 +57,9 @@ internal static class WorkoutEndpoints
         workouts.MapGet("/{id:guid}/science", WorkoutScienceEndpoints.GetAsync)
             .RequireAuthorization(Policies.User)
             .WithName("GetWorkoutScience");
+        workouts.MapGet("/{id:guid}/science/durability", WorkoutScienceEndpoints.GetDurabilityAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("GetWorkoutDurability");
 
         return v1;
     }
