@@ -22,11 +22,8 @@ function Results({ report }: { report: Schemas["WorkoutIntensityReport"] }) {
       <p className="muted">
         Revisione {report.revision} · {report.methodVersion} · gap massimo {report.maxGapSeconds} s.
       </p>
-      <p>
-        Copertura temporale: {percent.format(d.coverage)}
-      </p>
-      <p>Minuti senza supporto: {number.format(d.missingMinutes)}.
-      </p>
+      <p>Copertura temporale: {percent.format(d.coverage)}</p>
+      <p>Minuti senza supporto: {number.format(d.missingMinutes)}.</p>
       <dl>
         <dt>Media osservata ({report.unit})</dt>
         <dd>{format(report.observedMean)}</dd>
