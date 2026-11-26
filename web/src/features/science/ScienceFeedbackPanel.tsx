@@ -142,7 +142,9 @@ export function ScienceFeedbackPanel({
       )}
       {feedback.isPending && <p role="status">Caricamento feedback…</p>}
       {feedback.isError && <p role="alert">Feedback non disponibile.</p>}
-      {feedback.data?.status === "ambiguous" && <p role="alert">Revisioni ambigue: modifica non consentita.</p>}
+      {feedback.data?.status === "ambiguous" && (
+        <p role="alert">Revisioni ambigue: modifica non consentita.</p>
+      )}
       {feedback.data && feedback.data.status !== "ambiguous" && (
         <FeedbackForm
           key={`${workoutId ?? day}:${feedback.data.workoutRevision}:${feedback.data.revision}`}
