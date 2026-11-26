@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState, type SubmitEvent } from "react";
 import { api, unwrap, type Schemas } from "../../api/client";
+import { ScienceSourceField } from "../science/ScienceSourceField";
 
 const labels = {
   restingHeartRate: "Frequenza cardiaca a riposo",
@@ -120,10 +121,7 @@ export function DailySciencePanel() {
             ))}
           </select>
         </label>
-        <label>
-          Sorgente scientifica
-          <input name="source" defaultValue="samsung-health" maxLength={200} required />
-        </label>
+        <ScienceSourceField label="Sorgente scientifica" />
         <label>
           Giorno UTC
           <input name="day" type="date" max={yesterday} defaultValue={yesterday} required />

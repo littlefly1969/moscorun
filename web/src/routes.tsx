@@ -6,6 +6,11 @@ import { DashboardPage } from "./features/dashboard/DashboardPage";
 import { DevicesPage } from "./features/devices/DevicesPage";
 import { WorkoutDetailPage } from "./features/workouts/WorkoutDetailPage";
 import { WorkoutsPage } from "./features/workouts/WorkoutsPage";
+import { WorkspaceLayout } from "./features/workspace/WorkspaceLayout";
+import { AtlasPage } from "./features/workspace/AtlasPage";
+import { ChronoscopePage } from "./features/workspace/ChronoscopePage";
+import { EvidencePage, LaboratoryPage } from "./features/workspace/LaboratoryPage";
+import { SimulatorPage } from "./features/workspace/SimulatorPage";
 
 export const routes: RouteObject[] = [
   { path: "/accesso", element: <LoginPage /> },
@@ -16,7 +21,17 @@ export const routes: RouteObject[] = [
       </RequireAuth>
     ),
     children: [
-      { index: true, element: <DashboardPage /> },
+      {
+        element: <WorkspaceLayout />,
+        children: [
+          { index: true, element: <AtlasPage /> },
+          { path: "cronoscopio", element: <ChronoscopePage /> },
+          { path: "laboratorio", element: <LaboratoryPage /> },
+          { path: "simulatore", element: <SimulatorPage /> },
+          { path: "evidenze", element: <EvidencePage /> },
+        ],
+      },
+      { path: "forma", element: <DashboardPage /> },
       { path: "allenamenti", element: <WorkoutsPage /> },
       { path: "allenamenti/:id", element: <WorkoutDetailPage /> },
       { path: "dispositivi", element: <DevicesPage /> },

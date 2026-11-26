@@ -37,7 +37,7 @@ describe("associazione sonno e prestazione", () => {
         });
       }),
     );
-    renderApp("/");
+    renderApp("/forma");
     const panel = await screen.findByRole("region", { name: "Sonno e prestazione" });
     await userEvent.type(within(panel).getByLabelText("Sorgente prove sonno"), "samsung-health");
     await userEvent.type(within(panel).getByLabelText("Ultimo giorno prove UTC"), "2026-11-25");

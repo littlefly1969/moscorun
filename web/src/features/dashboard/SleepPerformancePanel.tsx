@@ -13,9 +13,65 @@ interface Protocol {
 const number = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 3 });
 const format = (value: number | null) => (value == null ? "—" : number.format(value));
 
-function Results({ report }: { report: Schemas["SleepPerformanceReport"] }) {
+function EvidenceMap({ report }: { report: Schemas["SleepPerformanceReport"] }) {
+  const valid = report.status === "descriptive-association" && report.pairedTests >= 7;
+  const hoursValue = report.sleepHoursCorrelation;
+  const efficiencyValue = report.sleepEfficiencyCorrelation;
+  const hours = valid && hoursValue != null && Number.isFinite(hoursValue);
+  const efficiency = valid && efficiencyValue != null && Number.isFinite(efficiencyValue);
+  return (
+    <figure className="sw-figure">
+      <svg viewBox="0 0 620 220" role="img" aria-label="Mappa delle associazioni statistiche disponibili">
+        {hours && <path d="M210 54L410 110" stroke="currentColor" strokeWidth="2" strokeDasharray="5 4" />}
+        {efficiency && (
+          <path d="M210 166L410 110" stroke="currentColor" strokeWidth="2" strokeDasharray="5 4" />
+        )}
+        <g fill="none" stroke="currentColor">
+          <rect x="12" y="24" width="198" height="60" rx="3" />
+          <rect x="12" y="136" width="198" height="60" rx="3" />
+          <rect x="410" y="80" width="198" height="60" rx="3" />
+        </g>
+        <g fill="currentColor" textAnchor="middle" fontSize="14">
+          <text x="111" y="58">
+            Durata del sonno
+          </text>
+          <text x="111" y="170">
+            Efficienza del sonno
+          </text>
+          <text x="509" y="114">
+            Velocità nelle prove
+          </text>
+          {hours && (
+            <text x="310" y="72">
+              r = {format(report.sleepHoursCorrelation)}
+            </text>
+          )}
+          {efficiency && (
+            <text x="310" y="156">
+              r = {format(report.sleepEfficiencyCorrelation)}
+            </text>
+          )}
+        </g>
+      </svg>
+      <figcaption>
+        {hours || efficiency
+          ? "Associazioni descrittive restituite dal server; linee senza direzione causale."
+          : "Nessun collegamento calcolabile per il protocollo selezionato."}
+      </figcaption>
+      <p>
+        Metodo: {report.methodVersion} · sorgente: {report.source} · cutoff: {report.asOf}
+      </p>
+      <p>Finestra: {report.windowDays} giorni</p>
+      <p>Lag UTC: {report.lagDays} giorni</p>
+      <p>Distanza: {report.distanceMeters} m</p>
+    </figure>
+  );
+}
+
+function Results({ report, showMap }: { report: Schemas["SleepPerformanceReport"]; showMap: boolean }) {
   return (
     <>
+      {showMap && <EvidenceMap report={report} />}
       <p>Stato: {report.status}</p>
       <p>
         Prove accoppiate: {report.pairedTests}/{report.evidence.length}
@@ -55,7 +111,7 @@ function Results({ report }: { report: Schemas["SleepPerformanceReport"] }) {
   );
 }
 
-export function SleepPerformancePanel() {
+export function SleepPerformancePanel({ showMap = false }: { showMap?: boolean }) {
   const analysis = useMutation({
     mutationFn: (query: Protocol) =>
       unwrap(api.GET("/api/v1/science/sleep-performance", { params: { query } })),
@@ -106,7 +162,8 @@ export function SleepPerformancePanel() {
       </form>
       {analysis.isPending && <p role="status">Analisi in corso…</p>}
       {analysis.isError && <p role="alert">Confronto non disponibile.</p>}
-      {analysis.data && <Results report={analysis.data} />}
+      {showMap && !analysis.data && <p>Nessuna relazione calcolata in questa sessione.</p>}
+      {analysis.data && <Results report={analysis.data} showMap={showMap} />}
     </section>
   );
 }

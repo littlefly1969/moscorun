@@ -40,7 +40,7 @@ describe("scenario pacing", () => {
         });
       }),
     );
-    renderApp("/");
+    renderApp("/forma");
     const panel = await screen.findByRole("region", { name: "Scenario pacing" });
     await userEvent.type(
       within(panel).getByLabelText("Segmenti: metri;costo relativo (uno per riga)"),

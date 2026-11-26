@@ -36,7 +36,7 @@ describe("research lab personale", () => {
         });
       }),
     );
-    renderApp("/");
+    renderApp("/forma");
     const panel = await screen.findByRole("region", { name: "Research Lab N-of-1" });
     await userEvent.type(within(panel).getByLabelText("Sorgente prove ricerca"), "samsung-health");
     await userEvent.type(within(panel).getByLabelText("Inizio storico ricerca UTC"), "2026-01-01");

@@ -10,7 +10,7 @@ async function login(page: Page) {
   await page.getByLabel("Email").fill(adminEmail);
   await page.getByLabel("Password").fill(adminPassword);
   await page.getByRole("button", { name: "Accedi" }).click();
-  await expect(page.getByRole("heading", { name: "Forma" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Atlante delle metriche" })).toBeVisible();
 }
 
 async function expectNoA11yViolations(page: Page) {
@@ -29,6 +29,22 @@ test("la pagina di accesso è accessibile e rifiuta credenziali errate", async (
   await page.getByLabel("Password").fill("password-sbagliata");
   await page.getByRole("button", { name: "Accedi" }).click();
   await expect(page.getByRole("alert")).toHaveText("Email o password non corrette.");
+});
+
+test("atlante scientifico: ricerca, navigazione e accessibilità", async ({ page }) => {
+  await login(page);
+  await page.getByLabel("Cerca metrica").fill("groundContactTime");
+  await expect(page.getByRole("button", { name: "Tempo di contatto a terra", exact: true })).toBeVisible();
+  await expectNoA11yViolations(page);
+  const overflow = await page.evaluate<number>(
+    "document.documentElement.scrollWidth - document.documentElement.clientWidth",
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+  await page
+    .getByRole("navigation", { name: "Ambiente scientifico" })
+    .getByRole("link", { name: /Cronoscopio/ })
+    .click();
+  await expect(page.getByRole("heading", { name: "Cronoscopio" })).toBeVisible();
 });
 
 test("percorso completo: dispositivo, pesata dall'agente, cruscotto", async ({ page, request }, testInfo) => {
