@@ -64,8 +64,14 @@ public static class WorkoutCardiacRecoveryEngine
         DateTimeOffset workoutEnd, double? initial, int offset)
     {
         var target = end.AddSeconds(offset);
-        var (time, value) = At(samples, target, workoutEnd) is { } sample
-            ? ((DateTimeOffset?)sample.Time, sample.Value) : (null, null);
+        DateTimeOffset? time = null;
+        double? value = null;
+        if (At(samples, target, workoutEnd) is { } sample)
+        {
+            time = sample.Time;
+            value = sample.Value;
+        }
+
         var drop = offset > 0 && initial is { } start && value is { } bpm
             ? CardiacDynamics.HeartRateRecovery(start, bpm) : null;
         return new CardiacRecoveryPoint(offset, target, time, value, drop);
