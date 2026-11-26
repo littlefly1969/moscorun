@@ -48,7 +48,11 @@ function Report({ report }: { report: Schemas["DailyMetricReport"] }) {
         <dt>Mediana personale</dt>
         <dd>{format(baseline?.baselineMedian ?? null, report.unit)}</dd>
         <dt>Giorni validi nella baseline</dt>
-        <dd>{baseline?.baselineCount ?? 0}</dd>
+        <dd>
+          {report.current.status === "observed"
+            ? report.history.filter((point) => point.status === "observed").length
+            : "—"}
+        </dd>
         <dt>Deviazione robusta (z)</dt>
         <dd>{format(baseline?.robustZScore ?? null)}</dd>
         <dt>Variazione relativa alla mediana</dt>
