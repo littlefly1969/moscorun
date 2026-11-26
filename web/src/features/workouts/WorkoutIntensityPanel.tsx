@@ -76,20 +76,21 @@ export function WorkoutIntensityPanel({ workoutId }: { workoutId: string }) {
     const form = new FormData(event.currentTarget);
     const metric = form.get("metric");
     const thresholds = form.get("thresholds");
-    if (
-      (metric !== "HeartRate" && metric !== "Speed" && metric !== "Power") ||
-      typeof thresholds !== "string"
-    ) {
+    if ((metric !== "HeartRate" && metric !== "Speed" && metric !== "Power") || typeof thresholds !== "string") {
       return;
     }
-    analysis.mutate({
-      metric,
-      thresholds,
-      restingBpm: optional(form, "resting"),
-      maximumBpm: optional(form, "maximum"),
-      trimpA: optional(form, "a"),
-      trimpB: optional(form, "b"),
-    });
+    const query: Protocol = { metric, thresholds };
+    const fields = [
+      ["restingBpm", "resting"],
+      ["maximumBpm", "maximum"],
+      ["trimpA", "a"],
+      ["trimpB", "b"],
+    ] as const;
+    for (const [key, name] of fields) {
+      const value = optional(form, name);
+      if (value != null) query[key] = value;
+    }
+    analysis.mutate(query);
   };
 
   return (
