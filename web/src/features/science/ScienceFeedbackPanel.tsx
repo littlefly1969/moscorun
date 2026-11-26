@@ -25,9 +25,57 @@ const labels: Record<string, string> = {
   sodiumIntake: "Sodio",
   caffeineIntake: "Caffeina",
   trainingDayComplete: "Diario allenamenti completo (1 sì, 0 no; dopo chiusura UTC)",
+  nutritionDiaryComplete: "Totali nutrizionali completi (1 sì, 0 no)",
+  restingEnergyExpenditure: "Dispendio a riposo dichiarato",
+  thermicEffectOfFood: "Termogenesi alimentare",
+  nonExerciseEnergyExpenditureNet: "Attività non sportiva netta",
+  exerciseEnergyExpenditureNet: "Esercizio netto",
+  fatFreeMass: "Massa magra dichiarata del giorno",
+  preExerciseWeight: "Peso prima della seduta",
+  postExerciseWeight: "Peso dopo la seduta",
+  exerciseUrineVolume: "Urina durante la seduta",
+  sweatProtocolConfirmed: "Bilancio di massa controllato (1 sì, 0 no)",
 };
 
 const number = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 2 });
+
+function NutritionSummary({
+  report,
+  session,
+}: {
+  report: Schemas["NutritionFeedbackReport"];
+  session: boolean;
+}) {
+  const display = (value: number | null) => (value == null ? "—" : number.format(value));
+  return (
+    <section aria-label="Analisi nutrizionale">
+      <h3>Contabilità nutrizionale dichiarata</h3>
+      <p>{report.diaryComplete ? "Diario completo dichiarato" : "Diario non confermato completo"}</p>
+      <p>Stime descrittive, non obiettivi dietetici o diagnosi.</p>
+      {session ? (
+        <dl>
+          <dt>Carboidrati (g/h)</dt>
+          <dd>{display(report.carbohydrateGramsPerHour)}</dd>
+          <dt>Liquidi (mL/h)</dt>
+          <dd>{display(report.fluidMillilitersPerHour)}</dd>
+          <dt>Sodio (mg/h)</dt>
+          <dd>{display(report.sodiumMilligramsPerHour)}</dd>
+          <dt>Sudorazione stimata (L/h)</dt>
+          <dd>{display(report.estimatedSweatLitersPerHour)}</dd>
+        </dl>
+      ) : (
+        <dl>
+          <dt>Dispendio totale (kcal)</dt>
+          <dd>{display(report.totalExpenditureKcal)}</dd>
+          <dt>Bilancio energetico (kcal)</dt>
+          <dd>{display(report.energyBalanceKcal)}</dd>
+          <dt>Disponibilità energetica (kcal/kg massa magra)</dt>
+          <dd>{display(report.energyAvailabilityKcalPerKg)}</dd>
+        </dl>
+      )}
+    </section>
+  );
+}
 
 function FeedbackForm({
   report,
@@ -73,6 +121,7 @@ function FeedbackForm({
           {report.sessionRpeLoad != null && "UA"} · durata attiva × RPE, senza imputazione delle pause.
         </p>
       )}
+      {report.nutrition && <NutritionSummary report={report.nutrition} session={report.workoutId != null} />}
       <form className="inline-form" onSubmit={submit}>
         {report.values.map(({ metric, unit, value }) => (
           <label key={metric}>
@@ -82,7 +131,7 @@ function FeedbackForm({
               type="number"
               min={0}
               max={unit === "1" ? 1 : unit === "0-10" ? 10 : unit === "s" ? 86400 : undefined}
-              step={metric === "trainingDayComplete" ? 1 : "any"}
+              step={unit === "1" ? 1 : "any"}
               defaultValue={value ?? ""}
             />
           </label>

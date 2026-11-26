@@ -1974,6 +1974,93 @@
           }
         }
       },
+      "NutritionFeedbackReport": {
+        "required": [
+          "methodVersion",
+          "source",
+          "status",
+          "diaryComplete",
+          "durationHours",
+          "totalExpenditureKcal",
+          "energyBalanceKcal",
+          "energyAvailabilityKcalPerKg",
+          "carbohydrateGramsPerHour",
+          "fluidMillilitersPerHour",
+          "sodiumMilligramsPerHour",
+          "estimatedSweatLitersPerHour"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "diaryComplete": {
+            "type": "boolean"
+          },
+          "durationHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "totalExpenditureKcal": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "energyBalanceKcal": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "energyAvailabilityKcalPerKg": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "carbohydrateGramsPerHour": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "fluidMillilitersPerHour": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "sodiumMilligramsPerHour": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "estimatedSweatLitersPerHour": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "ObservedPerformanceCurve": {
         "required": [
           "metric",
@@ -2366,7 +2453,8 @@
           "status",
           "activeDurationSeconds",
           "sessionRpeLoad",
-          "sessionLoadMethodVersion"
+          "sessionLoadMethodVersion",
+          "nutrition"
         ],
         "type": "object",
         "properties": {
@@ -2436,6 +2524,9 @@
           },
           "sessionLoadMethodVersion": {
             "type": "string"
+          },
+          "nutrition": {
+            "$ref": "#/components/schemas/NutritionFeedbackReport"
           }
         }
       },

@@ -725,6 +725,28 @@ export interface components {
       /** @description Chiave per il browser, presente solo con Google. */
       googleApiKey: null | string;
     };
+    NutritionFeedbackReport: {
+      methodVersion: string;
+      source: string;
+      status: string;
+      diaryComplete: boolean;
+      /** Format: double */
+      durationHours: null | number;
+      /** Format: double */
+      totalExpenditureKcal: null | number;
+      /** Format: double */
+      energyBalanceKcal: null | number;
+      /** Format: double */
+      energyAvailabilityKcalPerKg: null | number;
+      /** Format: double */
+      carbohydrateGramsPerHour: null | number;
+      /** Format: double */
+      fluidMillilitersPerHour: null | number;
+      /** Format: double */
+      sodiumMilligramsPerHour: null | number;
+      /** Format: double */
+      estimatedSweatLitersPerHour: null | number;
+    };
     ObservedPerformanceCurve: {
       metric: components["schemas"]["SeriesMetric"];
       unit: string;
@@ -871,6 +893,7 @@ export interface components {
       /** Format: double */
       sessionRpeLoad: null | number;
       sessionLoadMethodVersion: string;
+      nutrition: components["schemas"]["NutritionFeedbackReport"];
     };
     ScienceFeedbackRequest: {
       /** Format: date */
