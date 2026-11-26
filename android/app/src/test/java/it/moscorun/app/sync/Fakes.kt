@@ -6,6 +6,8 @@ import it.moscorun.app.model.MetricSeries
 import it.moscorun.app.model.Provider
 import it.moscorun.app.model.SourceWorkout
 import it.moscorun.app.model.TrackPoint
+import it.moscorun.app.science.ScienceServer
+import it.moscorun.app.science.ScienceUploadResult
 import it.moscorun.app.server.DeviceIdentity
 import it.moscorun.app.server.Failure
 import it.moscorun.app.server.ReadResult
@@ -70,7 +72,13 @@ internal class FakeServer : ServerApi {
     val storedIds: List<String> get() = stored.keys.map { it.second }
     fun revisionOf(sourceId: String): Long? = stored.entries.firstOrNull { it.key.second == sourceId }?.value?.revision
 
+    /** Answers the scientific observations; null behaves as a server without that endpoint. */
+    var science: ScienceServer? = null
+
     override fun identity() = identity
+
+    override fun postObservations(json: String): ScienceUploadResult =
+        science?.postObservations(json) ?: super.postObservations(json)
 
     override fun upload(json: String): UploadResult {
         val body = JsonParser.parseString(json).asJsonObject

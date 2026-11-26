@@ -3,6 +3,10 @@ package it.moscorun.app.sync
 import android.content.Context
 import android.content.SharedPreferences
 import it.moscorun.app.model.Provider
+import it.moscorun.app.science.ScienceReader
+import it.moscorun.app.science.ScienceState
+import it.moscorun.app.science.ScienceStateStore
+import it.moscorun.app.science.ScienceSync
 import it.moscorun.app.server.DeviceIdentity
 import it.moscorun.app.server.Failure
 import it.moscorun.app.server.ReadResult
@@ -12,6 +16,7 @@ import it.moscorun.app.settings.SecureSettings
 import it.moscorun.app.settings.SyncScope
 import it.moscorun.app.settings.TokenState
 import it.moscorun.app.source.WorkoutSource
+import java.time.Duration
 import java.time.Instant
 
 /**
@@ -51,6 +56,9 @@ class SyncRunner(
     private val legacy: LegacyLedger? = null,
     private val limits: SyncLimits = SyncLimits(),
     private val now: () -> Instant = Instant::now,
+    /** Daily scientific data, read after the workouts; null leaves the scientific part out. */
+    private val science: (() -> ScienceReader)? = null,
+    private val scienceStore: ScienceStateStore? = store as? ScienceStateStore,
 ) {
     /** State partition of the current configuration, or null when no server is configured. */
     fun scope(): String? = settings.serverUrl?.let { SyncScope.of(it, prefs.accountId) }
@@ -90,8 +98,32 @@ class SyncRunner(
         val scope = SyncScope.of(url, prefs.accountId)
         legacy?.importInto(store, scope, now())
 
-        val result = SyncEngine(source(prefs.provider), api, store, scope, SyncPlan(prefs.historyYears), limits, now, shouldStop, progress).run()
+        val started = now()
+        val workouts = SyncEngine(source(prefs.provider), api, store, scope, SyncPlan(prefs.historyYears), limits, now, shouldStop, progress).run()
+        val result = if (workouts.outcome == RunOutcome.COMPLETED) withScience(workouts, api, scope, started, shouldStop, progress) else workouts
         prefs.authBlocked = result.outcome == RunOutcome.AUTH_REQUIRED
+        return result
+    }
+
+    /**
+     * The scientific part runs only once the workouts are up to date, within what is left of the time budget:
+     * observations linked to a workout must never reach the server before it. Its problems never hide the
+     * workouts' result, except a refused token, which stops everything.
+     */
+    private suspend fun withScience(workouts: SyncResult, api: ServerApi, scope: String, started: Instant,
+        shouldStop: () -> Boolean, progress: (SyncProgress) -> Unit): SyncResult {
+        val reader = science?.invoke() ?: return workouts
+        val positions = scienceStore ?: return workouts
+        progress(SyncProgress("Invio dei dati scientifici", workouts.report))
+        val outcome = ScienceSync(reader, api, positions, scope, now = now,
+            shouldStop = { shouldStop() || Duration.between(started, now()).toMillis() >= limits.maxRunMillis }).run()
+        val message = listOf(workouts.message, outcome.describe()).joinToString(". ") { it.trimEnd('.', ' ') } + "."
+        val result = when (outcome.state) {
+            ScienceState.AUTH_REQUIRED -> SyncResult(RunOutcome.AUTH_REQUIRED, workouts.report, outcome.message)
+            ScienceState.MORE_WORK -> SyncResult(RunOutcome.MORE_WORK, workouts.report, message)
+            else -> workouts.copy(message = message)
+        }
+        if (result.message != workouts.message) store.saveStatus(scope, store.status(scope).copy(outcome = result.outcome, message = result.message))
         return result
     }
 

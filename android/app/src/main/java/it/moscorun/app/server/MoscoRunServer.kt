@@ -1,6 +1,9 @@
 package it.moscorun.app.server
 
 import com.google.gson.JsonParser
+import it.moscorun.app.science.ScienceOutcome
+import it.moscorun.app.science.ScienceServer
+import it.moscorun.app.science.ScienceUploadResult
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URI
@@ -17,7 +20,7 @@ interface SyncServer {
 }
 
 /** The server operations a run needs beyond uploading. */
-interface ServerApi : SyncServer {
+interface ServerApi : SyncServer, ScienceServer {
     /** Checks address and token without changing anything. Servers before this endpoint answer 404. */
     fun identity(): ReadResult<DeviceIdentity>
 }
@@ -29,8 +32,41 @@ class MoscoRunServer(baseUrl: String, private val token: String,
 
     init { require(validToken(token)) { "Token del dispositivo non valido." } }
 
-    override fun upload(json: String): UploadResult {
-        val connection = URI("$base/api/v1/ingest/workouts").toURL().openConnection() as HttpURLConnection
+    override fun upload(json: String): UploadResult = when (val answer = post("/api/v1/ingest/workouts", json)) {
+        is PostAnswer.Response -> when (answer.code) {
+            201 -> UploadResult(UploadOutcome.CREATED, serverId = storedId(answer.body))
+            200 -> UploadResult(UploadOutcome.STORED, serverId = storedId(answer.body))
+            409 -> UploadResult(UploadOutcome.CONFLICT, problemDetail(answer.body) ?: "Conflitto di revisione")
+            400 -> UploadResult(UploadOutcome.INVALID, problemDetail(answer.body) ?: "Contenuto non accettato")
+            413 -> UploadResult(UploadOutcome.TOO_LARGE, "Allenamento troppo grande per il server.")
+            401, 403 -> UploadResult(UploadOutcome.UNAUTHORIZED, UNAUTHORIZED_MESSAGE)
+            else -> UploadResult(UploadOutcome.RETRY, "Risposta HTTP ${answer.code}")
+        }
+        is PostAnswer.Failed -> UploadResult(UploadOutcome.RETRY, answer.message)
+    }
+
+    override fun postObservations(json: String): ScienceUploadResult = when (val answer = post("/api/v1/ingest/observations", json)) {
+        is PostAnswer.Response -> when (answer.code) {
+            200 -> ScienceUploadResult(ScienceOutcome.STORED, imported = importedCount(answer.body))
+            400, 413 -> ScienceUploadResult(ScienceOutcome.INVALID, problemDetail(answer.body) ?: "Contenuto non accettato")
+            409 -> ScienceUploadResult(ScienceOutcome.CONFLICT, problemDetail(answer.body) ?: "Conflitto di revisione")
+            401 -> ScienceUploadResult(ScienceOutcome.UNAUTHORIZED, UNAUTHORIZED_MESSAGE)
+            403 -> ScienceUploadResult(ScienceOutcome.UNAUTHORIZED, "Il token non permette l'invio dei dati scientifici: registrare il telefono come \"Telefono Android\".")
+            404 -> ScienceUploadResult(ScienceOutcome.UNSUPPORTED)
+            else -> ScienceUploadResult(ScienceOutcome.RETRY, "Risposta HTTP ${answer.code}")
+        }
+        is PostAnswer.Failed -> ScienceUploadResult(ScienceOutcome.RETRY, answer.message)
+    }
+
+    private sealed interface PostAnswer {
+        data class Response(val code: Int, val body: String?) : PostAnswer
+
+        data class Failed(val message: String) : PostAnswer
+    }
+
+    /** POST of a gzip-compressed JSON body; the answer is read whatever its status. */
+    private fun post(path: String, json: String): PostAnswer {
+        val connection = URI(base + path).toURL().openConnection() as HttpURLConnection
         return try {
             connection.requestMethod = "POST"
             connection.connectTimeout = connectTimeoutMs
@@ -45,22 +81,13 @@ class MoscoRunServer(baseUrl: String, private val token: String,
             GZIPOutputStream(connection.outputStream).use { it.write(json.toByteArray()) }
             val code = connection.responseCode
             val body = (if (code < 400) connection.inputStream else connection.errorStream)?.use { it.readBytes().decodeToString() }
-            when (code) {
-                201 -> UploadResult(UploadOutcome.CREATED, serverId = storedId(body))
-                200 -> UploadResult(UploadOutcome.STORED, serverId = storedId(body))
-                409 -> UploadResult(UploadOutcome.CONFLICT, problemDetail(body) ?: "Conflitto di revisione")
-                400 -> UploadResult(UploadOutcome.INVALID, problemDetail(body) ?: "Contenuto non accettato")
-                413 -> UploadResult(UploadOutcome.TOO_LARGE, "Allenamento troppo grande per il server.")
-                401, 403 -> UploadResult(UploadOutcome.UNAUTHORIZED, UNAUTHORIZED_MESSAGE)
-                else -> UploadResult(UploadOutcome.RETRY, "Risposta HTTP $code")
-            }
+            PostAnswer.Response(code, body)
         } catch (e: java.net.HttpRetryException) {
             // Streaming bodies cannot be resent: the JDK reports an authentication challenge this way.
-            if (e.responseCode() == 401) UploadResult(UploadOutcome.UNAUTHORIZED, UNAUTHORIZED_MESSAGE)
-            else UploadResult(UploadOutcome.RETRY, "Risposta HTTP ${e.responseCode()}")
+            if (e.responseCode() == 401) PostAnswer.Response(401, null) else PostAnswer.Failed("Risposta HTTP ${e.responseCode()}")
         } catch (e: IOException) {
             // The message of a network error names hosts and ports, never health data.
-            UploadResult(UploadOutcome.RETRY, e.message ?: e.javaClass.simpleName)
+            PostAnswer.Failed(e.message ?: e.javaClass.simpleName)
         } finally {
             connection.disconnect()
         }
@@ -178,6 +205,10 @@ class MoscoRunServer(baseUrl: String, private val token: String,
                 JsonParser.parseString(body).asJsonObject.get("id")?.asString?.takeIf(ServerReadParser::validId)
             } catch (_: Exception) { null }
         }
+
+        private fun importedCount(body: String?): Int = if (body == null) 0 else try {
+            JsonParser.parseString(body).asJsonObject.get("imported")?.asInt?.coerceAtLeast(0) ?: 0
+        } catch (_: Exception) { 0 }
 
         private fun encode(value: String) = URLEncoder.encode(value, "UTF-8")
     }

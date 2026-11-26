@@ -9,6 +9,9 @@ public sealed class ScientificSignalStore(MoscoRunDbContext db, TimeProvider clo
 {
     public const int MaxPageSize = 16;
 
+    /// <summary>Campioni massimi per chunk (codec v1).</summary>
+    public const int MaxChunkSamples = ScientificSignalCodec.MaxSamples;
+
     public Task<bool> ImportAsync(Guid ownerId, ScientificSignalChunk chunk, CancellationToken ct = default) =>
         ScientificWriteGate.RunAsync(db, ownerId, token => ImportCoreAsync(ownerId, chunk, token), ct);
 

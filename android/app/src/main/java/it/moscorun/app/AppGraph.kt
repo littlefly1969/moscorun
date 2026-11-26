@@ -2,6 +2,7 @@ package it.moscorun.app
 
 import android.content.Context
 import it.moscorun.app.model.Provider
+import it.moscorun.app.science.HealthConnectScienceReader
 import it.moscorun.app.server.MoscoRunServer
 import it.moscorun.app.server.ServerApi
 import it.moscorun.app.settings.AppPreferences
@@ -29,7 +30,8 @@ class AppGraph private constructor(private val context: Context) {
     val samsung by lazy { SamsungHealthSource(context) }
     val healthConnect by lazy { HealthConnectSource(context) }
     val legacy = LegacyLedger(context)
-    val sync = SyncRunner(settings, prefs, store, ::source, ::api, legacy)
+    val science by lazy { HealthConnectScienceReader(context) }
+    val sync = SyncRunner(settings, prefs, store, ::source, ::api, legacy, science = { science })
 
     /** The only place where a client for a server address is created. */
     fun api(url: String, token: String): ServerApi = MoscoRunServer(url, token)

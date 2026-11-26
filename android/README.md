@@ -21,6 +21,15 @@ Specifica e criteri di accettazione: [docs/piano-app-android-definitiva.md](../d
 
 Cambiare sorgente non richiede di reinserire server e token. Gli allenamenti che la nuova sorgente ripropone e che si sovrappongono per orario (almeno il 60% della sessione più breve) a uno già presente sul server con un'altra identità **non vengono inviati né cancellati**: restano in Diagnostica come possibili doppioni e decide l'utente.
 
+### Dati scientifici
+
+Dopo gli allenamenti l'app invia anche alcuni dati giornalieri letti da **Health Connect**, qualunque sia la sorgente
+degli allenamenti: frequenza cardiaca a riposo, HRV (RMSSD), sonno (tempo a letto e, se la sorgente indica gli stadi,
+tempo di sonno), saturazione di ossigeno, frequenza respiratoria e VO2max. Ogni permesso è facoltativo e si concede
+dalla scheda **Dati scientifici** delle Impostazioni; senza permessi la sincronizzazione degli allenamenti non cambia.
+L'app d'origine di ogni valore (per esempio Samsung Health) resta registrata sul server. Specifica:
+[docs/scientific-ingestion.md](../docs/scientific-ingestion.md).
+
 ### Configurazione una tantum
 
 Indirizzo HTTPS del server e token del telefono (cruscotto → Dispositivi → tipo "Telefono Android") si inseriscono una sola volta. Vengono verificati sul server *prima* di essere salvati. Il token è cifrato con AES-256-GCM e chiave nell'Android Keystore, non è mai mostrato per intero ed è escluso dai backup. Sopravvivono a chiusure, riavvii, aggiornamenti dell'APK e cambi di sorgente. Dalle Impostazioni: **Verifica connessione**, **Sostituisci token**, **Scollega** (con conferma). Se la chiave del Keystore non è più disponibile (per esempio dopo un ripristino del telefono) l'app chiede di reinserire il solo token, una volta.

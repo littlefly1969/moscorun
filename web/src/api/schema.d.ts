@@ -587,6 +587,63 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/ingest/observations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Registra fino a 500 osservazioni dei wearable (HRV, sonno, frequenza a riposo, VO2max...) in modo atomico.
+     * @description Idempotente su (source, externalId, revision, metric) per persona: un reinvio identico non scrive nulla, la stessa revisione con contenuto diverso è un conflitto (409). Con page il checkpoint (source, stream) avanza nella stessa transazione; previousCursor diverso da quello salvato è un conflitto (409). Solo token di tipo telefono. Il corpo può essere compresso con Content-Encoding: gzip.
+     */
+    post: operations["IngestObservations"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/ingest/observations/cursor": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Checkpoint salvato per (source, stream); null se mai scritto. */
+    get: operations["GetObservationCursor"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/ingest/signals": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Registra un chunk di segnale ad alta frequenza (RR, dinamiche di corsa, meteo...), senza perdita.
+     * @description Al più 16384 campioni in ordine di tempo strettamente crescente. 201 al primo arrivo, 200 se lo stesso chunk era già presente con contenuto identico, 409 se la stessa revisione arriva con contenuto diverso.
+     */
+    post: operations["IngestSignal"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/devices": {
     parameters: {
       query?: never;
@@ -1137,6 +1194,52 @@ export interface components {
         [key: string]: string[];
       };
     };
+    IngestObservationsRequest: {
+      source: null | string;
+      samples: null | components["schemas"]["ObservationSampleDto"][];
+      page?: null | components["schemas"]["SyncPageDto"];
+    };
+    IngestObservationsResult: {
+      /**
+       * Format: int32
+       * @description Campioni nella richiesta.
+       */
+      received: number;
+      /**
+       * Format: int32
+       * @description Revisioni nuove scritte; un reinvio identico vale zero.
+       */
+      imported: number;
+      /** @description Checkpoint salvato dopo l'import, se la richiesta ne indicava uno. */
+      cursor: null | string;
+    };
+    IngestSignalRequest: {
+      source: null | string;
+      externalId: null | string;
+      revision: null | string;
+      /** Format: int64 */
+      revisionOrder: null | number;
+      metric: null | string;
+      unit: null | string;
+      method: components["schemas"]["ObservationMethod"];
+      samples: null | components["schemas"]["SignalSampleDto"][];
+      providerAlgorithm?: null | string;
+      workout?: null | components["schemas"]["WorkoutReferenceDto"];
+    };
+    IngestSignalResult: {
+      /**
+       * Format: uuid
+       * @description Identità del chunk (stabile per sorgente, externalId, revisione e metrica).
+       */
+      id: string;
+      /**
+       * Format: int32
+       * @description Campioni salvati nel chunk.
+       */
+      sampleCount: number;
+      /** @description false se il chunk era già presente con contenuto identico. */
+      created: boolean;
+    };
     /** @description Pesata definitiva inviata dall'agente della bilancia. */
     IngestWeighingRequest: {
       /** @description Identificativo stabile generato dall'agente; reinviare lo stesso valore è sicuro. */
@@ -1239,6 +1342,14 @@ export interface components {
       /** @description Chiave per il browser, presente solo con Google. */
       googleApiKey: null | string;
     };
+    /** @description Dato come lo espone la sorgente, prima della conversione all'unità canonica. */
+    NativeValueDto: {
+      metric: null | string;
+      unit: null | string;
+      /** Format: double */
+      value: null | number;
+      mappingVersion: null | string;
+    };
     NutritionFeedbackReport: {
       methodVersion: string;
       source: string;
@@ -1260,6 +1371,28 @@ export interface components {
       sodiumMilligramsPerHour: null | number;
       /** Format: double */
       estimatedSweatLitersPerHour: null | number;
+    };
+    /**
+     * @description Provenienza epistemica del valore, distinta dalla sorgente tecnica.
+     * @enum {unknown}
+     */
+    ObservationMethod:
+      "Measured" | "ProviderEstimated" | "SelfReported" | "Derived" | "ModelInferred" | "ProviderReported";
+    ObservationSampleDto: {
+      externalId: null | string;
+      revision: null | string;
+      /** Format: int64 */
+      revisionOrder: null | number;
+      metric: null | string;
+      unit: null | string;
+      /** Format: double */
+      value: null | number;
+      /** Format: date-time */
+      time: string;
+      method: components["schemas"]["ObservationMethod"];
+      providerAlgorithm?: null | string;
+      workout?: null | components["schemas"]["WorkoutReferenceDto"];
+      native?: null | components["schemas"]["NativeValueDto"];
     };
     ObservedPerformanceCurve: {
       metric: components["schemas"]["SeriesMetric"];
@@ -1737,6 +1870,12 @@ export interface components {
     };
     /** @enum {unknown} */
     SeriesMetric: "HeartRate" | "Speed" | "Cadence" | "Power" | null;
+    SignalSampleDto: {
+      /** Format: date-time */
+      time: string;
+      /** Format: double */
+      value: null | number;
+    };
     SleepDiaryNight: {
       /** Format: date */
       day: string;
@@ -1849,6 +1988,17 @@ export interface components {
        * @description Ultima pesata accettata (i dati sono aggiornati).
        */
       lastIngestedAt: null | string;
+    };
+    SyncCursorDto: {
+      source: string;
+      stream: string;
+      cursor: null | string;
+    };
+    /** @description Checkpoint del connettore, avanzato nella stessa transazione dell'import. */
+    SyncPageDto: {
+      stream: null | string;
+      previousCursor: null | string;
+      nextCursor: null | string;
     };
     SystemInfo: {
       version: string;
@@ -2145,6 +2295,11 @@ export interface components {
       to: string;
       /** @description Presente solo nelle liste paginate quando esistono altri elementi: va passato come `cursor`. */
       nextCursor?: null | string;
+    };
+    /** @description Allenamento indicato con la sua identità naturale nella sorgente: il client non conosce gli ID del server. */
+    WorkoutReferenceDto: {
+      source: null | string;
+      sourceId: null | string;
     };
     WorkoutReserveProtocol: {
       metric: components["schemas"]["SeriesMetric"];
@@ -3477,6 +3632,113 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  IngestObservations: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["IngestObservationsRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["IngestObservationsResult"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  GetObservationCursor: {
+    parameters: {
+      query?: {
+        source?: string;
+        stream?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SyncCursorDto"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  IngestSignal: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["IngestSignalRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["IngestSignalResult"];
+        };
+      };
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["IngestSignalResult"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
       };
     };
   };

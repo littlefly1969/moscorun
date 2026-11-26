@@ -1919,6 +1919,147 @@
         }
       }
     },
+    "/api/v1/ingest/observations": {
+      "post": {
+        "tags": [
+          "Acquisizione"
+        ],
+        "summary": "Registra fino a 500 osservazioni dei wearable (HRV, sonno, frequenza a riposo, VO2max...) in modo atomico.",
+        "description": "Idempotente su (source, externalId, revision, metric) per persona: un reinvio identico non scrive nulla, la stessa revisione con contenuto diverso è un conflitto (409). Con page il checkpoint (source, stream) avanza nella stessa transazione; previousCursor diverso da quello salvato è un conflitto (409). Solo token di tipo telefono. Il corpo può essere compresso con Content-Encoding: gzip.",
+        "operationId": "IngestObservations",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestObservationsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestObservationsResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ingest/observations/cursor": {
+      "get": {
+        "tags": [
+          "Acquisizione"
+        ],
+        "summary": "Checkpoint salvato per (source, stream); null se mai scritto.",
+        "operationId": "GetObservationCursor",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "stream",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncCursorDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ingest/signals": {
+      "post": {
+        "tags": [
+          "Acquisizione"
+        ],
+        "summary": "Registra un chunk di segnale ad alta frequenza (RR, dinamiche di corsa, meteo...), senza perdita.",
+        "description": "Al più 16384 campioni in ordine di tempo strettamente crescente. 201 al primo arrivo, 200 se lo stesso chunk era già presente con contenuto identico, 409 se la stessa revisione arriva con contenuto diverso.",
+        "operationId": "IngestSignal",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestSignalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestSignalResult"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestSignalResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/devices": {
       "get": {
         "tags": [
@@ -3605,6 +3746,171 @@
           }
         }
       },
+      "IngestObservationsRequest": {
+        "required": [
+          "source",
+          "samples"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "samples": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ObservationSampleDto"
+            }
+          },
+          "page": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SyncPageDto"
+              }
+            ]
+          }
+        }
+      },
+      "IngestObservationsResult": {
+        "required": [
+          "received",
+          "imported",
+          "cursor"
+        ],
+        "type": "object",
+        "properties": {
+          "received": {
+            "type": "integer",
+            "description": "Campioni nella richiesta.",
+            "format": "int32"
+          },
+          "imported": {
+            "type": "integer",
+            "description": "Revisioni nuove scritte; un reinvio identico vale zero.",
+            "format": "int32"
+          },
+          "cursor": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Checkpoint salvato dopo l'import, se la richiesta ne indicava uno."
+          }
+        }
+      },
+      "IngestSignalRequest": {
+        "required": [
+          "source",
+          "externalId",
+          "revision",
+          "revisionOrder",
+          "metric",
+          "unit",
+          "method",
+          "samples"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "externalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "revision": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "revisionOrder": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "metric": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "method": {
+            "$ref": "#/components/schemas/ObservationMethod"
+          },
+          "samples": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SignalSampleDto"
+            }
+          },
+          "providerAlgorithm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "workout": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/WorkoutReferenceDto"
+              }
+            ]
+          }
+        }
+      },
+      "IngestSignalResult": {
+        "required": [
+          "id",
+          "sampleCount",
+          "created"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identità del chunk (stabile per sorgente, externalId, revisione e metrica).",
+            "format": "uuid"
+          },
+          "sampleCount": {
+            "type": "integer",
+            "description": "Campioni salvati nel chunk.",
+            "format": "int32"
+          },
+          "created": {
+            "type": "boolean",
+            "description": "false se il chunk era già presente con contenuto identico."
+          }
+        }
+      },
       "IngestWeighingRequest": {
         "required": [
           "sourceEventId",
@@ -3873,6 +4179,43 @@
           }
         }
       },
+      "NativeValueDto": {
+        "required": [
+          "metric",
+          "unit",
+          "value",
+          "mappingVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "value": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "mappingVersion": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "Dato come lo espone la sorgente, prima della conversione all'unità canonica."
+      },
       "NutritionFeedbackReport": {
         "required": [
           "methodVersion",
@@ -3957,6 +4300,103 @@
               "number"
             ],
             "format": "double"
+          }
+        }
+      },
+      "ObservationMethod": {
+        "enum": [
+          "Measured",
+          "ProviderEstimated",
+          "SelfReported",
+          "Derived",
+          "ModelInferred",
+          "ProviderReported"
+        ],
+        "description": "Provenienza epistemica del valore, distinta dalla sorgente tecnica."
+      },
+      "ObservationSampleDto": {
+        "required": [
+          "externalId",
+          "revision",
+          "revisionOrder",
+          "metric",
+          "unit",
+          "value",
+          "time",
+          "method"
+        ],
+        "type": "object",
+        "properties": {
+          "externalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "revision": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "revisionOrder": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "metric": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "value": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "method": {
+            "$ref": "#/components/schemas/ObservationMethod"
+          },
+          "providerAlgorithm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "workout": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/WorkoutReferenceDto"
+              }
+            ]
+          },
+          "native": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/NativeValueDto"
+              }
+            ]
           }
         }
       },
@@ -5574,6 +6014,26 @@
           null
         ]
       },
+      "SignalSampleDto": {
+        "required": [
+          "time",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "value": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "SleepDiaryNight": {
         "required": [
           "day",
@@ -5934,6 +6394,57 @@
             "format": "date-time"
           }
         }
+      },
+      "SyncCursorDto": {
+        "required": [
+          "source",
+          "stream",
+          "cursor"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "stream": {
+            "type": "string"
+          },
+          "cursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SyncPageDto": {
+        "required": [
+          "stream",
+          "previousCursor",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "stream": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "previousCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "Checkpoint del connettore, avanzato nella stessa transazione dell'import."
       },
       "SystemInfo": {
         "required": [
@@ -6890,6 +7401,28 @@
             "description": "Presente solo nelle liste paginate quando esistono altri elementi: va passato come `cursor`."
           }
         }
+      },
+      "WorkoutReferenceDto": {
+        "required": [
+          "source",
+          "sourceId"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sourceId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "Allenamento indicato con la sua identità naturale nella sorgente: il client non conosce gli ID del server."
       },
       "WorkoutReserveProtocol": {
         "required": [

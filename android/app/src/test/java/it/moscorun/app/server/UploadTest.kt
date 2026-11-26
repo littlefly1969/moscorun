@@ -5,6 +5,7 @@ import it.moscorun.app.model.MetricSeries
 import it.moscorun.app.model.Provider
 import it.moscorun.app.model.SourceWorkout
 import it.moscorun.app.model.TrackPoint
+import it.moscorun.app.science.ScienceOutcome
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -179,5 +180,53 @@ class MoscoRunServerUploadTest {
         http.close()
         val result = MoscoRunServer("http://127.0.0.1:$port", "mr1_0123456789abcdef_secretsecret", connectTimeoutMs = 2000).upload("{}")
         assertEquals(UploadOutcome.RETRY, result.outcome)
+    }
+}
+
+class MoscoRunServerObservationsTest {
+    private var status = 200
+    private var responseBody = """{"received":2,"imported":1,"cursor":null}"""
+    private var requestLine: String? = null
+    private var received: String? = null
+    private lateinit var http: LoopbackServer
+
+    @Before fun start() {
+        http = LoopbackServer { line, _, body ->
+            requestLine = line
+            received = GZIPInputStream(body.inputStream()).readBytes().decodeToString()
+            status to responseBody
+        }
+    }
+
+    @After fun stop() = http.close()
+
+    private fun server() = MoscoRunServer("http://127.0.0.1:${http.port}", "mr1_0123456789abcdef_secretsecret")
+
+    @Test fun `observations are posted compressed to the scientific endpoint`() {
+        val result = server().postObservations("""{"source":"health-connect"}""")
+
+        assertEquals(ScienceOutcome.STORED, result.outcome)
+        assertEquals(1, result.imported)
+        assertEquals("POST /api/v1/ingest/observations HTTP/1.1", requestLine)
+        assertEquals("""{"source":"health-connect"}""", received)
+    }
+
+    @Test fun `maps server answers to scientific outcomes`() {
+        mapOf(400 to ScienceOutcome.INVALID, 413 to ScienceOutcome.INVALID, 409 to ScienceOutcome.CONFLICT,
+            401 to ScienceOutcome.UNAUTHORIZED, 403 to ScienceOutcome.UNAUTHORIZED, 404 to ScienceOutcome.UNSUPPORTED,
+            429 to ScienceOutcome.RETRY, 503 to ScienceOutcome.RETRY).forEach { (code, outcome) ->
+            status = code
+            responseBody = """{"title":"t$code","errors":{"samples[0].metric":["non ammessa"]}}"""
+            assertEquals("HTTP $code", outcome, server().postObservations("{}").outcome)
+        }
+        status = 400
+        assertEquals("samples[0].metric: non ammessa", server().postObservations("{}").detail)
+    }
+
+    @Test fun `unreachable server asks for a retry instead of throwing`() {
+        val port = http.port
+        http.close()
+        val result = MoscoRunServer("http://127.0.0.1:$port", "mr1_0123456789abcdef_secretsecret", connectTimeoutMs = 2000).postObservations("{}")
+        assertEquals(ScienceOutcome.RETRY, result.outcome)
     }
 }
