@@ -13,6 +13,38 @@ interface Protocol {
 const number = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 2 });
 const format = (value: number | null) => (value == null ? "—" : number.format(value));
 
+function Performance({ profile }: { profile: Schemas["AttestedPerformanceProfile"] }) {
+  const fit = profile.robustCriticalSpeed;
+  return (
+    <section aria-label="Profilo fisiologico di campo">
+      <h3>Velocità critica e test di Cooper</h3>
+      <dl>
+        <dt>Velocità critica robusta (m/s)</dt>
+        <dd>{format(fit?.criticalSpeedMetersPerSecond ?? null)}</dd>
+        <dt>Riserva di distanza (m)</dt>
+        <dd>{format(fit?.distanceReserveMeters ?? null)}</dd>
+        <dt>RMSE robusto (m)</dt>
+        <dd>{format(fit?.rootMeanSquaredErrorMeters ?? null)}</dd>
+        <dt>Velocità critica OLS (m/s)</dt>
+        <dd>{format(profile.ordinaryLeastSquares?.criticalSpeedMetersPerSecond ?? null)}</dd>
+      </dl>
+      {!fit && <p>Prove distinte da 2 a 20 minuti insufficienti per il fit robusto.</p>}
+      <p>Cooper: stima di campo, non misura diretta del VO2max.</p>
+      {profile.cooperTests.length === 0 ? (
+        <p>Nessuna prova massimale attestata di 12 minuti.</p>
+      ) : (
+        <ul>
+          {profile.cooperTests.map((item) => (
+            <li key={item.workoutId}>
+              {item.endedAt}: {number.format(item.estimatedVo2MaxMlKgMin)} mL/kg/min
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 function Report({ report }: { report: Schemas["AttestedRaceReport"] }) {
   return (
     <>
@@ -31,6 +63,7 @@ function Report({ report }: { report: Schemas["AttestedRaceReport"] }) {
         <dt>Prove di fit</dt>
         <dd>{report.model?.trainingCount ?? 0}</dd>
       </dl>
+      <Performance profile={report.performance} />
       {!report.model && <p>Prove massimali disponibili al cutoff insufficienti.</p>}
       {report.model && !report.prediction && <p>Distanza fuori dal supporto del modello.</p>}
       {report.prediction && !report.interval && <p>Intervallo non calibrabile.</p>}

@@ -469,6 +469,15 @@ export interface components {
       /** Format: double */
       value: null | number;
     };
+    AttestedPerformanceProfile: {
+      speedMethodVersion: string;
+      robustSpeedMethodVersion: string;
+      cooperMethodVersion: string;
+      ordinaryLeastSquares: null | components["schemas"]["CriticalSpeedFit"];
+      robustCriticalSpeed: null | components["schemas"]["CriticalSpeedFit"];
+      cooperTests: components["schemas"]["CooperTestResult"][];
+      criticalSpeedCandidateIds: string[];
+    };
     AttestedRaceReport: {
       source: string;
       protocol: string;
@@ -488,6 +497,7 @@ export interface components {
       prediction: null | components["schemas"]["RacePrediction"];
       interval: null | components["schemas"]["PredictionInterval"];
       evidence: components["schemas"]["RaceCalibrationEvidence"][];
+      performance: components["schemas"]["AttestedPerformanceProfile"];
     };
     /**
      * @description Quanto è certa l'associazione della pesata alla persona.
@@ -535,6 +545,30 @@ export interface components {
       rootMeanSquaredErrorBpm: number;
       /** Format: int32 */
       sampleCount: number;
+    };
+    CooperTestResult: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      /** Format: date-time */
+      endedAt: string;
+      /** Format: double */
+      distanceMeters: number;
+      /** Format: double */
+      durationSeconds: number;
+      /** Format: double */
+      estimatedVo2MaxMlKgMin: number;
+    };
+    CriticalSpeedFit: {
+      /** Format: double */
+      criticalSpeedMetersPerSecond: number;
+      /** Format: double */
+      distanceReserveMeters: number;
+      /** Format: double */
+      rootMeanSquaredErrorMeters: number;
+      /** Format: int32 */
+      effortCount: number;
     };
     CurrentUser: {
       /** Format: uuid */

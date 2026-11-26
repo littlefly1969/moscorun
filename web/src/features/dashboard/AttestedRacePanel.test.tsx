@@ -21,6 +21,15 @@ describe("calibrazione personale", () => {
           prediction: null,
           interval: null,
           evidence: [],
+          performance: {
+            speedMethodVersion: "distance-time-ols-v2",
+            robustSpeedMethodVersion: "distance-time-theil-sen-v1",
+            cooperMethodVersion: "cooper-12min-field-estimate-v1",
+            ordinaryLeastSquares: null,
+            robustCriticalSpeed: null,
+            cooperTests: [],
+            criticalSpeedCandidateIds: [],
+          },
         });
       }),
     );

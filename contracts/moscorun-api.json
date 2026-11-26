@@ -1393,6 +1393,62 @@
           }
         }
       },
+      "AttestedPerformanceProfile": {
+        "required": [
+          "speedMethodVersion",
+          "robustSpeedMethodVersion",
+          "cooperMethodVersion",
+          "ordinaryLeastSquares",
+          "robustCriticalSpeed",
+          "cooperTests",
+          "criticalSpeedCandidateIds"
+        ],
+        "type": "object",
+        "properties": {
+          "speedMethodVersion": {
+            "type": "string"
+          },
+          "robustSpeedMethodVersion": {
+            "type": "string"
+          },
+          "cooperMethodVersion": {
+            "type": "string"
+          },
+          "ordinaryLeastSquares": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CriticalSpeedFit"
+              }
+            ]
+          },
+          "robustCriticalSpeed": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CriticalSpeedFit"
+              }
+            ]
+          },
+          "cooperTests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CooperTestResult"
+            }
+          },
+          "criticalSpeedCandidateIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
       "AttestedRaceReport": {
         "required": [
           "source",
@@ -1407,7 +1463,8 @@
           "model",
           "prediction",
           "interval",
-          "evidence"
+          "evidence",
+          "performance"
         ],
         "type": "object",
         "properties": {
@@ -1478,6 +1535,9 @@
             "items": {
               "$ref": "#/components/schemas/RaceCalibrationEvidence"
             }
+          },
+          "performance": {
+            "$ref": "#/components/schemas/AttestedPerformanceProfile"
           }
         }
       },
@@ -1578,6 +1638,70 @@
             "format": "double"
           },
           "sampleCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CooperTestResult": {
+        "required": [
+          "workoutId",
+          "revision",
+          "endedAt",
+          "distanceMeters",
+          "durationSeconds",
+          "estimatedVo2MaxMlKgMin"
+        ],
+        "type": "object",
+        "properties": {
+          "workoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "distanceMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "durationSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "estimatedVo2MaxMlKgMin": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CriticalSpeedFit": {
+        "required": [
+          "criticalSpeedMetersPerSecond",
+          "distanceReserveMeters",
+          "rootMeanSquaredErrorMeters",
+          "effortCount"
+        ],
+        "type": "object",
+        "properties": {
+          "criticalSpeedMetersPerSecond": {
+            "type": "number",
+            "format": "double"
+          },
+          "distanceReserveMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "rootMeanSquaredErrorMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "effortCount": {
             "type": "integer",
             "format": "int32"
           }
