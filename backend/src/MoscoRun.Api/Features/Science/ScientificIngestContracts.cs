@@ -26,6 +26,7 @@ public sealed record ObservationSampleDto(
 
 public sealed record IngestObservationsRequest(string? Source, IReadOnlyList<ObservationSampleDto>? Samples, SyncPageDto? Page = null);
 
+/// <summary>Esito di un lotto di osservazioni.</summary>
 /// <param name="Received">Campioni nella richiesta.</param>
 /// <param name="Imported">Revisioni nuove scritte; un reinvio identico vale zero.</param>
 /// <param name="Cursor">Checkpoint salvato dopo l'import, se la richiesta ne indicava uno.</param>
@@ -47,6 +48,7 @@ public sealed record IngestSignalRequest(
     string? ProviderAlgorithm = null,
     WorkoutReferenceDto? Workout = null);
 
+/// <summary>Esito dell'invio di un chunk di segnale.</summary>
 /// <param name="Id">Identità del chunk (stabile per sorgente, externalId, revisione e metrica).</param>
 /// <param name="SampleCount">Campioni salvati nel chunk.</param>
 /// <param name="Created">false se il chunk era già presente con contenuto identico.</param>

@@ -1199,6 +1199,7 @@ export interface components {
       samples: null | components["schemas"]["ObservationSampleDto"][];
       page?: null | components["schemas"]["SyncPageDto"];
     };
+    /** @description Esito di un lotto di osservazioni. */
     IngestObservationsResult: {
       /**
        * Format: int32
@@ -1226,6 +1227,7 @@ export interface components {
       providerAlgorithm?: null | string;
       workout?: null | components["schemas"]["WorkoutReferenceDto"];
     };
+    /** @description Esito dell'invio di un chunk di segnale. */
     IngestSignalResult: {
       /**
        * Format: uuid

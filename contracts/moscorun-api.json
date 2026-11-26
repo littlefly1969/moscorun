@@ -3805,7 +3805,8 @@
             ],
             "description": "Checkpoint salvato dopo l'import, se la richiesta ne indicava uno."
           }
-        }
+        },
+        "description": "Esito di un lotto di osservazioni."
       },
       "IngestSignalRequest": {
         "required": [
@@ -3909,7 +3910,8 @@
             "type": "boolean",
             "description": "false se il chunk era già presente con contenuto identico."
           }
-        }
+        },
+        "description": "Esito dell'invio di un chunk di segnale."
       },
       "IngestWeighingRequest": {
         "required": [
