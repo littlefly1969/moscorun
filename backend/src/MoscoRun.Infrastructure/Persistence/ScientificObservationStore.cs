@@ -9,6 +9,15 @@ public sealed class ScientificObservationStore(MoscoRunDbContext db)
     /// <summary>Inserisce una nuova osservazione. Il chiamante deve fornire l'identità autorizzata.</summary>
     public async Task AppendAsync(Guid ownerId, ScientificObservation observation, CancellationToken ct = default)
     {
+        _ = await ScientificWriteGate.RunAsync(db, ownerId, async token =>
+        {
+            await AppendCoreAsync(ownerId, observation, token);
+            return true;
+        }, ct);
+    }
+
+    private async Task AppendCoreAsync(Guid ownerId, ScientificObservation observation, CancellationToken ct)
+    {
         ArgumentNullException.ThrowIfNull(observation);
         ValidateOwner(ownerId);
         if (observation.OwnerId != ownerId)
