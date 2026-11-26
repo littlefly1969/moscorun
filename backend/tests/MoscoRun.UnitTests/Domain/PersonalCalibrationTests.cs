@@ -48,14 +48,14 @@ public sealed class PersonalCalibrationTests
         var initial = new FitnessFatigueState(First.AddDays(-1), 0, 0);
         var loads = CreateLoads();
         var points = CreatePoints(loads, expected, initial);
-        var cutoff = At(First.AddDays(6));
+        var cutoff = At(First.AddDays(6)).AddHours(1);
         var fit = FitnessFatigueCalibration.Fit(Owner, loads, points, First, cutoff, initial, [other, expected]);
         fit.Should().NotBeNull();
         fit!.Parameters.Should().Be(expected);
         fit.Count.Should().Be(6);
         fit.Offset.Should().BeApproximately(100, 0.000001);
         fit.TrainingRmse.Should().BeApproximately(0, 0.000001);
-        var holdout = fit.Predict(Owner, loads, points[^1].Time);
+        var holdout = fit.Predict(Owner, loads, points[^1].Time.AddMinutes(-30));
         holdout.Should().NotBeNull();
         holdout!.Value.Should().BeApproximately(points[^1].Response, 0.000001);
         fit.Predict(Owner, loads, cutoff.AddSeconds(-1)).Should().BeNull();
@@ -92,7 +92,7 @@ public sealed class PersonalCalibrationTests
     {
         return loads.Select(item =>
         {
-            var time = At(item.Date.AddDays(1));
+            var time = At(item.Date.AddDays(1)).AddHours(1);
             var state = FitnessFatigueEngine.Replay(loads, First, item.Date, time, parameters, initial);
             return new FitnessFatigueCalibrationPoint(Owner, Guid.NewGuid(), time, time, 100 + state!.NetResponse);
         }).ToArray();
