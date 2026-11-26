@@ -283,6 +283,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/workouts/{id}/science/durability": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetWorkoutDurability"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/devices": {
     parameters: {
       query?: never;
@@ -435,6 +451,22 @@ export interface components {
      * @enum {unknown}
      */
     DeviceKind: "ScaleAgent" | "PhoneBridge";
+    /** @description Profilo descrittivo del deterioramento, con onset e trend sullo stesso protocollo di finestre. */
+    DurabilityProfile: {
+      /** Format: date-time */
+      baselineStart: string;
+      /** Format: double */
+      baselineEfficiency: number;
+      lossPercent: number[];
+      /** Format: date-time */
+      onset: null | string;
+      /** Format: date-time */
+      onsetConfirmedAt: null | string;
+      /** Format: double */
+      lossPercentagePointsPerHour: number;
+      /** Format: double */
+      medianAbsoluteResidualPercentagePoints: number;
+    };
     HttpValidationProblemDetails: {
       type?: null | string;
       title?: null | string;
@@ -723,6 +755,51 @@ export interface components {
     WorkoutDetailDto: {
       summary: components["schemas"]["WorkoutSummaryDto"];
       series: components["schemas"]["SeriesInfoDto"][];
+    };
+    WorkoutDurabilityProtocol: {
+      metric: components["schemas"]["SeriesMetric"];
+      /** Format: int32 */
+      startOffsetSeconds: number;
+      /** Format: int32 */
+      windowSeconds: number;
+      /** Format: int32 */
+      windowCount: number;
+      /** Format: double */
+      minimumCoverage: number;
+      /** Format: double */
+      onsetLossPercent: number;
+      /** Format: int32 */
+      minimumConsecutiveWindows: number;
+    };
+    WorkoutDurabilityReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      windowMethodVersion: string;
+      /** Format: double */
+      maxGapSeconds: number;
+      protocol: components["schemas"]["WorkoutDurabilityProtocol"];
+      status: string;
+      windows: components["schemas"]["WorkoutDurabilityWindow"][];
+      profile: null | components["schemas"]["DurabilityProfile"];
+    };
+    WorkoutDurabilityWindow: {
+      /** Format: int32 */
+      offsetSeconds: number;
+      /** Format: double */
+      pairedSeconds: number;
+      /** Format: double */
+      coverage: number;
+      /** Format: double */
+      meanExternalLoad: null | number;
+      /** Format: double */
+      meanHeartRateBpm: null | number;
     };
     WorkoutList: {
       /** @description Riepiloghi, dal più recente. */
@@ -1255,6 +1332,52 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["WorkoutScienceReport"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetWorkoutDurability: {
+    parameters: {
+      query: {
+        metric: components["schemas"]["SeriesMetric"];
+        startOffsetSeconds: number;
+        windowSeconds: number;
+        windowCount: number;
+        minimumCoverage: number;
+        onsetLossPercent: number;
+        minimumConsecutiveWindows: number;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutDurabilityReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
         };
       };
       /** @description Not Found */
