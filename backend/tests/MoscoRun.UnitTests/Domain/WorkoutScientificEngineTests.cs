@@ -23,6 +23,10 @@ public sealed class WorkoutScientificEngineTests
         var power = report.Channels.Single(channel => channel.Metric == SeriesMetric.Power);
         power.Status.Should().Be("missing");
         power.TimeWeightedMean.Should().BeNull();
+        var curve = report.PerformanceCurves.Single();
+        curve.Metric.Should().Be(SeriesMetric.Speed);
+        curve.Points.Single(point => point.DurationSeconds == 5).Mean.Should().Be(4);
+        curve.Points.Single(point => point.DurationSeconds == 15).Mean.Should().BeNull();
     }
 
     [Fact]
@@ -40,6 +44,7 @@ public sealed class WorkoutScientificEngineTests
         var series = new Dictionary<SeriesMetric, IReadOnlyList<SeriesSample>>
         {
             [SeriesMetric.HeartRate] = [new(start, 140), new(start.AddSeconds(5), 140), new(end, 140)],
+            [SeriesMetric.Speed] = [new(start, 4), new(start.AddSeconds(5), 3), new(end, 3)],
         };
         var recording = new WorkoutRecording("samsung-health", "science-test", 3, "RUNNING", start, end,
             0, TimeSpan.FromSeconds(10), 40, null, null, null, [], series);
