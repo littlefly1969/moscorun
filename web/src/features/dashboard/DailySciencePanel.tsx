@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import type { SubmitEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import { api, unwrap, type Schemas } from "../../api/client";
 
 const labels = {
@@ -90,16 +90,16 @@ export function DailySciencePanel() {
     mutationFn: (query: { metric: string; source: string; day: string; baselineDays: number }) =>
       unwrap(api.GET("/api/v1/science/daily", { params: { query } })),
   });
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const [yesterday] = useState(() => new Date(Date.now() - 86400000).toISOString().slice(0, 10));
   const submit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    analysis.mutate({
-      metric: String(form.get("metric")),
-      source: String(form.get("source")).trim(),
-      day: String(form.get("day")),
-      baselineDays: Number(form.get("baseline")),
-    });
+    const metric = form.get("metric");
+    const source = form.get("source");
+    const day = form.get("day");
+    const baseline = form.get("baseline");
+    if (typeof metric !== "string" || typeof source !== "string" || typeof day !== "string") return;
+    analysis.mutate({ metric, source: source.trim(), day, baselineDays: Number(baseline) });
   };
 
   return (

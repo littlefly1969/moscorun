@@ -44,17 +44,17 @@ function FeedbackForm({
   const submit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const note = String(form.get("note") ?? "");
+    const note = form.get("note");
     save.mutate({
       day: report.day,
       workoutId: report.workoutId,
       workoutRevision: report.workoutRevision,
       revision: (report.revision ?? 0) + 1,
       values: report.values.map(({ metric }) => {
-        const value = String(form.get(metric) ?? "");
-        return { metric, value: value === "" ? null : Number(value) };
+        const value = form.get(metric);
+        return { metric, value: typeof value === "string" && value !== "" ? Number(value) : null };
       }),
-      note: note === "" ? null : note,
+      note: typeof note === "string" && note !== "" ? note : null,
     });
   };
 
@@ -66,7 +66,9 @@ function FeedbackForm({
       {report.workoutId != null && (
         <p>
           Carico session-RPE:{" "}
-          <strong>{report.sessionRpeLoad == null ? "Non disponibile" : number.format(report.sessionRpeLoad)}</strong>{" "}
+          <strong>
+            {report.sessionRpeLoad == null ? "Non disponibile" : number.format(report.sessionRpeLoad)}
+          </strong>{" "}
           {report.sessionRpeLoad != null && "UA"} · durata attiva × RPE, senza imputazione delle pause.
         </p>
       )}
@@ -115,7 +117,7 @@ export function ScienceFeedbackPanel({
   workoutId?: string;
   workoutRevision?: number;
 }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const [today] = useState(() => new Date().toISOString().slice(0, 10));
   const [day, setDay] = useState(today);
   const client = useQueryClient();
   const queryKey = ["science-feedback", workoutId ?? day, workoutRevision ?? null] as const;
@@ -129,7 +131,9 @@ export function ScienceFeedbackPanel({
   return (
     <section className="card" aria-labelledby="feedback-title">
       <h2 id="feedback-title">{workoutId ? "Feedback della seduta" : "Diario giornaliero"}</h2>
-      <p>Inserisci solo dati osservati o dichiarati. Lascia vuoti i valori non noti; zero è una misura valida.</p>
+      <p>
+        Inserisci solo dati osservati o dichiarati. Lascia vuoti i valori non noti; zero è una misura valida.
+      </p>
       {!workoutId && (
         <label>
           Giorno del diario (UTC)
