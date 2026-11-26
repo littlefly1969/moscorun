@@ -29,14 +29,14 @@ public static class FitnessFatigueEngine
     }
 
     private static FitnessFatigueState? Advance(
-        IReadOnlyList<DailyTrainingLoad> loads, DateOnly first,
+        DailyTrainingLoad[] loads, DateOnly first,
         FitnessFatigueParameters parameters, FitnessFatigueState initial)
     {
         var fitness = initial.Fitness;
         var fatigue = initial.Fatigue;
         var fitnessDecay = Math.Exp(-1 / parameters.FitnessTimeConstantDays);
         var fatigueDecay = Math.Exp(-1 / parameters.FatigueTimeConstantDays);
-        for (var index = 0; index < loads.Count; index++)
+        for (var index = 0; index < loads.Length; index++)
         {
             var item = loads[index];
             if (item.Date != first.AddDays(index) || item.Load is not { } load || !NonNegative(load))
