@@ -79,6 +79,7 @@ public static class ScientificMetricCatalog
         ["airTemperature"] = "Cel",
         ["humidity"] = "%",
         ["windSpeed"] = "m/s",
+        ["windDirection"] = "deg",
         ["barometricPressure"] = "hPa",
         ["rpe"] = "0-10",
         ["fatigue"] = "0-10",

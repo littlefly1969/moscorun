@@ -520,6 +520,13 @@
       "interpretation": "method_required"
     },
     {
+      "metric": "windDirection",
+      "unit": "deg",
+      "category": "environment",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
       "metric": "barometricPressure",
       "unit": "hPa",
       "category": "environment",
