@@ -37,7 +37,7 @@ public sealed class WorkoutIntensityEndpointTests(ApiFactory factory)
                 new
                 {
                     metric = "HeartRate",
-                    samples = Enumerable.Range(0, 5).Select(i => new { time = start.AddSeconds(i * 5), value = 140 }),
+                    samples = Enumerable.Range(0, 5).Select(i => new { time = start.AddSeconds(i * 5.0), value = 140 }),
                 },
             },
         }, ct);
