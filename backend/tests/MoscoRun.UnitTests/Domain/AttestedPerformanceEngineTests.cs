@@ -52,5 +52,5 @@ public sealed class AttestedPerformanceEngineTests
 
     private static RaceCalibrationEvidence Row(double seconds, double meters, string role = "training") =>
         new(Guid.NewGuid(), 1, "hash", DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch, 1,
-            meters, seconds, role, null, null);
+            meters, seconds, role, null, null, null);
 }
