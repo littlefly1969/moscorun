@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using System.Collections.ObjectModel;
 using System.IO.Compression;
 using System.Security.Cryptography;
 
@@ -67,7 +68,7 @@ internal static class ScientificSignalCodec
         return DecodeRecords(raw, count);
     }
 
-    private static IReadOnlyList<ScientificSignalSample> DecodeRecords(byte[] raw, int count)
+    private static ReadOnlyCollection<ScientificSignalSample> DecodeRecords(byte[] raw, int count)
     {
         var samples = new ScientificSignalSample[count];
         long previous = -1;
