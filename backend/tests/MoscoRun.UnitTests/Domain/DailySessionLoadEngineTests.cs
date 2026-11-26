@@ -1,6 +1,6 @@
 using MoscoRun.Domain.Analysis;
 
-namespace MoscoRun.Domain.Tests;
+namespace MoscoRun.UnitTests.Domain;
 
 public sealed class DailySessionLoadEngineTests
 {
