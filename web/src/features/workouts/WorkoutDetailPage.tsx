@@ -15,6 +15,7 @@ import { RouteMap } from "./RouteMap";
 import { useWorkout } from "./queries";
 import { WorkoutSciencePanel } from "./WorkoutSciencePanel";
 import { WorkoutDurabilityPanel } from "./WorkoutDurabilityPanel";
+import { WorkoutIntensityPanel } from "./WorkoutIntensityPanel";
 
 const HeartRateChart = lazy(() => import("./HeartRateChart").then((m) => ({ default: m.HeartRateChart })));
 
@@ -68,6 +69,7 @@ export function WorkoutDetailPage() {
 
       <WorkoutSciencePanel workoutId={w.id} revision={w.revision} />
       <ScienceFeedbackPanel workoutId={w.id} workoutRevision={w.revision} />
+      <WorkoutIntensityPanel key={`${w.id}:${w.revision}:intensity`} workoutId={w.id} />
       <WorkoutDurabilityPanel
         key={`${w.id}:${w.revision}`}
         workoutId={w.id}
