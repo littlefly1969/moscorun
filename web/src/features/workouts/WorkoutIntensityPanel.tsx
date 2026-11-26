@@ -2,14 +2,14 @@ import type { SubmitEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { api, unwrap, type Schemas } from "../../api/client";
 
-type Protocol = {
+interface Protocol {
   metric: Schemas["SeriesMetric"];
   thresholds: string;
   restingBpm?: number;
   maximumBpm?: number;
   trimpA?: number;
   trimpB?: number;
-};
+}
 
 const number = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 2 });
 const percent = new Intl.NumberFormat("it-IT", { style: "percent", maximumFractionDigits: 1 });

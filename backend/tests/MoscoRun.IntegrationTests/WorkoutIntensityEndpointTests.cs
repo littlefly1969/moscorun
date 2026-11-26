@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using MoscoRun.Api.Features.Workouts;
 using MoscoRun.Domain.Analysis;
 using MoscoRun.Domain.Devices;
@@ -18,7 +20,7 @@ public sealed class WorkoutIntensityEndpointTests(ApiFactory factory)
         var (device, _) = await factory.CreateDeviceClientAsync(user, kind: DeviceKind.PhoneBridge);
         using var phone = device;
         var ct = TestContext.Current.CancellationToken;
-        var start = factory.Time.GetUtcNow().AddHours(-1);
+        var start = DateTimeOffset.FromUnixTimeMilliseconds(factory.Time.GetUtcNow().AddHours(-1).ToUnixTimeMilliseconds());
         var ingest = await phone.PostAsJsonAsync("/api/v1/ingest/workouts", new
         {
             source = "samsung-health",
@@ -45,7 +47,9 @@ public sealed class WorkoutIntensityEndpointTests(ApiFactory factory)
         var result = await user.GetAsync(uri, ct);
         result.StatusCode.Should().Be(HttpStatusCode.OK);
         result.Headers.CacheControl!.NoStore.Should().BeTrue();
-        var report = (await result.Content.ReadFromJsonAsync<WorkoutIntensityReport>(ct))!;
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        options.Converters.Add(new JsonStringEnumConverter());
+        var report = (await result.Content.ReadFromJsonAsync<WorkoutIntensityReport>(options, ct))!;
         report.Distribution.Coverage.Should().BeApproximately(1, 1e-9);
         report.Distribution.ZoneMinutes[1].Should().BeApproximately(20d / 60, 1e-9);
         report.ObservedMean.Should().Be(140);
