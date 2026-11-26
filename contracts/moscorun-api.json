@@ -698,6 +698,80 @@
         }
       }
     },
+    "/api/v1/science/daily": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetDailyScience",
+        "parameters": [
+          {
+            "name": "metric",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "baselineDays",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "asOf",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyMetricReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/devices": {
       "get": {
         "tags": [
@@ -848,6 +922,143 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "DailyMetricPoint": {
+        "required": [
+          "day",
+          "status",
+          "value",
+          "observationId",
+          "time",
+          "availableAt",
+          "method",
+          "providerAlgorithm"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "observationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "time": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "availableAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "method": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "providerAlgorithm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "DailyMetricReport": {
+        "required": [
+          "metric",
+          "unit",
+          "source",
+          "asOf",
+          "methodVersion",
+          "baselineDays",
+          "current",
+          "history",
+          "status",
+          "baseline",
+          "currentVersusMedianPercent",
+          "weightTrendKgPerWeek"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "baselineDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "current": {
+            "$ref": "#/components/schemas/DailyMetricPoint"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailyMetricPoint"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "baseline": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecoveryDeviation"
+              }
+            ]
+          },
+          "currentVersusMedianPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "weightTrendKgPerWeek": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -1395,6 +1606,36 @@
               "string"
             ],
             "format": "date-time"
+          }
+        }
+      },
+      "RecoveryDeviation": {
+        "required": [
+          "baselineCount",
+          "baselineMedian",
+          "medianAbsoluteDeviation",
+          "robustZScore"
+        ],
+        "type": "object",
+        "properties": {
+          "baselineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baselineMedian": {
+            "type": "number",
+            "format": "double"
+          },
+          "medianAbsoluteDeviation": {
+            "type": "number",
+            "format": "double"
+          },
+          "robustZScore": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
