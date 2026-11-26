@@ -18,6 +18,7 @@ export interface MetricDefinition {
   unit: string;
   family: keyof typeof metricFamilies;
   access: "daily" | "workout" | "diary" | "catalog";
+  interpretation: string;
 }
 
 export const metricCatalog: MetricDefinition[] = [
@@ -27,6 +28,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "bpm",
     family: "cardiovascular",
     access: "workout",
+    interpretation: "method_required",
   },
   {
     id: "restingHeartRate",
@@ -34,6 +36,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "bpm",
     family: "cardiovascular",
     access: "daily",
+    interpretation: "method_required",
   },
   {
     id: "rrInterval",
@@ -41,6 +44,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "ms",
     family: "cardiovascular",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "hrvRmssd",
@@ -48,6 +52,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "ms",
     family: "cardiovascular",
     access: "daily",
+    interpretation: "method_required",
   },
   {
     id: "hrvSdnn",
@@ -55,6 +60,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "ms",
     family: "cardiovascular",
     access: "daily",
+    interpretation: "method_required",
   },
   {
     id: "spo2",
@@ -62,6 +68,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "%",
     family: "cardiovascular",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "respirationRate",
@@ -69,6 +76,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "1/min",
     family: "cardiovascular",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "skinTemperature",
@@ -76,6 +84,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "Cel",
     family: "cardiovascular",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "speed",
@@ -83,6 +92,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "m/s",
     family: "locomotion",
     access: "workout",
+    interpretation: "method_required",
   },
   {
     id: "distance",
@@ -90,6 +100,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "m",
     family: "locomotion",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "cadence",
@@ -97,6 +108,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "1/min",
     family: "locomotion",
     access: "workout",
+    interpretation: "method_required",
   },
   {
     id: "power",
@@ -104,6 +116,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "W",
     family: "locomotion",
     access: "workout",
+    interpretation: "method_required",
   },
   {
     id: "altitude",
@@ -111,6 +124,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "m",
     family: "locomotion",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "grade",
@@ -118,6 +132,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "%",
     family: "locomotion",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "groundContactTime",
@@ -125,6 +140,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "ms",
     family: "locomotion",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "groundContactBalance",
@@ -132,6 +148,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "%",
     family: "locomotion",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "verticalOscillation",
@@ -139,6 +156,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "m",
     family: "locomotion",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "verticalRatio",
@@ -146,6 +164,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "%",
     family: "locomotion",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "stepLength",
@@ -153,6 +172,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "m",
     family: "locomotion",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "strideLength",
@@ -160,6 +180,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "m",
     family: "locomotion",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "stepSpeedLoss",
@@ -167,6 +188,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "m",
     family: "locomotion",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "stepSpeedLossPercent",
@@ -174,6 +196,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "%",
     family: "locomotion",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "accelerationX",
@@ -181,6 +204,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "m/s2",
     family: "rawSignals",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "accelerationY",
@@ -188,6 +212,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "m/s2",
     family: "rawSignals",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "accelerationZ",
@@ -195,6 +220,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "m/s2",
     family: "rawSignals",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "angularVelocityX",
@@ -202,6 +228,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "rad/s",
     family: "rawSignals",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "angularVelocityY",
@@ -209,6 +236,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "rad/s",
     family: "rawSignals",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "angularVelocityZ",
@@ -216,6 +244,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "rad/s",
     family: "rawSignals",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "ppg",
@@ -223,6 +252,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "native",
     family: "rawSignals",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "ecg",
@@ -230,6 +260,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "mV",
     family: "rawSignals",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "eda",
@@ -237,6 +268,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "uS",
     family: "rawSignals",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "muscleOxygenSaturation",
@@ -244,6 +276,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "%",
     family: "rawSignals",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "steps",
@@ -251,6 +284,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "1",
     family: "daily",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "sleepDuration",
@@ -258,6 +292,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "s",
     family: "daily",
     access: "daily",
+    interpretation: "method_required",
   },
   {
     id: "sleepEfficiency",
@@ -265,6 +300,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "%",
     family: "daily",
     access: "daily",
+    interpretation: "method_required",
   },
   {
     id: "sleepStageDuration",
@@ -272,6 +308,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "s",
     family: "daily",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "napDuration",
@@ -279,6 +316,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "s",
     family: "daily",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "sedentaryDuration",
@@ -286,6 +324,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "s",
     family: "daily",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "activeDuration",
@@ -293,6 +332,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "s",
     family: "daily",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "vo2max",
@@ -300,6 +340,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "mL/kg/min",
     family: "providerEstimates",
     access: "catalog",
+    interpretation: "provider_estimate",
   },
   {
     id: "lactateThresholdHeartRate",
@@ -307,6 +348,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "bpm",
     family: "providerEstimates",
     access: "catalog",
+    interpretation: "provider_estimate",
   },
   {
     id: "lactateThresholdSpeed",
@@ -314,6 +356,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "m/s",
     family: "providerEstimates",
     access: "catalog",
+    interpretation: "provider_estimate",
   },
   {
     id: "aerobicTrainingEffect",
@@ -321,6 +364,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "native",
     family: "providerEstimates",
     access: "catalog",
+    interpretation: "provider_estimate",
   },
   {
     id: "anaerobicTrainingEffect",
@@ -328,6 +372,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "native",
     family: "providerEstimates",
     access: "catalog",
+    interpretation: "provider_estimate",
   },
   {
     id: "trainingLoad",
@@ -335,6 +380,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "native",
     family: "providerEstimates",
     access: "catalog",
+    interpretation: "provider_estimate",
   },
   {
     id: "recoveryTime",
@@ -342,6 +388,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "s",
     family: "providerEstimates",
     access: "catalog",
+    interpretation: "provider_estimate",
   },
   {
     id: "bodyBattery",
@@ -349,6 +396,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "native",
     family: "providerEstimates",
     access: "catalog",
+    interpretation: "provider_estimate",
   },
   {
     id: "stress",
@@ -356,6 +404,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "native",
     family: "providerEstimates",
     access: "catalog",
+    interpretation: "provider_estimate",
   },
   {
     id: "sleepScore",
@@ -363,6 +412,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "native",
     family: "providerEstimates",
     access: "catalog",
+    interpretation: "provider_estimate",
   },
   {
     id: "energyExpenditure",
@@ -370,6 +420,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "kcal",
     family: "providerEstimates",
     access: "catalog",
+    interpretation: "provider_estimate",
   },
   {
     id: "restingEnergyExpenditure",
@@ -377,6 +428,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "kcal",
     family: "providerEstimates",
     access: "catalog",
+    interpretation: "provider_estimate",
   },
   {
     id: "sweatLoss",
@@ -384,6 +436,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "mL",
     family: "providerEstimates",
     access: "catalog",
+    interpretation: "provider_estimate",
   },
   {
     id: "enduranceScore",
@@ -391,6 +444,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "native",
     family: "providerEstimates",
     access: "catalog",
+    interpretation: "provider_estimate",
   },
   {
     id: "hillScore",
@@ -398,6 +452,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "native",
     family: "providerEstimates",
     access: "catalog",
+    interpretation: "provider_estimate",
   },
   {
     id: "weight",
@@ -405,6 +460,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "kg",
     family: "bodyComposition",
     access: "daily",
+    interpretation: "method_required",
   },
   {
     id: "impedance",
@@ -412,6 +468,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "ohm",
     family: "bodyComposition",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "fatMass",
@@ -419,6 +476,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "kg",
     family: "bodyComposition",
     access: "daily",
+    interpretation: "method_required",
   },
   {
     id: "fatPercentage",
@@ -426,6 +484,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "%",
     family: "bodyComposition",
     access: "daily",
+    interpretation: "method_required",
   },
   {
     id: "fatFreeMass",
@@ -433,6 +492,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "kg",
     family: "bodyComposition",
     access: "daily",
+    interpretation: "method_required",
   },
   {
     id: "muscleMass",
@@ -440,6 +500,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "kg",
     family: "bodyComposition",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "bodyWater",
@@ -447,6 +508,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "kg",
     family: "bodyComposition",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "bodyWaterPercentage",
@@ -454,6 +516,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "%",
     family: "bodyComposition",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "boneMass",
@@ -461,6 +524,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "kg",
     family: "bodyComposition",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "visceralFat",
@@ -468,6 +532,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "native",
     family: "bodyComposition",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "energyIntake",
@@ -475,6 +540,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "kcal",
     family: "nutrition",
     access: "diary",
+    interpretation: "method_required",
   },
   {
     id: "carbohydrateIntake",
@@ -482,6 +548,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "g",
     family: "nutrition",
     access: "diary",
+    interpretation: "method_required",
   },
   {
     id: "proteinIntake",
@@ -489,6 +556,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "g",
     family: "nutrition",
     access: "diary",
+    interpretation: "method_required",
   },
   {
     id: "fatIntake",
@@ -496,6 +564,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "g",
     family: "nutrition",
     access: "diary",
+    interpretation: "method_required",
   },
   {
     id: "fluidIntake",
@@ -503,6 +572,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "mL",
     family: "nutrition",
     access: "diary",
+    interpretation: "method_required",
   },
   {
     id: "sodiumIntake",
@@ -510,6 +580,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "mg",
     family: "nutrition",
     access: "diary",
+    interpretation: "method_required",
   },
   {
     id: "caffeineIntake",
@@ -517,6 +588,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "mg",
     family: "nutrition",
     access: "diary",
+    interpretation: "method_required",
   },
   {
     id: "airTemperature",
@@ -524,6 +596,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "Cel",
     family: "environment",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "humidity",
@@ -531,6 +604,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "%",
     family: "environment",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "windSpeed",
@@ -538,6 +612,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "m/s",
     family: "environment",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "windDirection",
@@ -545,6 +620,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "deg",
     family: "environment",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "barometricPressure",
@@ -552,6 +628,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "hPa",
     family: "environment",
     access: "catalog",
+    interpretation: "method_required",
   },
   {
     id: "rpe",
@@ -559,6 +636,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "0-10",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "fatigue",
@@ -566,6 +644,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "0-10",
     family: "feedback",
     access: "daily",
+    interpretation: "self_reported",
   },
   {
     id: "stressPerceived",
@@ -573,6 +652,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "0-10",
     family: "feedback",
     access: "daily",
+    interpretation: "self_reported",
   },
   {
     id: "soreness",
@@ -580,6 +660,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "0-10",
     family: "feedback",
     access: "daily",
+    interpretation: "self_reported",
   },
   {
     id: "pain",
@@ -587,6 +668,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "0-10",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "sleepQuality",
@@ -594,6 +676,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "0-10",
     family: "feedback",
     access: "daily",
+    interpretation: "self_reported",
   },
   {
     id: "hunger",
@@ -601,6 +684,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "0-10",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "gastrointestinalDiscomfort",
@@ -608,6 +692,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "0-10",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "motivation",
@@ -615,6 +700,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "0-10",
     family: "feedback",
     access: "daily",
+    interpretation: "self_reported",
   },
   {
     id: "trainingDayComplete",
@@ -622,6 +708,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "1",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "nutritionDiaryComplete",
@@ -629,6 +716,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "1",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "thermicEffectOfFood",
@@ -636,6 +724,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "kcal",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "nonExerciseEnergyExpenditureNet",
@@ -643,6 +732,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "kcal",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "exerciseEnergyExpenditureNet",
@@ -650,6 +740,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "kcal",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "preExerciseWeight",
@@ -657,6 +748,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "kg",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "postExerciseWeight",
@@ -664,6 +756,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "kg",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "exerciseUrineVolume",
@@ -671,6 +764,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "mL",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "sweatProtocolConfirmed",
@@ -678,6 +772,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "1",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "maximalFlatRun",
@@ -685,6 +780,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "1",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "comparableRunningPower",
@@ -692,6 +788,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "1",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "sleepBedtimeMinute",
@@ -699,6 +796,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "min",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "sleepWakeMinute",
@@ -706,6 +804,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "min",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "sleepInBedDuration",
@@ -713,6 +812,7 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "s",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
   {
     id: "sleepNightConfirmed",
@@ -720,5 +820,6 @@ export const metricCatalog: MetricDefinition[] = [
     unit: "1",
     family: "feedback",
     access: "diary",
+    interpretation: "self_reported",
   },
 ];

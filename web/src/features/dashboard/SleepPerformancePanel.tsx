@@ -15,10 +15,10 @@ const format = (value: number | null) => (value == null ? "—" : number.format(
 
 function EvidenceMap({ report }: { report: Schemas["SleepPerformanceReport"] }) {
   const valid = report.status === "descriptive-association" && report.pairedTests >= 7;
-  const hours =
-    valid && report.sleepHoursCorrelation != null && Number.isFinite(report.sleepHoursCorrelation);
-  const efficiency =
-    valid && report.sleepEfficiencyCorrelation != null && Number.isFinite(report.sleepEfficiencyCorrelation);
+  const hoursValue = report.sleepHoursCorrelation;
+  const efficiencyValue = report.sleepEfficiencyCorrelation;
+  const hours = valid && hoursValue != null && Number.isFinite(hoursValue);
+  const efficiency = valid && efficiencyValue != null && Number.isFinite(efficiencyValue);
   return (
     <figure className="sw-figure">
       <svg viewBox="0 0 620 220" role="img" aria-label="Mappa delle associazioni statistiche disponibili">
@@ -47,10 +47,9 @@ function EvidenceMap({ report }: { report: Schemas["SleepPerformanceReport"] }) 
       <p>
         Metodo: {report.methodVersion} · sorgente: {report.source} · cutoff: {report.asOf}
       </p>
-      <p>
-        Finestra: {report.windowDays} giorni · lag UTC: {report.lagDays} giorni · distanza:{" "}
-        {report.distanceMeters} m.
-      </p>
+      <p>Finestra: {report.windowDays} giorni</p>
+      <p>Lag UTC: {report.lagDays} giorni</p>
+      <p>Distanza: {report.distanceMeters} m</p>
     </figure>
   );
 }

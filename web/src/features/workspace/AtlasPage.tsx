@@ -1,4 +1,4 @@
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { useState, type SubmitEvent } from "react";
 import { Link } from "react-router";
 import { api, unwrap, type Schemas } from "../../api/client";
@@ -11,6 +11,7 @@ interface Scope {
 }
 
 type Report = Schemas["DailyMetricReport"];
+type Diary = Schemas["ScienceFeedbackReport"];
 
 const number = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 2 });
 const dailyMetrics = metricCatalog.filter((metric) => metric.access === "daily");
@@ -23,6 +24,12 @@ const statuses: Record<string, string> = {
   "insufficient-baseline": "Baseline insufficiente",
 };
 const statusLabel = (status: string) => statuses[status] ?? status;
+
+function declaredValue(diary: Diary | undefined, metric: MetricDefinition) {
+  if (diary?.status !== "recorded") return null;
+  const entry = diary.values.find((value) => value.metric === metric.id && value.unit === metric.unit);
+  return entry?.value ?? null;
+}
 
 function MetricHistory({ report }: { report: Report }) {
   const history = [...report.history, report.current].sort((a, b) => a.day.localeCompare(b.day));
@@ -109,30 +116,51 @@ function MetricHistory({ report }: { report: Report }) {
 function MetricInspector({
   metric,
   report,
+  diary,
   state,
 }: {
   metric: MetricDefinition;
   report: Report | undefined;
+  diary: Diary | undefined;
   state: string;
 }) {
+  const value = declaredValue(diary, metric);
   return (
     <aside className="sw-inspector" aria-label="Dettaglio metrica">
       <p className="sw-kicker">{metricFamilies[metric.family]}</p>
       <h2>{metric.label}</h2>
       <p className="sw-muted">
-        {metric.id} · {metric.unit}
+        {metric.id} · {metric.unit} · {metric.interpretation}
       </p>
       {metric.family === "providerEstimates" && (
         <p>Stima del dispositivo: non equivale a una misurazione fisiologica diretta.</p>
       )}
       {report ? <MetricHistory report={report} /> : <p>{state}</p>}
+      {metric.access === "diary" && diary?.status === "recorded" && (
+        <>
+          <div className="sw-value">
+            {value == null ? "—" : number.format(value)}{" "}
+            <small>{metric.unit}</small>
+          </div>
+          <dl className="sw-meta">
+            <dt>Fonte</dt>
+            <dd>Diario dell’atleta</dd>
+            <dt>Giorno UTC</dt>
+            <dd>{diary.day}</dd>
+            <dt>Revisione</dt>
+            <dd>{diary.revision ?? "—"}</dd>
+            <dt>Disponibile dal</dt>
+            <dd>{diary.availableAt ?? "—"}</dd>
+          </dl>
+        </>
+      )}
       {metric.access === "workout" && <Link to="/cronoscopio">Esplora i campioni della seduta →</Link>}
       {metric.access === "diary" && <Link to="/laboratorio?metodo=diario">Apri il diario →</Link>}
       {metric.id === "weight" && <Link to="/forma">Consulta anche le pesate della bilancia →</Link>}
       {metric.access === "catalog" && (
         <p className="sw-muted">
-          Il catalogo descrive una capacità prevista. La lettura non è ancora collegata a questa vista.
-          Non si può dedurre che il sensore non la registri.
+          Metrica presente nel catalogo, lettura non ancora collegata. Non si può dedurre che il sensore
+          non la registri.
         </p>
       )}
     </aside>
@@ -159,11 +187,29 @@ export function AtlasPage() {
       enabled: scope != null,
     })),
   });
+  const diary = useQuery({
+    queryKey: ["workspace", "diary", scope?.day],
+    queryFn: () => {
+      if (!scope) throw new Error("Contesto non selezionato");
+      return unwrap(api.GET("/api/v1/science/feedback", { params: { query: { day: scope.day } } }));
+    },
+    enabled: scope != null,
+  });
   const reports = new Map(dailyMetrics.map((metric, index) => [metric.id, queries[index]]));
+  const observedCount = queries.filter((query) => query.data?.current.status === "observed").length;
+  const diaryCount = metricCatalog.filter(
+    (metric) => metric.access === "diary" && declaredValue(diary.data, metric) != null,
+  ).length;
   const lookup = (metric: MetricDefinition) => {
     const query = reports.get(metric.id);
     if (metric.access === "workout") return "Serie della seduta";
-    if (metric.access === "diary") return "Diario dichiarato";
+    if (metric.access === "diary") {
+      if (!scope) return "Diario dichiarato";
+      if (diary.isFetching) return "Caricamento…";
+      if (diary.isError) return "Errore di lettura del diario";
+      if (diary.data?.status === "ambiguous") return "Diario ambiguo";
+      return declaredValue(diary.data, metric) != null ? "Dichiarato" : "Non dichiarato nel giorno";
+    }
     if (metric.access === "catalog") return "Lettura non collegata";
     if (!scope) return "Seleziona fonte e giorno";
     if (query?.isFetching) return "Caricamento…";
@@ -184,7 +230,13 @@ export function AtlasPage() {
     const source = form.get("source");
     const day = form.get("day");
     if (typeof source !== "string" || typeof day !== "string" || !source.trim()) return;
-    setScope({ source: source.trim(), day, baselineDays: Number(form.get("baselineDays")) });
+    const next = { source: source.trim(), day, baselineDays: Number(form.get("baselineDays")) };
+    if (scope?.source === next.source && scope.day === next.day && scope.baselineDays === next.baselineDays) {
+      for (const query of queries) void query.refetch();
+      void diary.refetch();
+    } else {
+      setScope(next);
+    }
   };
   return (
     <>
@@ -204,8 +256,10 @@ export function AtlasPage() {
           <strong>{dailyMetrics.length}</strong> interrogabili per giorno
         </span>
         <span>
-          <strong>{queries.filter((query) => query.data?.current.status === "observed").length}</strong>{" "}
-          osservate nel contesto
+          <strong>{observedCount}</strong> osservate nel contesto
+        </span>
+        <span>
+          <strong>{diaryCount}</strong> dichiarate nel diario
         </span>
       </div>
       <form className="sw-controls" onSubmit={submit}>
@@ -273,7 +327,12 @@ export function AtlasPage() {
                 <tbody>
                   {visible.map((metric) => {
                     const report = reports.get(metric.id)?.data;
-                    const value = report?.current.status === "observed" ? report.current.value : null;
+                    const value =
+                      metric.access === "diary"
+                        ? declaredValue(diary.data, metric)
+                        : report?.current.status === "observed"
+                          ? report.current.value
+                          : null;
                     const favorite = favorites.includes(metric.id);
                     return (
                       <tr key={metric.id} data-selected={current?.id === metric.id}>
@@ -315,7 +374,12 @@ export function AtlasPage() {
           )}
         </section>
         {current && (
-          <MetricInspector metric={current} report={reports.get(current.id)?.data} state={lookup(current)} />
+          <MetricInspector
+            metric={current}
+            report={reports.get(current.id)?.data}
+            diary={diary.data}
+            state={lookup(current)}
+          />
         )}
       </div>
     </>

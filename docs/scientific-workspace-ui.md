@@ -6,7 +6,8 @@ cruscotto Forma resta disponibile in /forma. Nessuna modifica a schema, motori, 
 ## Ambienti
 
 - Atlante: snapshot del catalogo scientifico corrente (100 voci), filtro per famiglia, ricerca, preferiti
-  locali alla vista, dettaglio e interrogazione esplicita delle 14 metriche supportate dal motore daily.
+  locali alla vista, dettaglio, interrogazione esplicita delle 14 metriche del motore daily e dei valori
+  del diario giornaliero, mantenendo separate le fonti.
 - Cronoscopio: archivio sedute paginato, serie reali dal contratto workout/series, scala temporale comune,
   zoom di finestra e campione più vicino entro 5 s, senza interpolazione o imputazione.
 - Laboratorio: accesso ai pannelli di protocollo esistenti, incluso Research Lab, carico, RR, sonno,
