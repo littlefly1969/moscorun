@@ -137,7 +137,14 @@ export function ScienceFeedbackPanel({
       {!workoutId && (
         <label>
           Giorno del diario (UTC)
-          <input type="date" value={day} max={today} onChange={(event) => setDay(event.target.value)} />
+          <input
+            type="date"
+            value={day}
+            max={today}
+            onChange={(event) => {
+              setDay(event.target.value);
+            }}
+          />
         </label>
       )}
       {feedback.isPending && <p role="status">Caricamento feedback…</p>}
