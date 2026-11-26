@@ -102,8 +102,8 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
@@ -112,8 +112,8 @@
               }
             }
           },
-          "200": {
-            "description": "OK",
+          "201": {
+            "description": "Created",
             "content": {
               "application/json": {
                 "schema": {
@@ -154,8 +154,8 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
@@ -164,8 +164,8 @@
               }
             }
           },
-          "200": {
-            "description": "OK",
+          "201": {
+            "description": "Created",
             "content": {
               "application/json": {
                 "schema": {
@@ -481,9 +481,6 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found"
-          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -493,6 +490,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -542,9 +542,6 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found"
-          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -554,6 +551,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1336,6 +1336,68 @@
           }
         }
       },
+      "ObservedPerformanceCurve": {
+        "required": [
+          "metric",
+          "unit",
+          "methodVersion",
+          "points"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "$ref": "#/components/schemas/SeriesMetric"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObservedPerformancePoint"
+            }
+          }
+        }
+      },
+      "ObservedPerformancePoint": {
+        "required": [
+          "durationSeconds",
+          "mean",
+          "start",
+          "end"
+        ],
+        "type": "object",
+        "properties": {
+          "durationSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mean": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "start": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "end": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
       "RegisterDeviceRequest": {
         "required": [
           "name",
@@ -2030,7 +2092,8 @@
           "asOf",
           "methodVersion",
           "maxGapSeconds",
-          "channels"
+          "channels",
+          "performanceCurves"
         ],
         "type": "object",
         "properties": {
@@ -2063,6 +2126,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/WorkoutChannelReport"
+            }
+          },
+          "performanceCurves": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObservedPerformanceCurve"
             }
           }
         }
