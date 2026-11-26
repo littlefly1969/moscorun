@@ -473,6 +473,90 @@
         }
       }
     },
+    "/api/v1/science/rr": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetRrChunks",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "context",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "screened",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "timestampsAreBeatEnds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "chunkId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RrChunkReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/device": {
       "get": {
         "tags": [
@@ -1913,6 +1997,28 @@
         ],
         "description": "Tipo di agente che invia dati al server."
       },
+      "DfaAlpha1Result": {
+        "required": [
+          "alpha1",
+          "intervalCount",
+          "scaleCount"
+        ],
+        "type": "object",
+        "properties": {
+          "alpha1": {
+            "type": "number",
+            "format": "double"
+          },
+          "intervalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "scaleCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "DurabilityProfile": {
         "required": [
           "baselineStart",
@@ -1964,6 +2070,33 @@
           }
         },
         "description": "Profilo descrittivo del deterioramento, con onset e trend sullo stesso protocollo di finestre."
+      },
+      "HrvSummary": {
+        "required": [
+          "intervalCount",
+          "meanRrMilliseconds",
+          "rmssdMilliseconds",
+          "sdnnMilliseconds"
+        ],
+        "type": "object",
+        "properties": {
+          "intervalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "meanRrMilliseconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "rmssdMilliseconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "sdnnMilliseconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
       },
       "HttpValidationProblemDetails": {
         "type": "object",
@@ -2755,6 +2888,202 @@
               "format": "int64"
             },
             "description": "Istante di ogni coordinata, in millisecondi Unix."
+          }
+        }
+      },
+      "RrChunkAnalysis": {
+        "required": [
+          "methodVersion",
+          "context",
+          "status",
+          "sampleCount",
+          "observedSpanSeconds",
+          "intervalDurationSeconds",
+          "hrvMethodVersion",
+          "hrv",
+          "dfaMethodVersion",
+          "dfa"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "sampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "observedSpanSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "intervalDurationSeconds": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "hrvMethodVersion": {
+            "type": "string"
+          },
+          "hrv": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/HrvSummary"
+              }
+            ]
+          },
+          "dfaMethodVersion": {
+            "type": "string"
+          },
+          "dfa": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DfaAlpha1Result"
+              }
+            ]
+          }
+        }
+      },
+      "RrChunkMetadata": {
+        "required": [
+          "id",
+          "externalId",
+          "revision",
+          "revisionOrder",
+          "unit",
+          "method",
+          "providerAlgorithm",
+          "workoutId",
+          "firstSample",
+          "lastSample",
+          "availableAt",
+          "sampleCount",
+          "contentSha256"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "string"
+          },
+          "revisionOrder": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "providerAlgorithm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "workoutId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "firstSample": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSample": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "contentSha256": {
+            "type": "string"
+          }
+        }
+      },
+      "RrChunkReport": {
+        "required": [
+          "source",
+          "day",
+          "asOf",
+          "truncated",
+          "chunks",
+          "selected",
+          "analysis"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "chunks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RrChunkMetadata"
+            }
+          },
+          "selected": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RrChunkMetadata"
+              }
+            ]
+          },
+          "analysis": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RrChunkAnalysis"
+              }
+            ]
           }
         }
       },

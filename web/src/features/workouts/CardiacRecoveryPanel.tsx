@@ -18,7 +18,9 @@ function Report({ report }: { report: Schemas["WorkoutCardiacRecoveryReport"] })
       <p className="muted">
         Revisione {report.revision} · {report.methodVersion}
       </p>
-      <p>Stato: {report.status}. Fit: {report.fitStatus}.</p>
+      <p>
+        Stato: {report.status}. Fit: {report.fitStatus}.
+      </p>
       <dl>
         <dt>Costante di tempo (s)</dt>
         <dd>{format(report.fit?.timeConstantSeconds ?? null)}</dd>

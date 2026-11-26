@@ -173,6 +173,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/science/rr": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetRrChunks"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/device": {
     parameters: {
       query?: never;
@@ -668,6 +684,14 @@ export interface components {
      * @enum {unknown}
      */
     DeviceKind: "ScaleAgent" | "PhoneBridge";
+    DfaAlpha1Result: {
+      /** Format: double */
+      alpha1: number;
+      /** Format: int32 */
+      intervalCount: number;
+      /** Format: int32 */
+      scaleCount: number;
+    };
     /** @description Profilo descrittivo del deterioramento, con onset e trend sullo stesso protocollo di finestre. */
     DurabilityProfile: {
       /** Format: date-time */
@@ -683,6 +707,16 @@ export interface components {
       lossPercentagePointsPerHour: number;
       /** Format: double */
       medianAbsoluteResidualPercentagePoints: number;
+    };
+    HrvSummary: {
+      /** Format: int32 */
+      intervalCount: number;
+      /** Format: double */
+      meanRrMilliseconds: number;
+      /** Format: double */
+      rmssdMilliseconds: number;
+      /** Format: double */
+      sdnnMilliseconds: number;
     };
     HttpValidationProblemDetails: {
       type?: null | string;
@@ -959,6 +993,54 @@ export interface components {
       hiddenEndPoints: number;
       /** @description Istante di ogni coordinata, in millisecondi Unix. */
       times: number[];
+    };
+    RrChunkAnalysis: {
+      methodVersion: string;
+      context: string;
+      status: string;
+      /** Format: int32 */
+      sampleCount: number;
+      /** Format: double */
+      observedSpanSeconds: number;
+      /** Format: double */
+      intervalDurationSeconds: null | number;
+      hrvMethodVersion: string;
+      hrv: null | components["schemas"]["HrvSummary"];
+      dfaMethodVersion: string;
+      dfa: null | components["schemas"]["DfaAlpha1Result"];
+    };
+    RrChunkMetadata: {
+      /** Format: uuid */
+      id: string;
+      externalId: string;
+      revision: string;
+      /** Format: int64 */
+      revisionOrder: null | number;
+      unit: string;
+      method: string;
+      providerAlgorithm: null | string;
+      /** Format: uuid */
+      workoutId: null | string;
+      /** Format: date-time */
+      firstSample: string;
+      /** Format: date-time */
+      lastSample: string;
+      /** Format: date-time */
+      availableAt: string;
+      /** Format: int32 */
+      sampleCount: number;
+      contentSha256: string;
+    };
+    RrChunkReport: {
+      source: string;
+      /** Format: date */
+      day: string;
+      /** Format: date-time */
+      asOf: string;
+      truncated: boolean;
+      chunks: components["schemas"]["RrChunkMetadata"][];
+      selected: null | components["schemas"]["RrChunkMetadata"];
+      analysis: null | components["schemas"]["RrChunkAnalysis"];
     };
     RunningStepReport: {
       /** Format: uuid */
@@ -1704,6 +1786,49 @@ export interface operations {
         content: {
           "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
         };
+      };
+    };
+  };
+  GetRrChunks: {
+    parameters: {
+      query: {
+        source: string;
+        day: string;
+        context: string;
+        screened: boolean;
+        timestampsAreBeatEnds: boolean;
+        chunkId?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RrChunkReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
