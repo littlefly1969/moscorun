@@ -13,7 +13,9 @@ public static class SignalProcessing
         var all = samples.ToArray();
         var valid = all.Where(IsFinite).ToArray();
         var inside = valid.Where(sample => sample.Time >= start && sample.Time <= end).ToArray();
-        var slots = Group(inside);
+        var groups = all.Where(sample => sample.Time >= start && sample.Time <= end)
+            .GroupBy(sample => sample.Time).ToArray();
+        var slots = groups.Select(Resolve).OrderBy(sample => sample.Time).ToArray();
         double seconds = 0;
         double weighted = 0;
         for (var i = 0; i + 1 < slots.Length; i++)
@@ -29,8 +31,8 @@ public static class SignalProcessing
         }
 
         return new SignalQuality(all.Length, slots.Count(sample => sample.Value.HasValue),
-            all.Length - valid.Length, valid.Length - inside.Length, inside.Length - slots.Length,
-            slots.Count(sample => !sample.Value.HasValue), TimeSpan.FromSeconds(seconds),
+            all.Length - valid.Length, valid.Length - inside.Length, groups.Sum(group => group.Count() - 1),
+            groups.Count(group => group.Select(sample => sample.Value).Distinct().Count() > 1), TimeSpan.FromSeconds(seconds),
             seconds / (end - start).TotalSeconds, seconds > 0 && double.IsFinite(weighted) ? weighted / seconds : null);
     }
 
@@ -39,7 +41,7 @@ public static class SignalProcessing
     {
         ArgumentNullException.ThrowIfNull(samples);
         ArgumentOutOfRangeException.ThrowIfLessThan(maxAge, TimeSpan.Zero);
-        var slots = Group(samples.Where(sample => sample.Time <= target && IsFinite(sample)));
+        var slots = Group(samples.Where(sample => sample.Time <= target));
         if (slots.Length == 0)
         {
             return null;
@@ -67,8 +69,14 @@ public static class SignalProcessing
 
     private static SignalSample[] Group(IEnumerable<SignalSample> samples) =>
         samples.GroupBy(sample => sample.Time)
-            .Select(group => new SignalSample(group.Key,
-                group.Select(sample => sample.Value).Distinct().Count() == 1 ? group.First().Value : null))
+            .Select(Resolve)
             .OrderBy(sample => sample.Time)
             .ToArray();
+
+    internal static SignalSample Resolve(IGrouping<DateTimeOffset, SignalSample> group)
+    {
+        var values = group.Select(sample => sample.Value).Distinct().ToArray();
+        return new SignalSample(group.Key,
+            values.Length == 1 && values[0] is { } value && double.IsFinite(value) ? value : null);
+    }
 }
