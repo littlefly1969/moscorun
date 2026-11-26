@@ -56,10 +56,7 @@ export function RunningStepPanel({ workoutId }: { workoutId: string }) {
   return (
     <section className="card" aria-labelledby="running-step-title">
       <h2 id="running-step-title">Biomeccanica: passo e cadenza</h2>
-      <p>
-        Stima cinematica sui soli intervalli con velocità e cadenza valide. Non misura la variabilità
-        dei singoli passi né la simmetria dei due arti.
-      </p>
+      <p>Stima su velocità e cadenza accoppiate, non sui singoli passi o sulla simmetria degli arti.</p>
       <form className="inline-form" onSubmit={submit}>
         <label>
           <input name="confirmed" type="checkbox" />

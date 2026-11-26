@@ -54,6 +54,13 @@ internal static class WorkoutEndpoints
                 "l'allenamento non la contiene). maxPoints riduce ogni serie conservando minimi e massimi reali di ogni intervallo; " +
                 "totalSamples indica quanti campioni sono salvati.");
 
+        MapScienceEndpoints(v1, workouts);
+
+        return v1;
+    }
+
+    private static void MapScienceEndpoints(RouteGroupBuilder v1, RouteGroupBuilder workouts)
+    {
         workouts.MapGet("/{id:guid}/science", WorkoutScienceEndpoints.GetAsync)
             .RequireAuthorization(Policies.User)
             .WithName("GetWorkoutScience");
@@ -82,8 +89,6 @@ internal static class WorkoutEndpoints
             .RequireAuthorization(Policies.User)
             .WithTags("Cruscotto")
             .WithName("GetDailySessionLoad");
-
-        return v1;
     }
 
     internal static async Task<Results<Created<WorkoutSummaryDto>, Ok<WorkoutSummaryDto>, ValidationProblem, ProblemHttpResult>> IngestAsync(

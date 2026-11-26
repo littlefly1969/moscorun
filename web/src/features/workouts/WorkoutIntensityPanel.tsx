@@ -22,10 +22,8 @@ function Results({ report }: { report: Schemas["WorkoutIntensityReport"] }) {
       <p className="muted">
         Revisione {report.revision} · {report.methodVersion} · gap massimo {report.maxGapSeconds} s.
       </p>
-      <p>
-        Copertura temporale: {percent.format(d.coverage)} · minuti senza supporto:{" "}
-        {number.format(d.missingMinutes)}.
-      </p>
+      <p>Copertura temporale: {percent.format(d.coverage)}</p>
+      <p>Minuti senza supporto: {number.format(d.missingMinutes)}.</p>
       <dl>
         <dt>Media osservata ({report.unit})</dt>
         <dd>{format(report.observedMean)}</dd>
@@ -68,22 +66,20 @@ function optional(form: FormData, key: string) {
 
 export function WorkoutIntensityPanel({ workoutId }: { workoutId: string }) {
   const analysis = useMutation({
-    mutationFn: (query: Protocol) =>
-      unwrap(
-        api.GET("/api/v1/workouts/{id}/science/intensity", {
-          params: { path: { id: workoutId }, query },
-        }),
-      ),
+    mutationFn: (query: Protocol) => {
+      const params = { path: { id: workoutId }, query };
+      return unwrap(api.GET("/api/v1/workouts/{id}/science/intensity", { params }));
+    },
   });
   const submit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const metric = form.get("metric");
     const thresholds = form.get("thresholds");
-    if (
-      (metric !== "HeartRate" && metric !== "Speed" && metric !== "Power") ||
-      typeof thresholds !== "string"
-    ) {
+    if (metric !== "HeartRate" && metric !== "Speed" && metric !== "Power") {
+      return;
+    }
+    if (typeof thresholds !== "string") {
       return;
     }
     const query: Protocol = { metric, thresholds };
@@ -103,9 +99,7 @@ export function WorkoutIntensityPanel({ workoutId }: { workoutId: string }) {
   return (
     <section className="card" aria-labelledby="intensity-title">
       <h2 id="intensity-title">Zone d'intensità e carico cardiaco</h2>
-      <p>
-        Inserisci soglie nella stessa unità del segnale. Per la FC usa parametri calibrati. Nessuna imputazione.
-      </p>
+      <p>Usa soglie nella stessa unità del segnale e parametri FC calibrati.</p>
       <form className="inline-form" onSubmit={submit}>
         <label>
           Canale

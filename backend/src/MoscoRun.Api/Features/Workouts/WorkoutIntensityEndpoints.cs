@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -47,7 +48,7 @@ internal static class WorkoutIntensityEndpoints
         return report is not null ? TypedResults.Ok(report) : TypedResults.NotFound();
     }
 
-    private static System.Collections.ObjectModel.ReadOnlyCollection<double>? Parse(string thresholds)
+    private static ReadOnlyCollection<double>? Parse(string thresholds)
     {
         if (string.IsNullOrWhiteSpace(thresholds) || thresholds.Length > 200)
         {
