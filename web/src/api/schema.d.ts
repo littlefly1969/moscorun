@@ -395,6 +395,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/workouts/{id}/science/cardiac-recovery": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetWorkoutCardiacRecovery"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/devices": {
     parameters: {
       query?: never;
@@ -483,6 +499,26 @@ export interface components {
        * @description Longitudine massima.
        */
       maxLongitude: number;
+    };
+    CardiacRecoveryPoint: {
+      /** Format: int32 */
+      elapsedSeconds: number;
+      /** Format: date-time */
+      target: string;
+      /** Format: date-time */
+      observedAt: null | string;
+      /** Format: double */
+      heartRateBpm: null | number;
+      /** Format: double */
+      dropFromEndBpm: null | number;
+    };
+    CardiacResponseFit: {
+      /** Format: double */
+      timeConstantSeconds: number;
+      /** Format: double */
+      rootMeanSquaredErrorBpm: number;
+      /** Format: int32 */
+      sampleCount: number;
     };
     CurrentUser: {
       /** Format: uuid */
@@ -1117,6 +1153,32 @@ export interface components {
       from: string;
       /** Format: date-time */
       to: string;
+    };
+    WorkoutCardiacRecoveryProtocol: {
+      /** Format: int32 */
+      endOffsetSeconds: number;
+      mode: string;
+      confirmed: boolean;
+      /** Format: double */
+      equilibriumBpm: null | number;
+    };
+    WorkoutCardiacRecoveryReport: {
+      /** Format: uuid */
+      workoutId: string;
+      /** Format: int64 */
+      revision: number;
+      contentSha256: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      /** Format: double */
+      maximumAgeSeconds: number;
+      protocol: components["schemas"]["WorkoutCardiacRecoveryProtocol"];
+      status: string;
+      points: components["schemas"]["CardiacRecoveryPoint"][];
+      fit: null | components["schemas"]["CardiacResponseFit"];
+      fitStatus: string;
     };
     WorkoutChannelReport: {
       metric: components["schemas"]["SeriesMetric"];
@@ -2061,6 +2123,49 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["RunningStepReport"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  GetWorkoutCardiacRecovery: {
+    parameters: {
+      query: {
+        endOffsetSeconds: number;
+        mode: string;
+        confirmed: boolean;
+        equilibriumBpm?: number;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkoutCardiacRecoveryReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
         };
       };
       /** @description Not Found */
