@@ -32,11 +32,25 @@ function EvidenceMap({ report }: { report: Schemas["SleepPerformanceReport"] }) 
           <rect x="410" y="80" width="198" height="60" rx="3" />
         </g>
         <g fill="currentColor" textAnchor="middle" fontSize="14">
-          <text x="111" y="58">Durata del sonno</text>
-          <text x="111" y="170">Efficienza del sonno</text>
-          <text x="509" y="114">Velocità nelle prove</text>
-          {hours && <text x="310" y="72">r = {format(report.sleepHoursCorrelation)}</text>}
-          {efficiency && <text x="310" y="156">r = {format(report.sleepEfficiencyCorrelation)}</text>}
+          <text x="111" y="58">
+            Durata del sonno
+          </text>
+          <text x="111" y="170">
+            Efficienza del sonno
+          </text>
+          <text x="509" y="114">
+            Velocità nelle prove
+          </text>
+          {hours && (
+            <text x="310" y="72">
+              r = {format(report.sleepHoursCorrelation)}
+            </text>
+          )}
+          {efficiency && (
+            <text x="310" y="156">
+              r = {format(report.sleepEfficiencyCorrelation)}
+            </text>
+          )}
         </g>
       </svg>
       <figcaption>

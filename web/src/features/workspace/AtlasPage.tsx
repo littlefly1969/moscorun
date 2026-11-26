@@ -139,8 +139,7 @@ function MetricInspector({
       {metric.access === "diary" && diary?.status === "recorded" && (
         <>
           <div className="sw-value">
-            {value == null ? "—" : number.format(value)}{" "}
-            <small>{metric.unit}</small>
+            {value == null ? "—" : number.format(value)} <small>{metric.unit}</small>
           </div>
           <dl className="sw-meta">
             <dt>Fonte</dt>
@@ -156,11 +155,12 @@ function MetricInspector({
       )}
       {metric.access === "workout" && <Link to="/cronoscopio">Esplora i campioni della seduta →</Link>}
       {metric.access === "diary" && <Link to="/laboratorio?metodo=diario">Apri il diario →</Link>}
+      {metric.access === "sessionDiary" && <Link to="/laboratorio?metodo=seduta">Apri una seduta →</Link>}
       {metric.id === "weight" && <Link to="/forma">Consulta anche le pesate della bilancia →</Link>}
       {metric.access === "catalog" && (
         <p className="sw-muted">
-          Metrica presente nel catalogo, lettura non ancora collegata. Non si può dedurre che il sensore
-          non la registri.
+          Metrica presente nel catalogo, lettura non ancora collegata. Non si può dedurre che il sensore non
+          la registri.
         </p>
       )}
     </aside>
@@ -196,19 +196,27 @@ export function AtlasPage() {
     enabled: scope != null,
   });
   const reports = new Map(dailyMetrics.map((metric, index) => [metric.id, queries[index]]));
-  const observedCount = queries.filter((query) => query.data?.current.status === "observed").length;
-  const diaryCount = metricCatalog.filter(
-    (metric) => metric.access === "diary" && declaredValue(diary.data, metric) != null,
+  const observedCount = queries.filter(
+    (query) => !query.isError && query.data?.current.status === "observed",
   ).length;
+  const diaryData = diary.isError ? undefined : diary.data;
+  const diaryCount = metricCatalog.filter(
+    (metric) => metric.access === "diary" && declaredValue(diaryData, metric) != null,
+  ).length;
+  const reportFor = (id: string) => {
+    const query = reports.get(id);
+    return query?.isError ? undefined : query?.data;
+  };
   const lookup = (metric: MetricDefinition) => {
     const query = reports.get(metric.id);
     if (metric.access === "workout") return "Serie della seduta";
+    if (metric.access === "sessionDiary") return "Diario della seduta";
     if (metric.access === "diary") {
       if (!scope) return "Diario dichiarato";
       if (diary.isFetching) return "Caricamento…";
       if (diary.isError) return "Errore di lettura del diario";
       if (diary.data?.status === "ambiguous") return "Diario ambiguo";
-      return declaredValue(diary.data, metric) != null ? "Dichiarato" : "Non dichiarato nel giorno";
+      return declaredValue(diaryData, metric) != null ? "Dichiarato" : "Non dichiarato nel giorno";
     }
     if (metric.access === "catalog") return "Lettura non collegata";
     if (!scope) return "Seleziona fonte e giorno";
@@ -285,11 +293,15 @@ export function AtlasPage() {
       <div className="sw-controls">
         <label>
           Cerca metrica
-          <input value={search} onChange={(event) => setSearch(event.target.value)} type="search" />
+          <input value={search} onChange={(event) => {
+              setSearch(event.target.value);
+            }} type="search" />
         </label>
         <label>
           Famiglia
-          <select value={family} onChange={(event) => setFamily(event.target.value)}>
+          <select value={family} onChange={(event) => {
+              setFamily(event.target.value);
+            }}>
             <option value="all">Tutte le famiglie</option>
             {Object.entries(metricFamilies).map(([id, label]) => (
               <option key={id} value={id}>
@@ -302,7 +314,9 @@ export function AtlasPage() {
           <input
             type="checkbox"
             checked={onlyFavorites}
-            onChange={(event) => setOnlyFavorites(event.target.checked)}
+            onChange={(event) => {
+              setOnlyFavorites(event.target.checked);
+            }}
           />
           Solo preferite (sessione)
         </label>
@@ -326,10 +340,10 @@ export function AtlasPage() {
                 </thead>
                 <tbody>
                   {visible.map((metric) => {
-                    const report = reports.get(metric.id)?.data;
+                    const report = reportFor(metric.id);
                     const value =
                       metric.access === "diary"
-                        ? declaredValue(diary.data, metric)
+                        ? declaredValue(diaryData, metric)
                         : report?.current.status === "observed"
                           ? report.current.value
                           : null;
@@ -341,7 +355,9 @@ export function AtlasPage() {
                             type="button"
                             className="sw-metric-name"
                             aria-pressed={current?.id === metric.id}
-                            onClick={() => setSelected(metric.id)}
+                            onClick={() => {
+                              setSelected(metric.id);
+                            }}
                           >
                             {metric.label}
                           </button>
@@ -356,11 +372,11 @@ export function AtlasPage() {
                             className="sw-star"
                             aria-label={"Preferita: " + metric.label}
                             aria-pressed={favorite}
-                            onClick={() =>
+                            onClick={() => {
                               setFavorites((items) =>
                                 favorite ? items.filter((id) => id !== metric.id) : [...items, metric.id],
-                              )
-                            }
+                              );
+                            }}
                           >
                             {favorite ? "★" : "☆"}
                           </button>
@@ -376,8 +392,8 @@ export function AtlasPage() {
         {current && (
           <MetricInspector
             metric={current}
-            report={reports.get(current.id)?.data}
-            diary={diary.data}
+            report={reportFor(current.id)}
+            diary={diaryData}
             state={lookup(current)}
           />
         )}

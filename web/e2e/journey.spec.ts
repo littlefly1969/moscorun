@@ -31,6 +31,19 @@ test("la pagina di accesso è accessibile e rifiuta credenziali errate", async (
   await expect(page.getByRole("alert")).toHaveText("Email o password non corrette.");
 });
 
+test("atlante scientifico: ricerca, navigazione e accessibilità", async ({ page }) => {
+  await login(page);
+  await page.getByLabel("Cerca metrica").fill("groundContactTime");
+  await expect(page.getByRole("button", { name: "Tempo di contatto a terra", exact: true })).toBeVisible();
+  await expectNoA11yViolations(page);
+  const overflow = await page.evaluate<number>(
+    "document.documentElement.scrollWidth - document.documentElement.clientWidth",
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+  await page.getByRole("navigation", { name: "Ambiente scientifico" }).getByRole("link", { name: /Cronoscopio/ }).click();
+  await expect(page.getByRole("heading", { name: "Cronoscopio" })).toBeVisible();
+});
+
 test("percorso completo: dispositivo, pesata dall'agente, cruscotto", async ({ page, request }, testInfo) => {
   await login(page);
 

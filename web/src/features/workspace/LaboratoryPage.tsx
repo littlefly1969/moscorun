@@ -71,7 +71,9 @@ export function LaboratoryPage() {
             key={id}
             type="button"
             aria-pressed={method === id}
-            onClick={() => setParams({ metodo: id })}
+            onClick={() => {
+              setParams({ metodo: id });
+            }}
           >
             <strong>{title}</strong>
             <small>{hint}</small>
@@ -85,7 +87,7 @@ export function LaboratoryPage() {
       {method === "diario" && <ScienceFeedbackPanel />}
       {method === "seduta" && (
         <WorkoutPicker>
-          {(workout) => <WorkoutMethods key={workout.id + ":" + workout.revision} workout={workout} />}
+          {(workout) => <WorkoutMethods key={`${workout.id}:${workout.revision}`} workout={workout} />}
         </WorkoutPicker>
       )}
       <p>

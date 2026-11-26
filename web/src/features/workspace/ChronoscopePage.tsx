@@ -107,7 +107,9 @@ function Timeline({ workout }: { workout: WorkoutSummary }) {
       <div className="sw-controls">
         <label>
           Finestra temporale
-          <select value={minutes} onChange={(event) => setMinutes(Number(event.target.value))}>
+          <select value={minutes} onChange={(event) => {
+              setMinutes(Number(event.target.value));
+            }}>
             <option value={0}>Intera seduta</option>
             <option value={5}>5 minuti</option>
             <option value={15}>15 minuti</option>
@@ -120,7 +122,9 @@ function Timeline({ workout }: { workout: WorkoutSummary }) {
             min={0}
             max={duration}
             value={offset}
-            onChange={(event) => setOffset(Number(event.target.value))}
+            onChange={(event) => {
+              setOffset(Number(event.target.value));
+            }}
           />
         </label>
       </div>
@@ -132,11 +136,11 @@ function Timeline({ workout }: { workout: WorkoutSummary }) {
               <input
                 type="checkbox"
                 checked={!hidden.includes(key)}
-                onChange={(event) =>
+                onChange={(event) => {
                   setHidden((current) =>
                     event.target.checked ? current.filter((name) => name !== key) : [...current, key],
-                  )
-                }
+                  );
+                }}
               />
               {names[key] ?? key}
             </label>
@@ -170,7 +174,7 @@ export function ChronoscopePage() {
         <p>Una sola scala temporale, più tracce indipendenti. Esplora il supporto realmente acquisito.</p>
       </header>
       <WorkoutPicker>
-        {(workout) => <Timeline key={workout.id + ":" + workout.revision} workout={workout} />}
+        {(workout) => <Timeline key={`${workout.id}:${workout.revision}`} workout={workout} />}
       </WorkoutPicker>
     </>
   );

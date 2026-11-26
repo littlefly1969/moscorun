@@ -27,7 +27,9 @@ export function SimulatorPage() {
             key={item.id}
             type="button"
             aria-pressed={scenario === item.id}
-            onClick={() => setScenario(item.id)}
+            onClick={() => {
+              setScenario(item.id);
+            }}
           >
             <strong>{item.title}</strong>
             <small>{item.hint}</small>
@@ -40,7 +42,7 @@ export function SimulatorPage() {
       {scenario === "twin" && (
         <WorkoutPicker>
           {(workout) => (
-            <CalibratedTwinPanel key={workout.id + ":" + workout.revision} workoutId={workout.id} />
+            <CalibratedTwinPanel key={`${workout.id}:${workout.revision}`} workoutId={workout.id} />
           )}
         </WorkoutPicker>
       )}

@@ -17,7 +17,7 @@ export interface MetricDefinition {
   label: string;
   unit: string;
   family: keyof typeof metricFamilies;
-  access: "daily" | "workout" | "diary" | "catalog";
+  access: "daily" | "workout" | "diary" | "sessionDiary" | "catalog";
   interpretation: string;
 }
 
@@ -315,7 +315,7 @@ export const metricCatalog: MetricDefinition[] = [
     label: "Riposo diurno",
     unit: "s",
     family: "daily",
-    access: "catalog",
+    access: "diary",
     interpretation: "method_required",
   },
   {
@@ -427,7 +427,7 @@ export const metricCatalog: MetricDefinition[] = [
     label: "Dispendio a riposo",
     unit: "kcal",
     family: "providerEstimates",
-    access: "catalog",
+    access: "diary",
     interpretation: "provider_estimate",
   },
   {
@@ -635,7 +635,7 @@ export const metricCatalog: MetricDefinition[] = [
     label: "Sforzo percepito (RPE)",
     unit: "0-10",
     family: "feedback",
-    access: "diary",
+    access: "sessionDiary",
     interpretation: "self_reported",
   },
   {
@@ -747,7 +747,7 @@ export const metricCatalog: MetricDefinition[] = [
     label: "Peso prima della seduta",
     unit: "kg",
     family: "feedback",
-    access: "diary",
+    access: "sessionDiary",
     interpretation: "self_reported",
   },
   {
@@ -755,7 +755,7 @@ export const metricCatalog: MetricDefinition[] = [
     label: "Peso dopo la seduta",
     unit: "kg",
     family: "feedback",
-    access: "diary",
+    access: "sessionDiary",
     interpretation: "self_reported",
   },
   {
@@ -763,7 +763,7 @@ export const metricCatalog: MetricDefinition[] = [
     label: "Volume urine durante la seduta",
     unit: "mL",
     family: "feedback",
-    access: "diary",
+    access: "sessionDiary",
     interpretation: "self_reported",
   },
   {
@@ -771,7 +771,7 @@ export const metricCatalog: MetricDefinition[] = [
     label: "Protocollo sudorazione confermato",
     unit: "1",
     family: "feedback",
-    access: "diary",
+    access: "sessionDiary",
     interpretation: "self_reported",
   },
   {
@@ -779,7 +779,7 @@ export const metricCatalog: MetricDefinition[] = [
     label: "Prova massimale in piano",
     unit: "1",
     family: "feedback",
-    access: "diary",
+    access: "sessionDiary",
     interpretation: "self_reported",
   },
   {
@@ -787,7 +787,7 @@ export const metricCatalog: MetricDefinition[] = [
     label: "Potenza di corsa comparabile",
     unit: "1",
     family: "feedback",
-    access: "diary",
+    access: "sessionDiary",
     interpretation: "self_reported",
   },
   {

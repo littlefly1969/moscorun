@@ -25,5 +25,5 @@ associazione già disponibile. Non sono ancora presenti un registro persistente 
 favoriti sincronizzati, composizione arbitraria dei motori, catalogo derivato completo o navigazione
 longitudinale di ogni segnale grezzo. L'app Android resta fuori perimetro.
 
-L'elenco di metriche del frontend va mantenuto allineato a tools/athlete-analysis/catalog.json finché non
-sarà disponibile un endpoint catalogo versionato. Non introdurre fallback sintetici in produzione.
+Il test di parità verifica l'allineamento del catalogo frontend a tools/athlete-analysis/catalog.json
+finché non sarà disponibile un endpoint catalogo versionato. Non introdurre fallback sintetici in produzione.
