@@ -79,6 +79,9 @@ internal static class WorkoutEndpoints
         workouts.MapGet("/{id:guid}/science/reserve", WorkoutReserveEndpoints.GetAsync)
             .RequireAuthorization(Policies.User)
             .WithName("GetWorkoutReserve");
+        workouts.MapPost("/{id:guid}/science/twin", CalibratedTwinEndpoints.PostAsync)
+            .RequireAuthorization(Policies.User)
+            .WithName("SimulateCalibratedTwin");
         v1.MapGet("/science/daily", DailyScienceEndpoints.GetAsync)
             .RequireAuthorization(Policies.User)
             .WithTags("Cruscotto")
