@@ -3,6 +3,7 @@ import type { Weighing } from "../../api/client";
 import { formatDateTime, formatDeltaKg, formatKg, formatRelative, freshness } from "../../lib/format";
 import { useSetAttribution, useSummary, useWeighings } from "./queries";
 import { StatCard } from "./StatCard";
+import { DailySciencePanel } from "./DailySciencePanel";
 
 // La libreria dei grafici è il pacchetto più pesante: caricata a parte, dopo i dati essenziali.
 const WeightChart = lazy(() => import("./WeightChart").then((m) => ({ default: m.WeightChart })));
@@ -82,6 +83,8 @@ export function DashboardPage() {
           <WeightChart items={items} />
         </Suspense>
       </section>
+
+      <DailySciencePanel />
 
       <section className="card" aria-labelledby="sources-title">
         <h2 id="sources-title">Sorgenti dati</h2>
