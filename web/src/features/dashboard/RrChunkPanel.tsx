@@ -109,7 +109,8 @@ export function RrChunkPanel() {
       {report?.truncated && <p>Elenco limitato alle prime 64 revisioni.</p>}
       {report?.selected && (
         <p>
-          Revisione {report.selected.revision} · {report.selected.method} · {report.selected.sampleCount} campioni
+          Revisione {report.selected.revision} · {report.selected.method} · {report.selected.sampleCount}{" "}
+          campioni
         </p>
       )}
       {report?.analysis && <Analysis report={report.analysis} />}
