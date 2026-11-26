@@ -64,6 +64,14 @@ internal static class WorkoutEndpoints
             .RequireAuthorization(Policies.User)
             .WithTags("Cruscotto")
             .WithName("GetDailyScience");
+        v1.MapGet("/science/feedback", ScienceFeedbackEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("GetScienceFeedback");
+        v1.MapPut("/science/feedback", ScienceFeedbackEndpoints.PutAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("SaveScienceFeedback");
 
         return v1;
     }
