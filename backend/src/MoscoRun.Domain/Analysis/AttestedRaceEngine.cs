@@ -62,7 +62,7 @@ public static class AttestedRaceEngine
             ? model?.Predict(owner, Protocol, split, item.DistanceMeters)?.PredictedSeconds : null;
         double? error = predicted is { } estimate ? Math.Abs(estimate - seconds) : null;
         return new RaceCalibrationEvidence(item.WorkoutId, item.Revision, item.ContentSha256, item.EndedAt,
-            item.AvailableAt, item.FeedbackRevision, item.DistanceMeters, seconds, role, predicted, error);
+            item.AvailableAt, item.FeedbackRevision, item.DistanceMeters, seconds, role, predicted, error, item.MeanPowerWatts);
     }
 
     private static RaceCalibrationEffort ToCalibration(AttestedRaceEffort item) =>

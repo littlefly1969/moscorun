@@ -14,10 +14,14 @@ public static class AttestedPerformanceEngine
             double.IsFinite(item.DistanceMeters) && item.DistanceMeters > 0).ToArray();
         var efforts = candidates.Select(item => new PerformanceEffort(item.DurationSeconds, item.DistanceMeters, true)).ToArray();
         var cooper = training.Select(Cooper).OfType<CooperTestResult>().ToArray();
+        var power = candidates.Where(item => item.MeanPowerWatts is > 0 && double.IsFinite(item.MeanPowerWatts.Value)).ToArray();
+        var powerFit = AdvancedPerformancePhysiology.FitCriticalPower(power.Select(item =>
+            new CriticalPowerEffort(item.DurationSeconds, item.MeanPowerWatts.GetValueOrDefault(), true)));
         return new AttestedPerformanceProfile(PerformancePhysiology.MethodVersion, RobustMethodVersion,
             AdvancedPerformancePhysiology.CooperMethodVersion, PerformancePhysiology.FitCriticalSpeed(efforts),
             AdvancedPerformancePhysiology.RobustCriticalSpeed(efforts), Array.AsReadOnly(cooper),
-            Array.AsReadOnly(candidates.Select(item => item.WorkoutId).ToArray()));
+            Array.AsReadOnly(candidates.Select(item => item.WorkoutId).ToArray()), AdvancedPerformancePhysiology.PowerMethodVersion,
+            powerFit, Array.AsReadOnly(power.Select(item => item.WorkoutId).ToArray()));
     }
 
     private static CooperTestResult? Cooper(RaceCalibrationEvidence item)
