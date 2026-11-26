@@ -299,6 +299,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/science/daily": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetDailyScience"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/devices": {
     parameters: {
       query?: never;
@@ -367,6 +383,39 @@ export interface components {
       id: string;
       email: string;
       displayName: null | string;
+    };
+    DailyMetricPoint: {
+      /** Format: date */
+      day: string;
+      status: string;
+      /** Format: double */
+      value: null | number;
+      /** Format: uuid */
+      observationId: null | string;
+      /** Format: date-time */
+      time: null | string;
+      /** Format: date-time */
+      availableAt: null | string;
+      method: null | string;
+      providerAlgorithm: null | string;
+    };
+    DailyMetricReport: {
+      metric: string;
+      unit: string;
+      source: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      /** Format: int32 */
+      baselineDays: number;
+      current: components["schemas"]["DailyMetricPoint"];
+      history: components["schemas"]["DailyMetricPoint"][];
+      status: string;
+      baseline: null | components["schemas"]["RecoveryDeviation"];
+      /** Format: double */
+      currentVersusMedianPercent: null | number;
+      /** Format: double */
+      weightTrendKgPerWeek: null | number;
     };
     DashboardSummary: {
       /**
@@ -586,6 +635,16 @@ export interface components {
       start: null | string;
       /** Format: date-time */
       end: null | string;
+    };
+    RecoveryDeviation: {
+      /** Format: int32 */
+      baselineCount: number;
+      /** Format: double */
+      baselineMedian: number;
+      /** Format: double */
+      medianAbsoluteDeviation: number;
+      /** Format: double */
+      robustZScore: null | number;
     };
     RegisterDeviceRequest: {
       name: string;
@@ -1403,6 +1462,41 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  GetDailyScience: {
+    parameters: {
+      query: {
+        metric: string;
+        source: string;
+        day: string;
+        baselineDays: number;
+        asOf?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DailyMetricReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
       };
     };
   };
