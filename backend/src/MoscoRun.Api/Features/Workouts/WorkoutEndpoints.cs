@@ -96,6 +96,10 @@ internal static class WorkoutEndpoints
             .RequireAuthorization(Policies.User)
             .WithTags("Cruscotto")
             .WithName("GetAttestedRace");
+        v1.MapGet("/science/rr", RrChunkEndpoints.GetAsync)
+            .RequireAuthorization(Policies.User)
+            .WithTags("Cruscotto")
+            .WithName("GetRrChunks");
     }
 
     internal static async Task<Results<Created<WorkoutSummaryDto>, Ok<WorkoutSummaryDto>, ValidationProblem, ProblemHttpResult>> IngestAsync(
