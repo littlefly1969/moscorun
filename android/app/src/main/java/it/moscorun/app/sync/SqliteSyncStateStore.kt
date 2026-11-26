@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import it.moscorun.app.model.Provider
+import it.moscorun.app.science.ScienceStateStore
 import java.time.Instant
 
 /**
@@ -13,7 +14,7 @@ import java.time.Instant
  * It stores identifiers, fingerprints, instants and outcomes; routes and measurements are never written here.
  * Each public method is one statement or one transaction, so the file is consistent after any interruption.
  */
-class SqliteSyncStateStore(context: Context, name: String? = DATABASE) : SyncStateStore, AutoCloseable {
+class SqliteSyncStateStore(context: Context, name: String? = DATABASE) : SyncStateStore, ScienceStateStore, AutoCloseable {
     private val helper = object : SQLiteOpenHelper(context.applicationContext, name, null, VERSION) {
         override fun onCreate(db: SQLiteDatabase) {
             db.execSQL("""CREATE TABLE ledger (
@@ -29,10 +30,18 @@ class SqliteSyncStateStore(context: Context, name: String? = DATABASE) : SyncSta
                 PRIMARY KEY (scope, provider))""")
             db.execSQL("""CREATE TABLE status (
                 scope TEXT NOT NULL PRIMARY KEY, last_attempt_at INTEGER, last_success_at INTEGER, outcome TEXT, message TEXT)""")
+            createScience(db)
         }
 
-        // Future versions add columns or tables here; rows are never dropped by an upgrade.
-        override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+        // Each version adds columns or tables; rows are never dropped by an upgrade.
+        override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+            if (oldVersion < 2) createScience(db)
+        }
+
+        private fun createScience(db: SQLiteDatabase) {
+            db.execSQL("""CREATE TABLE science_checkpoint (
+                scope TEXT NOT NULL, source TEXT NOT NULL, synced_until INTEGER NOT NULL, PRIMARY KEY (scope, source))""")
+        }
     }
     private val db: SQLiteDatabase get() = helper.writableDatabase
 
@@ -106,8 +115,18 @@ class SqliteSyncStateStore(context: Context, name: String? = DATABASE) : SyncSta
             arrayOf(scope, provider.name, sourceId))
     }
 
-    override fun resetCheckpoints(scope: String) {
-        db.delete("checkpoint", "scope = ?", arrayOf(scope))
+    override fun resetCheckpoints(scope: String) = transaction {
+        TABLES_WITH_CHECKPOINTS.forEach { delete(it, "scope = ?", arrayOf(scope)) }
+    }
+
+    override fun scienceSyncedUntil(scope: String, source: String): Instant? =
+        db.query("science_checkpoint", arrayOf("synced_until"), "scope = ? AND source = ?", arrayOf(scope, source), null, null, null)
+            .use { if (it.moveToFirst()) it.instant("synced_until") else null }
+
+    override fun saveScienceSyncedUntil(scope: String, source: String, until: Instant) {
+        db.insertWithOnConflict("science_checkpoint", null, ContentValues().apply {
+            put("scope", scope); put("source", source); put("synced_until", until.toEpochMilli())
+        }, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
     override fun moveScope(from: String, to: String) {
@@ -116,19 +135,20 @@ class SqliteSyncStateStore(context: Context, name: String? = DATABASE) : SyncSta
             val occupied = rawQuery("SELECT (SELECT COUNT(*) FROM ledger WHERE scope = ?1) + (SELECT COUNT(*) FROM checkpoint WHERE scope = ?1)",
                 arrayOf(to)).use { it.moveToFirst() && it.getInt(0) > 0 }
             if (occupied) return@transaction
-            listOf("ledger", "checkpoint", "status").forEach { table ->
-                if (table == "status") delete(table, "scope = ?", arrayOf(to))
+            TABLES.forEach { table ->
+                // Rows that only describe the run (status, scientific position) give way to those being moved.
+                if (table == "status" || table == "science_checkpoint") delete(table, "scope = ?", arrayOf(to))
                 update(table, ContentValues().apply { put("scope", to) }, "scope = ?", arrayOf(from))
             }
         }
     }
 
     override fun clearScope(scope: String) = transaction {
-        listOf("ledger", "checkpoint", "status").forEach { delete(it, "scope = ?", arrayOf(scope)) }
+        TABLES.forEach { delete(it, "scope = ?", arrayOf(scope)) }
     }
 
     override fun clearAll() = transaction {
-        listOf("ledger", "checkpoint", "status").forEach { delete(it, null, null) }
+        TABLES.forEach { delete(it, null, null) }
     }
 
     override fun close() = helper.close()
@@ -157,6 +177,8 @@ class SqliteSyncStateStore(context: Context, name: String? = DATABASE) : SyncSta
 
     companion object {
         const val DATABASE = "moscorun-sync.db"
-        private const val VERSION = 1
+        private const val VERSION = 2
+        private val TABLES = listOf("ledger", "checkpoint", "status", "science_checkpoint")
+        private val TABLES_WITH_CHECKPOINTS = listOf("checkpoint", "science_checkpoint")
     }
 }

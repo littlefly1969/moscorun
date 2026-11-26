@@ -24,7 +24,9 @@ class PrivacyActivity : Activity() {
         const val TEXT = "MoscoRun — dati e riservatezza\n\n" +
             "Cosa legge. Solo gli allenamenti registrati sul telefono, con percorso GPS e serie (frequenza cardiaca, velocità, " +
             "cadenza, potenza), da Samsung Health tramite il Samsung Health Data SDK oppure da Health Connect, secondo la " +
-            "sorgente che scegli. Usa soltanto permessi di lettura: non modifica e non cancella nulla nella sorgente.\n\n" +
+            "sorgente che scegli. Se lo consenti, legge anche da Health Connect alcuni dati giornalieri: sonno, frequenza " +
+            "cardiaca a riposo, variabilità cardiaca (HRV), saturazione di ossigeno, frequenza respiratoria e VO2max; ognuno " +
+            "è facoltativo. Usa soltanto permessi di lettura: non modifica e non cancella nulla nella sorgente.\n\n" +
             "Dove li invia. Soltanto al server MoscoRun che hai configurato tu, in HTTPS, con un token del telefono che puoi " +
             "revocare dal cruscotto. Il token è cifrato sul telefono con una chiave dell'Android Keystore e non viene mai " +
             "mostrato per intero. L'invio in background avviene solo se lo attivi nelle Impostazioni.\n\n" +

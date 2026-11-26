@@ -100,13 +100,22 @@ scrive sonno, frequenza a riposo, SpO2 e (dove disponibile) HRV, e lo stesso val
 
 - Identità: `externalId = hc:<metadata.id>`, `revision`/`revisionOrder` = `lastModifiedTime` in ms; ogni modifica
   in Health Connect diventa una nuova revisione.
-- Finestra: al primo avvio gli ultimi 30 giorni (o lo storico scelto se il permesso ai dati precedenti è concesso),
-  poi dal giorno successivo al checkpoint locale riletto con 7 giorni di sovrapposizione per le correzioni tardive.
-  Il checkpoint avanza solo dopo la conferma del server.
+- Quando: dopo gli allenamenti, solo se questi sono completi (un'osservazione legata a un allenamento non arriva mai
+  prima di lui), nel tempo rimasto della stessa esecuzione (7 minuti in tutto).
+- Finestra: al primo avvio gli ultimi 30 giorni (365 se è concesso l'accesso ai dati precedenti), a finestre di 7
+  giorni dalla più vecchia; poi dal checkpoint locale riletto con 7 giorni di sovrapposizione per le correzioni
+  tardive. Il checkpoint avanza solo dopo la conferma del server di un'intera finestra e non arretra mai.
+  L'estremo destro resta 5 minuti prima di adesso, così un orologio del telefono un po' avanti non produce istanti
+  "nel futuro" per il server.
+- Lotti di al più 500 osservazioni; un lotto rifiutato (400/409) viene diviso a metà fino a isolare le osservazioni
+  rifiutate, che vengono contate e non ritentate: una sola osservazione errata non blocca le altre.
 - Permessi facoltativi: mancano? Quella metrica non viene letta e le Impostazioni lo spiegano. Nessun permesso
   scientifico blocca la sincronizzazione degli allenamenti.
-- Errori: 400/409 registrati in Diagnostica senza ritentare lo stesso lotto; 401/403 fermano tutto come per gli
-  allenamenti; 404 (server precedente) sospende la parte scientifica fino al prossimo avvio; 429/5xx/rete: backoff.
+- Errori: 401/403 fermano tutto come per gli allenamenti; 404 (server precedente) sospende la parte scientifica fino
+  alla prossima esecuzione; 429/5xx/rete la rimandano alla prossima esecuzione senza toccare l'esito degli
+  allenamenti. Il riepilogo (nuove, inviate, rifiutate e l'ultimo motivo) compare nello stato della sincronizzazione.
+- Stato locale: una riga per account e sorgente (`science_checkpoint`, database versione 2 con aggiornamento in
+  place), cancellata da "Scollega" e spostata con l'account come il resto del registro. Nessuna misura resta sul telefono.
 
 ## Fuori da questo incremento (prossimi passi)
 
