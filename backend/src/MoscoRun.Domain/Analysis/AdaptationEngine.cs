@@ -15,7 +15,8 @@ public static class AdaptationEngine
         var eligible = observations.Where(item => item.Time > cutoff && item.Time <= asOf &&
             item.AvailableAt >= item.Time && item.AvailableAt <= asOf).ToArray();
         if (eligible.Length < 3 || eligible.Select(item => item.Time).Distinct().Count() != eligible.Length ||
-            eligible.Any(item => !double.IsFinite(item.Response) || !double.IsFinite(item.Predicted)))
+            eligible.Any(item => item.IssuedAt < cutoff || item.IssuedAt >= item.Time ||
+                !double.IsFinite(item.Response) || !double.IsFinite(item.Predicted)))
         {
             return null;
         }
