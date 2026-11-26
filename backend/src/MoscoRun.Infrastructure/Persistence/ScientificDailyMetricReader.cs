@@ -22,7 +22,7 @@ public sealed class ScientificDailyMetricReader(MoscoRunDbContext db)
         var to = new DateTimeOffset(day.AddDays(1).ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
         var cutoff = asOf.ToUniversalTime();
         var all = db.Set<ScientificObservationRow>().AsNoTracking().Where(row =>
-            row.OwnerId == ownerId && row.Metric == metric && row.Source == source &&
+            row.OwnerId == ownerId && row.Metric == metric && row.Source == source && row.WorkoutId == null &&
             row.AvailableAt <= cutoff && row.Time <= cutoff);
         var rows = await all.Where(row => row.Time >= from && row.Time < to &&
                 (row.ExternalId == null || !all.Any(other => other.ExternalId == row.ExternalId &&

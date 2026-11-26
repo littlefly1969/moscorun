@@ -40,7 +40,8 @@ function Report({ report }: { report: Schemas["DailyMetricReport"] }) {
         {statuses[report.status] ?? report.status} · {report.source} · {report.current.day} UTC
       </p>
       <p className="muted">
-        {report.methodVersion} · dati disponibili al {report.asOf} · {report.current.method ?? "metodo assente"}
+        {report.methodVersion} · dati disponibili al {report.asOf} ·{" "}
+        {report.current.method ?? "metodo assente"}
       </p>
       <dl>
         <dt>Valore giornaliero</dt>
