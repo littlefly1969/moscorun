@@ -293,15 +293,22 @@ export function AtlasPage() {
       <div className="sw-controls">
         <label>
           Cerca metrica
-          <input value={search} onChange={(event) => {
+          <input
+            value={search}
+            onChange={(event) => {
               setSearch(event.target.value);
-            }} type="search" />
+            }}
+            type="search"
+          />
         </label>
         <label>
           Famiglia
-          <select value={family} onChange={(event) => {
+          <select
+            value={family}
+            onChange={(event) => {
               setFamily(event.target.value);
-            }}>
+            }}
+          >
             <option value="all">Tutte le famiglie</option>
             {Object.entries(metricFamilies).map(([id, label]) => (
               <option key={id} value={id}>

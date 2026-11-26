@@ -23,9 +23,12 @@ export function WorkoutPicker({ children }: { children: (workout: WorkoutSummary
       <div className="sw-controls">
         <label>
           Seduta di riferimento
-          <select value={id} onChange={(event) => {
-            setId(event.target.value);
-          }}>
+          <select
+            value={id}
+            onChange={(event) => {
+              setId(event.target.value);
+            }}
+          >
             <option value="">Seleziona una seduta</option>
             {items.map((workout) => (
               <option key={workout.id} value={workout.id}>

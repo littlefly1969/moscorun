@@ -51,7 +51,7 @@ function DayTrace({
         <h2>{metric.label}</h2>
         <small>{report.unit}</small>
         <strong>{selected?.value == null ? "—" : number.format(selected.value)}</strong>
-        <small>{selected ? selected.method ?? "Metodo non indicato" : "Non osservato nel giorno"}</small>
+        <small>{selected ? (selected.method ?? "Metodo non indicato") : "Non osservato nel giorno"}</small>
         <small>{report.methodVersion}</small>
       </div>
       <figure className="sw-figure">
@@ -69,7 +69,13 @@ function DayTrace({
           ))}
           {points.map((point) =>
             point.value == null ? null : (
-              <circle key={point.day} cx={x(Date.parse(point.day))} cy={y(point.value)} r="2.5" fill="currentColor" />
+              <circle
+                key={point.day}
+                cx={x(Date.parse(point.day))}
+                cy={y(point.value)}
+                r="2.5"
+                fill="currentColor"
+              />
             ),
           )}
           <line x1={x(cursor)} x2={x(cursor)} y1="0" y2="84" stroke="var(--sw-cursor)" strokeWidth="2" />
@@ -175,12 +181,28 @@ export function DailyTimeline() {
           </div>
           {context.metrics.map((metric, index) => {
             const query = queries[index];
-            if (query?.isPending) return <p key={metric.id} role="status">Caricamento di {metric.label}…</p>;
+            if (query?.isPending)
+              return (
+                <p key={metric.id} role="status">
+                  Caricamento di {metric.label}…
+                </p>
+              );
             if (query?.isError || !query?.data) {
-              return <p key={metric.id} role="alert">Lettura non riuscita: {metric.label}.</p>;
+              return (
+                <p key={metric.id} role="alert">
+                  Lettura non riuscita: {metric.label}.
+                </p>
+              );
             }
             return (
-              <DayTrace key={metric.id} metric={metric} report={query.data} start={start} end={end} cursor={cursor} />
+              <DayTrace
+                key={metric.id}
+                metric={metric}
+                report={query.data}
+                start={start}
+                end={end}
+                cursor={cursor}
+              />
             );
           })}
           <p className="sw-muted">

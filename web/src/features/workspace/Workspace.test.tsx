@@ -73,7 +73,9 @@ describe("ambiente scientifico", () => {
     expect(cursor).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Frequenza cardiaca" })).toHaveTextContent("120");
     fireEvent.change(cursor, { target: { value: "60" } });
-    expect(screen.getByRole("region", { name: "Frequenza cardiaca" })).toHaveTextContent("Nessun campione entro 5 s");
+    expect(screen.getByRole("region", { name: "Frequenza cardiaca" })).toHaveTextContent(
+      "Nessun campione entro 5 s",
+    );
     await userEvent.selectOptions(screen.getByLabelText("Finestra temporale"), "5");
     await userEvent.click(screen.getByRole("checkbox", { name: "Frequenza cardiaca" }));
     expect(screen.queryByRole("region", { name: "Frequenza cardiaca" })).toBeNull();
@@ -88,7 +90,9 @@ describe("ambiente scientifico", () => {
   });
   it("distingue un valore dichiarato dalla sorgente wearable", async () => {
     server.use(
-      http.get("*/api/v1/science/daily", () => HttpResponse.json({ title: "Test unavailable" }, { status: 400 })),
+      http.get("*/api/v1/science/daily", () =>
+        HttpResponse.json({ title: "Test unavailable" }, { status: 400 }),
+      ),
       http.get("*/api/v1/science/feedback", ({ request }) =>
         HttpResponse.json({
           day: new URL(request.url).searchParams.get("day"),
@@ -112,7 +116,10 @@ describe("ambiente scientifico", () => {
     renderApp("/laboratorio");
     expect(await screen.findByRole("heading", { name: "Research Lab N-of-1" })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /Carico longitudinale/ }));
-    expect(screen.getByRole("button", { name: /Carico longitudinale/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /Carico longitudinale/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
     await userEvent.click(screen.getByRole("button", { name: /HRV e intervalli RR/ }));
     await userEvent.click(screen.getByRole("button", { name: /Regolarità del sonno/ }));
     await userEvent.click(screen.getByRole("button", { name: /Feedback e nutrizione/ }));
@@ -157,10 +164,16 @@ describe("ambiente scientifico", () => {
     await userEvent.type(screen.getByLabelText("Distanza prove sonno (m)"), "5000");
     const run = screen.getByRole("button", { name: "Confronta sonno e prestazione" });
     await userEvent.click(run);
-    expect(await screen.findByText("Nessun collegamento calcolabile per il protocollo selezionato.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Nessun collegamento calcolabile per il protocollo selezionato."),
+    ).toBeInTheDocument();
     valid = true;
     await userEvent.click(run);
-    expect(await screen.findByText("Associazioni descrittive restituite dal server; linee senza direzione causale.")).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        "Associazioni descrittive restituite dal server; linee senza direzione causale.",
+      ),
+    ).toBeInTheDocument();
     const map = screen.getByRole("img", { name: "Mappa delle associazioni statistiche disponibili" });
     expect(within(map).getByText("r = 0,3")).toBeInTheDocument();
   });

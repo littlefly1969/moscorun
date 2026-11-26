@@ -108,9 +108,12 @@ function Timeline({ workout }: { workout: WorkoutSummary }) {
       <div className="sw-controls">
         <label>
           Finestra temporale
-          <select value={minutes} onChange={(event) => {
+          <select
+            value={minutes}
+            onChange={(event) => {
               setMinutes(Number(event.target.value));
-            }}>
+            }}
+          >
             <option value={0}>Intera seduta</option>
             <option value={5}>5 minuti</option>
             <option value={15}>15 minuti</option>
@@ -176,10 +179,22 @@ export function ChronoscopePage() {
         <p>Una sola scala temporale, più tracce indipendenti. Esplora il supporto realmente acquisito.</p>
       </header>
       <div className="sw-controls">
-        <button type="button" aria-pressed={mode === "workout"} onClick={() => { setMode("workout"); }}>
+        <button
+          type="button"
+          aria-pressed={mode === "workout"}
+          onClick={() => {
+            setMode("workout");
+          }}
+        >
           Seduta
         </button>
-        <button type="button" aria-pressed={mode === "daily"} onClick={() => { setMode("daily"); }}>
+        <button
+          type="button"
+          aria-pressed={mode === "daily"}
+          onClick={() => {
+            setMode("daily");
+          }}
+        >
           Storico giornaliero
         </button>
       </div>
