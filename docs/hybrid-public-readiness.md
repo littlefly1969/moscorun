@@ -1,6 +1,8 @@
 # Migrazione ibrida: sorgenti pubblicabili e build Android privata
 
-**Stato: preparazione, non autorizzazione alla pubblicazione.** Non fare merge di questa PR prima della prova privata riuscita: il nuovo workflow sorgente non genera più APK. Non cambiare visibilità prima di tutti i gate.
+**Stato al 26/11/2026: divisione eseguita, pubblicazione non ancora autorizzata.** La destinazione privata esiste e ha prodotto l'APK firmato (25/11/2026, build su `88ff615`); il sorgente compila e testa Android senza SDK né segreti (#50). Non cambiare visibilità prima che tutti i gate sotto siano spuntati e il proprietario abbia confermato esplicitamente.
+
+Le sezioni "Destinazione privata" e "Prova prima del cutover" restano come runbook per ricostruire la destinazione privata o ripetere la migrazione.
 
 ## Destinazione privata
 
@@ -20,15 +22,24 @@
 
 ## Gate prima della pubblicazione
 
-- [ ] SDK e notice nella destinazione privata, integrità e licenza verificate.
-- [ ] APK ufficiale generato nel privato, aggiornamento sul telefono riuscito.
-- [ ] Workflow pubblico senza segreti; Secrets Android rimossi dal sorgente.
-- [ ] Scansione Gitleaks completa di tutti i branch/tag/ref, controllo indipendente delle eccezioni.
-- [ ] Audit dei dati sanitari, GPS e configurazioni personali anche nella storia Git, nei commenti PR/issue, negli allegati, nelle release e nei tag.
+Spuntati solo i gate verificati, con data e fonte.
+
+- [x] SDK e notice nella destinazione privata, integrità e licenza verificate (25/11/2026).
+- [x] APK ufficiale generato nel privato (25/11/2026, `versionCode` 1101).
+- [ ] Aggiornamento in place sul telefono con l'APK del privato confermato.
+- [x] Workflow pubblico senza segreti: `android.yml` compila e testa con il sostituto dell'SDK, senza produrre APK (#50).
+- [ ] Secrets Android e `MIGRATION_TOKEN` rimossi dal sorgente (*Settings → Secrets and variables → Actions*).
+- [x] Tag e release `samsung-sdk-local` eliminati dal sorgente (verificato il 26/11/2026: nessun tag né release con quel nome).
+- [ ] Blob orfano storico con l'AAR eliminato (richiesta al supporto GitHub), oppure pubblicazione di un nuovo repository da snapshot ripulito.
+- [x] Scansione Gitleaks completa di tutti i branch/tag/ref (incluso `refs/pull/*`), eccezioni controllate (audit del 25/11/2026: solo falsi positivi già in `.gitleaksignore`).
+- [x] Documenti correnti senza riferimenti al setup del proprietario (indirizzi LAN, nomi di host e servizi, inventario hardware): esempi con valori di fantasia e indirizzi di documentazione RFC 5737.
+- [ ] Audit dei dati sanitari, GPS e configurazioni personali nella storia Git, nei commenti PR/issue, negli allegati e nelle release. Residuo noto nella storia: il nome di un servizio del server e l'inventario hardware in vecchie versioni di `docs/deploy-linux.md` (nessun segreto, nessun indirizzo reale).
 - [ ] Audit e bonifica di log, cache, artefatti Actions storici e APK; log e report non redatti non vanno pubblicati.
+- [ ] Rami non più necessari eliminati (es. `fix/public-split-docs`).
 - [ ] Verifica restrizioni Maps per package/certificato e quota; revisione visibilità GHCR e contenuti immagini.
-- [ ] Decisione su licenze e divulgazione della ricerca; conferma esplicita del proprietario prima del cambio visibilità.
-- [ ] Protezione main e approvazione workflow esterni, token read-only; attivare CodeQL, secret scanning, push protection appena disponibili.
-- [ ] Dopo pubblicazione: CI fork senza segreti, nuova build privata senza token sorgente, revoca token temporaneo.
+- [x] Licenza: proprietaria, tutti i diritti riservati ([LICENSE](../LICENSE)); politica di segnalazione delle vulnerabilità in [SECURITY.md](../SECURITY.md).
+- [ ] Decisione sulla divulgazione della ricerca; conferma esplicita del proprietario prima del cambio visibilità.
+- [ ] Subito dopo il cambio: ruleset su `main` (PR obbligatoria, check richiesti), approvazione dei workflow da fork, `GITHUB_TOKEN` in sola lettura per default; attivare CodeQL, secret scanning, push protection e *Private vulnerability reporting*.
+- [ ] Dopo pubblicazione: CI fork senza segreti, nuova build privata senza token sorgente, revoca di `MOSCORUN_SOURCE_READ_TOKEN`.
 
 I gate amministrativi non sono eseguiti automaticamente da questa PR. Se la storia non può essere bonificata, usare un nuovo repository pubblico con snapshot ripulito e conservare quello originale privato. Nessun cambiamento di visibilità implicito.
