@@ -96,7 +96,13 @@ export function CalibratedTwinPanel({ workoutId }: { workoutId: string }) {
         {fields.map(([name, label]) => (
           <label key={name}>
             {label}
-            <input name={name} type="number" min="0.001" step={name === "offset" ? 1 : "any"} required />
+            <input
+              name={name}
+              type="number"
+              min={name === "offset" ? 1 : 0.001}
+              step={name === "offset" ? 1 : "any"}
+              required
+            />
           </label>
         ))}
         <label>
