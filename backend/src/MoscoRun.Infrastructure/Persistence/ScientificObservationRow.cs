@@ -25,5 +25,23 @@ internal sealed class ScientificObservationRow
 
     public string? DerivationVersion { get; init; }
 
+    public string? ExternalId { get; init; }
+
+    public string? ExternalRevision { get; init; }
+
+    public long? ExternalRevisionOrder { get; init; }
+
+    public Guid? ImportDeviceId { get; init; }
+
+    public Guid? WorkoutId { get; init; }
+
+    public string? NativeMetric { get; init; }
+
+    public string? NativeUnit { get; init; }
+
+    public double? NativeValue { get; init; }
+
+    public string? MappingVersion { get; init; }
+
     public Guid[] InputIds { get; init; } = [];
 }

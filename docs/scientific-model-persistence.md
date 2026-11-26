@@ -1,5 +1,7 @@
-# C6 — Risultati dei modelli
+# C6 — Registry modelli e Digital Twin
 
-Output scalari con identificativo modello, versione, lineage e disponibilità server. Il tempo di riferimento è la decisione, non il target futuro. Lettura point-in-time.
+Registry privato per atleta e versione: artefatto binario (max 16 MiB), SHA-256, formato, feature schema, cutoff di training, configurazione e metriche di validazione JSON. Versioni immutabili e replay idempotente. Lo store non esegue l'artefatto.
 
-Non è un model registry completo. Da concordare con agente ML: horizon/target, incertezza, artefatti, feature schema, training cutoff, metriche di validazione, stato vettoriale Digital Twin.
+Run atomico: modalità operativa o backtest, istante decisionale e target, disponibilità server, ingressi validati transitivamente alla decisione (owner e lineage), output scalari con intervalli, stato JSON del twin. Un modello operativo dev'essere già registrato alla decisione; un backtest non può usare training o input futuri e non modifica lo stato operativo corrente. Query as-of e ultimo stato operativo.
+
+L'agente ML deve produrre artefatti e run secondo questi contratti; la persistenza non attribuisce validità scientifica automatica ai modelli. Gli artefatti non devono essere eseguiti dal processo di persistenza. Test PostgreSQL per round-trip, revisioni, isolamento e anti-leakage.

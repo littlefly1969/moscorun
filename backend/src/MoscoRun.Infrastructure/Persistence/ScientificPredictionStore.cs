@@ -1,19 +1,14 @@
-using MoscoRun.Domain.Analysis;
-
 namespace MoscoRun.Infrastructure.Persistence;
 
-/// <summary>Output scalari versionati; non esegue né addestra il modello.</summary>
-public sealed class ScientificPredictionStore(ScientificObservationStore observations, TimeProvider clock)
+/// <summary>Convenienza per un singolo output operativo di una versione già registrata.</summary>
+public sealed class ScientificPredictionStore(ScientificModelRunStore runs)
 {
-    public Task AppendAsync(Guid ownerId, Guid predictionId, string metric, string unit, double? value,
+    public async Task AppendAsync(Guid ownerId, Guid predictionId, string metric, string unit, double? value,
         DateTimeOffset referenceTime, string modelId, string modelVersion, IReadOnlyList<Guid> inputs,
         CancellationToken ct = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(modelId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(modelVersion);
-        ArgumentNullException.ThrowIfNull(inputs);
-        var output = new ScientificObservation(predictionId, ownerId, metric, unit, value, referenceTime,
-            clock.GetUtcNow(), modelId, ObservationMethod.ModelInferred, derivationVersion: modelVersion, inputIds: inputs);
-        return observations.AppendAsync(ownerId, output, ct);
+        _ = await runs.SaveAsync(ownerId, new ScientificModelRun(predictionId, modelId, modelVersion,
+            ScientificModelRunMode.Operational, referenceTime, null, inputs,
+            [new ScientificModelOutput(predictionId, metric, unit, value)]), ct);
     }
 }
