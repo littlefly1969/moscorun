@@ -1483,6 +1483,60 @@
         }
       }
     },
+    "/api/v1/workouts/{id}/science/twin": {
+      "post": {
+        "tags": [
+          "Allenamenti"
+        ],
+        "operationId": "SimulateCalibratedTwin",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalibratedTwinRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalibratedTwinReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/devices": {
       "get": {
         "tags": [
@@ -1937,6 +1991,94 @@
             "type": "number",
             "description": "Longitudine massima.",
             "format": "double"
+          }
+        }
+      },
+      "CalibratedTwinReport": {
+        "required": [
+          "methodVersion",
+          "asOf",
+          "status",
+          "calibration",
+          "request",
+          "parameters",
+          "segments"
+        ],
+        "type": "object",
+        "properties": {
+          "methodVersion": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "calibration": {
+            "$ref": "#/components/schemas/WorkoutCardiacRecoveryReport"
+          },
+          "request": {
+            "$ref": "#/components/schemas/CalibratedTwinRequest"
+          },
+          "parameters": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TwinParameters"
+              }
+            ]
+          },
+          "segments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TwinSegmentResult"
+            }
+          }
+        }
+      },
+      "CalibratedTwinRequest": {
+        "required": [
+          "recoveryProtocol",
+          "initialBpm",
+          "restingBpm",
+          "maximumBpm",
+          "maximumFitRmseBpm",
+          "transferAssumptionConfirmed",
+          "segments"
+        ],
+        "type": "object",
+        "properties": {
+          "recoveryProtocol": {
+            "$ref": "#/components/schemas/WorkoutCardiacRecoveryProtocol"
+          },
+          "initialBpm": {
+            "type": "number",
+            "format": "double"
+          },
+          "restingBpm": {
+            "type": "number",
+            "format": "double"
+          },
+          "maximumBpm": {
+            "type": "number",
+            "format": "double"
+          },
+          "maximumFitRmseBpm": {
+            "type": "number",
+            "format": "double"
+          },
+          "transferAssumptionConfirmed": {
+            "type": "boolean"
+          },
+          "segments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TwinSegment"
+            }
           }
         }
       },
@@ -4478,6 +4620,88 @@
               "null",
               "number"
             ],
+            "format": "double"
+          }
+        }
+      },
+      "TwinParameters": {
+        "required": [
+          "calibrationVersion",
+          "calibrationCutoff",
+          "heartRateTimeConstantSeconds",
+          "restingHeartRateBpm",
+          "maximumHeartRateBpm"
+        ],
+        "type": "object",
+        "properties": {
+          "calibrationVersion": {
+            "type": "string"
+          },
+          "calibrationCutoff": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "heartRateTimeConstantSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "restingHeartRateBpm": {
+            "type": "number",
+            "format": "double"
+          },
+          "maximumHeartRateBpm": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "Parametri individuali espliciti, con riferimento al modello e al cutoff di calibrazione."
+      },
+      "TwinSegment": {
+        "required": [
+          "durationSeconds",
+          "equilibriumHeartRateBpm",
+          "externalSpeedMetersPerSecond"
+        ],
+        "type": "object",
+        "properties": {
+          "durationSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "equilibriumHeartRateBpm": {
+            "type": "number",
+            "format": "double"
+          },
+          "externalSpeedMetersPerSecond": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "Ingresso ipotetico: durata ed equilibrio cardiaco da modello calibrato, non da una FC futura osservata."
+      },
+      "TwinSegmentResult": {
+        "required": [
+          "cumulativeSeconds",
+          "cumulativeMeters",
+          "endHeartRateBpm",
+          "meanHeartRateBpm"
+        ],
+        "type": "object",
+        "properties": {
+          "cumulativeSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "cumulativeMeters": {
+            "type": "number",
+            "format": "double"
+          },
+          "endHeartRateBpm": {
+            "type": "number",
+            "format": "double"
+          },
+          "meanHeartRateBpm": {
+            "type": "number",
             "format": "double"
           }
         }

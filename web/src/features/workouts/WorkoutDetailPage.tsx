@@ -19,6 +19,7 @@ import { WorkoutIntensityPanel } from "./WorkoutIntensityPanel";
 import { RunningStepPanel } from "./RunningStepPanel";
 import { CardiacRecoveryPanel } from "./CardiacRecoveryPanel";
 import { WorkoutReservePanel } from "./WorkoutReservePanel";
+import { CalibratedTwinPanel } from "./CalibratedTwinPanel";
 
 const HeartRateChart = lazy(() => import("./HeartRateChart").then((m) => ({ default: m.HeartRateChart })));
 
@@ -75,6 +76,7 @@ export function WorkoutDetailPage() {
       <WorkoutIntensityPanel key={`${w.id}:${w.revision}:intensity`} workoutId={w.id} />
       <CardiacRecoveryPanel key={`${w.id}:${w.revision}:cardiac`} workoutId={w.id} />
       <WorkoutReservePanel key={`${w.id}:${w.revision}:reserve`} workoutId={w.id} />
+      <CalibratedTwinPanel key={`${w.id}:${w.revision}:twin`} workoutId={w.id} />
       {w.activityType.toUpperCase() === "RUNNING" && (
         <RunningStepPanel key={`${w.id}:${w.revision}:steps`} workoutId={w.id} />
       )}

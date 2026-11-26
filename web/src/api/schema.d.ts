@@ -475,6 +475,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/workouts/{id}/science/twin": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["SimulateCalibratedTwin"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/devices": {
     parameters: {
       query?: never;
@@ -622,6 +638,29 @@ export interface components {
        * @description Longitudine massima.
        */
       maxLongitude: number;
+    };
+    CalibratedTwinReport: {
+      methodVersion: string;
+      /** Format: date-time */
+      asOf: string;
+      status: string;
+      calibration: components["schemas"]["WorkoutCardiacRecoveryReport"];
+      request: components["schemas"]["CalibratedTwinRequest"];
+      parameters: null | components["schemas"]["TwinParameters"];
+      segments: components["schemas"]["TwinSegmentResult"][];
+    };
+    CalibratedTwinRequest: {
+      recoveryProtocol: components["schemas"]["WorkoutCardiacRecoveryProtocol"];
+      /** Format: double */
+      initialBpm: number;
+      /** Format: double */
+      restingBpm: number;
+      /** Format: double */
+      maximumBpm: number;
+      /** Format: double */
+      maximumFitRmseBpm: number;
+      transferAssumptionConfirmed: boolean;
+      segments: components["schemas"]["TwinSegment"][];
     };
     CardiacRecoveryPoint: {
       /** Format: int32 */
@@ -1449,6 +1488,37 @@ export interface components {
       monotony: null | number;
       /** Format: double */
       strain: null | number;
+    };
+    /** @description Parametri individuali espliciti, con riferimento al modello e al cutoff di calibrazione. */
+    TwinParameters: {
+      calibrationVersion: string;
+      /** Format: date-time */
+      calibrationCutoff: string;
+      /** Format: double */
+      heartRateTimeConstantSeconds: number;
+      /** Format: double */
+      restingHeartRateBpm: number;
+      /** Format: double */
+      maximumHeartRateBpm: number;
+    };
+    /** @description Ingresso ipotetico: durata ed equilibrio cardiaco da modello calibrato, non da una FC futura osservata. */
+    TwinSegment: {
+      /** Format: double */
+      durationSeconds: number;
+      /** Format: double */
+      equilibriumHeartRateBpm: number;
+      /** Format: double */
+      externalSpeedMetersPerSecond: number;
+    };
+    TwinSegmentResult: {
+      /** Format: double */
+      cumulativeSeconds: number;
+      /** Format: double */
+      cumulativeMeters: number;
+      /** Format: double */
+      endHeartRateBpm: number;
+      /** Format: double */
+      meanHeartRateBpm: number;
     };
     UpdateAttributionRequest: {
       attribution: null | components["schemas"]["AttributionStatus"];
@@ -2674,6 +2744,48 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["WorkoutReserveReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  SimulateCalibratedTwin: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CalibratedTwinRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CalibratedTwinReport"];
         };
       };
       /** @description Bad Request */
