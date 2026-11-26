@@ -10,6 +10,7 @@ import {
   formatPace,
 } from "../../lib/format";
 import { StatCard } from "../dashboard/StatCard";
+import { ScienceFeedbackPanel } from "../science/ScienceFeedbackPanel";
 import { RouteMap } from "./RouteMap";
 import { useWorkout } from "./queries";
 import { WorkoutSciencePanel } from "./WorkoutSciencePanel";
@@ -66,6 +67,7 @@ export function WorkoutDetailPage() {
       </section>
 
       <WorkoutSciencePanel workoutId={w.id} revision={w.revision} />
+      <ScienceFeedbackPanel workoutId={w.id} workoutRevision={w.revision} />
       <WorkoutDurabilityPanel
         key={`${w.id}:${w.revision}`}
         workoutId={w.id}
