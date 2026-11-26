@@ -24,8 +24,28 @@ public static class DailySessionLoadEngine
         }
 
         var first = last.AddDays(1 - RecentDays - PriorDays);
+        var points = BuildHistory(first, last, asOf, attestations, sessions)!;
+        var loads = points.Select(point => new DailyTrainingLoad(point.Day, point.AvailableAt ?? asOf, point.Load)).ToArray();
+        var week = TrainingLoadEngine.SummarizeWeek(loads.TakeLast(RecentDays).Select(item => item.Load).ToArray());
+        var rolling = RollingTrainingLoad.Compare(loads, last, asOf, RecentDays, PriorDays);
+        return new DailySessionLoadReport(last, asOf, MethodVersion, "UA", points, week, rolling);
+    }
+
+    public static IReadOnlyList<DailySessionLoadPoint>? BuildHistory(DateOnly first, DateOnly last, DateTimeOffset asOf,
+        IReadOnlyList<DailyLoadAttestation> attestations, IReadOnlyList<SessionLoadEvidence> sessions)
+    {
+        ArgumentNullException.ThrowIfNull(attestations);
+        ArgumentNullException.ThrowIfNull(sessions);
+        if (first > last || last >= DateOnly.FromDateTime(asOf.UtcDateTime) || last.DayNumber - first.DayNumber >= 180 ||
+            sessions.Any(session => session.WorkoutId == Guid.Empty || session.EndedAt <= session.StartedAt) ||
+            sessions.Select(session => session.WorkoutId).Distinct().Count() != sessions.Count ||
+            attestations.Select(item => item.Day).Distinct().Count() != attestations.Count)
+        {
+            return null;
+        }
+
         var byDay = attestations.ToDictionary(item => item.Day);
-        var points = new List<DailySessionLoadPoint>(RecentDays + PriorDays);
+        var points = new List<DailySessionLoadPoint>(last.DayNumber - first.DayNumber + 1);
         for (var day = first; day <= last; day = day.AddDays(1))
         {
             var start = At(day);
@@ -36,10 +56,7 @@ public static class DailySessionLoadEngine
             points.Add(BuildDay(day, asOf, attestation, overlapping));
         }
 
-        var loads = points.Select(point => new DailyTrainingLoad(point.Day, point.AvailableAt ?? asOf, point.Load)).ToArray();
-        var week = TrainingLoadEngine.SummarizeWeek(loads.TakeLast(RecentDays).Select(item => item.Load).ToArray());
-        var rolling = RollingTrainingLoad.Compare(loads, last, asOf, RecentDays, PriorDays);
-        return new DailySessionLoadReport(last, asOf, MethodVersion, "UA", points.AsReadOnly(), week, rolling);
+        return points.AsReadOnly();
     }
 
     private static DailySessionLoadPoint BuildDay(DateOnly day, DateTimeOffset asOf,

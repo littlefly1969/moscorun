@@ -29,7 +29,7 @@ public sealed class AttestedRaceReader(MoscoRunDbContext db)
         }, ct);
     }
 
-    private async Task<AttestedRaceReport?> ReadCoreAsync(Guid owner, string source, DateTimeOffset start,
+    internal async Task<AttestedRaceReport?> ReadCoreAsync(Guid owner, string source, DateTimeOffset start,
         DateTimeOffset split, DateTimeOffset end, DateTimeOffset asOf, double target, CancellationToken ct)
     {
         var workouts = await db.Workouts.AsNoTracking().Where(workout => workout.OwnerId == owner &&

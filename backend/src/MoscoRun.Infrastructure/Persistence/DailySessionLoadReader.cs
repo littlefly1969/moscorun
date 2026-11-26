@@ -23,17 +23,32 @@ public sealed class DailySessionLoadReader(MoscoRunDbContext db)
         return await db.Database.CreateExecutionStrategy().ExecuteAsync(async token =>
         {
             await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, token);
-            var result = await ReadCoreAsync(owner, last, cutoff, token);
+            var first = last.AddDays(1 - DailySessionLoadEngine.RecentDays - DailySessionLoadEngine.PriorDays);
+            var history = await ReadHistoryCoreAsync(owner, first, last, cutoff, token);
+            var result = history is null ? null : Summarize(last, cutoff, history);
             await transaction.CommitAsync(token);
             return result;
         }, ct);
     }
 
-    private async Task<DailySessionLoadReport?> ReadCoreAsync(Guid owner, DateOnly last, DateTimeOffset asOf,
-        CancellationToken ct)
+    private static DailySessionLoadReport Summarize(DateOnly last, DateTimeOffset asOf, IReadOnlyList<DailySessionLoadPoint> history)
     {
-        var count = DailySessionLoadEngine.RecentDays + DailySessionLoadEngine.PriorDays;
-        var days = Enumerable.Range(0, count).Select(index => last.AddDays(1 - count + index)).ToArray();
+        var loads = history.Select(point => new DailyTrainingLoad(point.Day, point.AvailableAt ?? asOf, point.Load)).ToArray();
+        var week = TrainingLoadEngine.SummarizeWeek(loads.TakeLast(DailySessionLoadEngine.RecentDays).Select(item => item.Load).ToArray());
+        var rolling = RollingTrainingLoad.Compare(loads, last, asOf, DailySessionLoadEngine.RecentDays, DailySessionLoadEngine.PriorDays);
+        return new DailySessionLoadReport(last, asOf, DailySessionLoadEngine.MethodVersion, "UA", history, week, rolling);
+    }
+
+    internal async Task<IReadOnlyList<DailySessionLoadPoint>?> ReadHistoryCoreAsync(Guid owner, DateOnly first,
+        DateOnly last, DateTimeOffset asOf, CancellationToken ct)
+    {
+        var count = last.DayNumber - first.DayNumber + 1;
+        if (count is < 1 or > 180)
+        {
+            return null;
+        }
+
+        var days = Enumerable.Range(0, count).Select(index => first.AddDays(index)).ToArray();
         var start = At(days[0]);
         var end = At(last).AddDays(1);
         var workouts = await db.Workouts.AsNoTracking().Where(workout => workout.OwnerId == owner &&
@@ -67,7 +82,7 @@ public sealed class DailySessionLoadReader(MoscoRunDbContext db)
             observations)).ToArray();
         var evidence = workouts.Select(workout => Session(workout,
             latest.GetValueOrDefault(ScientificFeedbackKeys.Session(workout.Id, workout.Revision)), observations)).ToArray();
-        return DailySessionLoadEngine.Build(last, asOf, attestations, evidence);
+        return DailySessionLoadEngine.BuildHistory(first, last, asOf, attestations, evidence);
     }
 
     private static FeedbackEvidence Resolve(AthleteFeedbackEntryRow[] rows) =>
