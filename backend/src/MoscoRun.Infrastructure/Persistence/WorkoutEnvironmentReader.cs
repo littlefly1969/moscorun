@@ -1,6 +1,7 @@
 using System.Data;
 using Microsoft.EntityFrameworkCore;
 using MoscoRun.Domain.Analysis;
+using MoscoRun.Domain.Workouts;
 
 namespace MoscoRun.Infrastructure.Persistence;
 
@@ -37,9 +38,12 @@ public sealed class WorkoutEnvironmentReader(MoscoRunDbContext db)
         }
 
         var route = await db.WorkoutRoutes.AsNoTracking().SingleOrDefaultAsync(row => row.WorkoutId == workoutId, ct);
+        // I chunk sono a 100 ns, l'allenamento al millisecondo: la finestra si confronta alla risoluzione dell'allenamento.
+        var first = WorkoutTime.Floor(workout.StartedAt).UtcTicks;
+        var endExclusive = WorkoutTime.ExclusiveEndTicks(workout.EndedAt);
         var query = db.Set<ScientificSignalChunkRow>().AsNoTracking().Where(row =>
             row.OwnerId == owner && row.WorkoutId == workoutId && row.Source == request.Source &&
-            row.FirstTicks < workout.EndedAt.UtcTicks && row.LastTicks > workout.StartedAt.UtcTicks &&
+            row.FirstTicks < endExclusive && row.LastTicks >= first &&
             row.LastTicks <= asOf.UtcTicks && row.AvailableTicks <= asOf.UtcTicks &&
             (row.Metric == "airTemperature" || row.Metric == "humidity" || row.Metric == "windSpeed" || row.Metric == "windDirection"));
         var chunks = await query.OrderBy(row => row.FirstTicks).ThenBy(row => row.Id).Take(MaxChunks + 1)
@@ -95,5 +99,5 @@ public sealed class WorkoutEnvironmentReader(MoscoRunDbContext db)
 
     private static WeatherChannel Channel(ScientificSignalChunkRow row) =>
         new(row.Metric, ScientificSignalCodec.Decode(row.Data, row.ContentHash, row.SampleCount, row.CodecVersion)
-            .Select(item => new SignalSample(item.Time, item.Value)).ToArray());
+            .Select(item => new SignalSample(WorkoutTime.Floor(item.Time), item.Value)).ToArray());
 }

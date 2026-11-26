@@ -40,9 +40,12 @@ public sealed class ExtendedBiomechanicsReader(MoscoRunDbContext db)
             return null;
         }
 
+        // I chunk sono a 100 ns, l'allenamento al millisecondo: la finestra si confronta alla risoluzione dell'allenamento.
+        var first = WorkoutTime.Floor(workout.StartedAt).UtcTicks;
+        var endExclusive = WorkoutTime.ExclusiveEndTicks(workout.EndedAt);
         var query = db.Set<ScientificSignalChunkRow>().AsNoTracking().Where(row =>
             row.OwnerId == owner && row.WorkoutId == workoutId && row.Source == source &&
-            row.FirstTicks >= workout.StartedAt.UtcTicks && row.LastTicks <= workout.EndedAt.UtcTicks &&
+            row.FirstTicks >= first && row.LastTicks < endExclusive &&
             row.AvailableTicks <= asOf.UtcTicks &&
             (row.Metric == "speed" || row.Metric == "cadence" || row.Metric == "groundContactTime" ||
              row.Metric == "verticalOscillation" || row.Metric == "groundContactBalance"));
@@ -101,5 +104,5 @@ public sealed class ExtendedBiomechanicsReader(MoscoRunDbContext db)
 
     private static BiomechanicsChannel Channel(ScientificSignalChunkRow row) =>
         new(row.Metric, ScientificSignalCodec.Decode(row.Data, row.ContentHash, row.SampleCount, row.CodecVersion)
-            .Select(item => new SignalSample(item.Time, item.Value)).ToArray());
+            .Select(item => new SignalSample(WorkoutTime.Floor(item.Time), item.Value)).ToArray());
 }

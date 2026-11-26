@@ -74,7 +74,7 @@ public static class SeriesCodec
     }
 
     public static SeriesSample Normalize(SeriesSample s) => new(
-        DateTimeOffset.FromUnixTimeMilliseconds(s.Time.ToUnixTimeMilliseconds()),
+        WorkoutTime.Floor(s.Time),
         ToFixed(s.Value) / ValueScale);
 
     private static long ToFixed(double value) => (long)Math.Round(value * ValueScale, MidpointRounding.AwayFromZero);
