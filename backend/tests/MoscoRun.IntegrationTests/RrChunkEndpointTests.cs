@@ -20,7 +20,7 @@ public sealed class RrChunkEndpointTests(ApiFactory factory)
         var time = factory.Time.GetUtcNow().AddDays(-2);
         var day = DateOnly.FromDateTime(time.UtcDateTime);
         var samples = Enumerable.Range(0, 200).Select(index =>
-            new ScientificSignalSample(time.AddMilliseconds(index * 800), 800)).ToArray();
+            new ScientificSignalSample(time.AddMilliseconds(index * 800.0), 800)).ToArray();
         var chunk = new ScientificSignalChunk("garmin-test", "rr-segment", "r1", "rrInterval", "ms",
             ObservationMethod.Measured, samples, RevisionOrder: 1);
         await using var scope = factory.Services.CreateAsyncScope();

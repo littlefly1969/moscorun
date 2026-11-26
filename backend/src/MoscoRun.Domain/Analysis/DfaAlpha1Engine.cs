@@ -55,7 +55,7 @@ public static class DfaAlpha1Engine
             residuals += ResidualSum(profile, profile.Length - (block + 1) * scale, scale);
         }
 
-        return Math.Sqrt(residuals / (2 * blocks * scale));
+        return Math.Sqrt(residuals / (2.0 * blocks * scale));
     }
 
     private static double ResidualSum(double[] profile, int start, int scale)

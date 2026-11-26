@@ -15,5 +15,5 @@ public sealed record WorkoutDurabilityProtocol(
         MinimumConsecutiveWindows >= 1 && MinimumConsecutiveWindows < WindowCount;
 
     public bool Fits(TimeSpan duration) =>
-        IsValid() && StartOffsetSeconds + WindowSeconds * WindowCount <= duration.TotalSeconds;
+        IsValid() && StartOffsetSeconds + ((double)WindowSeconds * WindowCount) <= duration.TotalSeconds;
 }
