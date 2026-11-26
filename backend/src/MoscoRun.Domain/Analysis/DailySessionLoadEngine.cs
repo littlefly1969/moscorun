@@ -71,14 +71,14 @@ public static class DailySessionLoadEngine
 
     private static string? AttestationFailure(DateOnly day, DateTimeOffset asOf, DailyLoadAttestation? item)
     {
+        if (item?.Ambiguous == true)
+        {
+            return "ambiguous-attestation";
+        }
+
         if (item is null || item.AvailableAt is not { } available || available > asOf)
         {
             return "missing-attestation";
-        }
-
-        if (item.Ambiguous)
-        {
-            return "ambiguous-attestation";
         }
 
         if (item.Complete != 1 || available < At(day).AddDays(1))

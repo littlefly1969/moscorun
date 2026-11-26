@@ -89,6 +89,7 @@ public static class ScientificMetricCatalog
         ["hunger"] = "0-10",
         ["gastrointestinalDiscomfort"] = "0-10",
         ["motivation"] = "0-10",
+        ["trainingDayComplete"] = "1",
     };
 
     public const int SchemaVersion = 1;

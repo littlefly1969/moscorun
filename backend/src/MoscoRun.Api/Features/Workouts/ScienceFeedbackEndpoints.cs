@@ -47,7 +47,8 @@ internal static class ScienceFeedbackEndpoints
         }
 
         var values = ScienceFeedbackProtocol.Values(request.WorkoutId.HasValue, request.Values);
-        if (values is null)
+        if (values is null || (request.Day == DateOnly.FromDateTime(now.UtcDateTime) &&
+            values.Any(value => string.Equals(value.Metric, ScientificFeedbackKeys.DailyCompleteMetric, StringComparison.Ordinal) && value.Value == 1)))
         {
             return Invalid();
         }
@@ -100,7 +101,8 @@ internal static class ScienceFeedbackEndpoints
         IReadOnlyList<AthleteFeedbackSnapshot> history)
     {
         var latest = ScienceFeedbackProtocol.Latest(history);
-        var values = latest?.Entry.Values ?? ScienceFeedbackProtocol.Values(workout is not null, [])!;
+        var values = ScienceFeedbackProtocol.Values(workout is not null,
+            latest?.Entry.Values.Select(value => new ScienceFeedbackInput(value.Metric, value.Value)).ToArray() ?? [])!;
         var status = latest is not null ? "recorded" : history.Count == 0 ? "missing" : "ambiguous";
         var rpe = values.SingleOrDefault(value => string.Equals(value.Metric, "rpe", StringComparison.Ordinal))?.Value;
         var load = workout?.ActiveDuration is { } duration ? TrainingLoadEngine.SessionRpe(duration.TotalMinutes, rpe) : null;

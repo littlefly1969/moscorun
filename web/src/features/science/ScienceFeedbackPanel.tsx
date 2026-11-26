@@ -24,6 +24,7 @@ const labels: Record<string, string> = {
   fluidIntake: "Liquidi",
   sodiumIntake: "Sodio",
   caffeineIntake: "Caffeina",
+  trainingDayComplete: "Diario allenamenti completo (1 sì, 0 no; dopo chiusura UTC)",
 };
 
 const number = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 2 });
@@ -80,8 +81,8 @@ function FeedbackForm({
               name={metric}
               type="number"
               min={0}
-              max={unit === "0-10" ? 10 : unit === "s" ? 86400 : undefined}
-              step="any"
+              max={metric === "trainingDayComplete" ? 1 : unit === "0-10" ? 10 : unit === "s" ? 86400 : undefined}
+              step={metric === "trainingDayComplete" ? 1 : "any"}
               defaultValue={value ?? ""}
             />
           </label>
@@ -137,7 +138,14 @@ export function ScienceFeedbackPanel({
       {!workoutId && (
         <label>
           Giorno del diario (UTC)
-          <input type="date" value={day} max={today} onChange={(event) => setDay(event.target.value)} />
+          <input
+            type="date"
+            value={day}
+            max={today}
+            onChange={(event) => {
+              setDay(event.target.value);
+            }}
+          />
         </label>
       )}
       {feedback.isPending && <p role="status">Caricamento feedback…</p>}

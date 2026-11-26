@@ -588,6 +588,13 @@
       "category": "feedback",
       "availability": "capability-dependent",
       "interpretation": "self_reported"
+    },
+    {
+      "metric": "trainingDayComplete",
+      "unit": "1",
+      "category": "feedback",
+      "availability": "capability-dependent",
+      "interpretation": "self_reported"
     }
   ]
 }

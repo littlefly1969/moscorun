@@ -135,7 +135,9 @@ public sealed class AthleteFeedbackStore(MoscoRunDbContext db, ScientificImportS
     {
         return entry.Values.Select(v =>
         {
-            if ((!Scores.Contains(v.Metric) && !Quantities.Contains(v.Metric)) ||
+            var completeness = string.Equals(v.Metric, ScientificFeedbackKeys.DailyCompleteMetric, StringComparison.Ordinal);
+            if ((!completeness && !Scores.Contains(v.Metric) && !Quantities.Contains(v.Metric)) ||
+                (completeness && (entry.WorkoutId is not null || v.Value is not (null or 0 or 1))) ||
                 (v.Value is { } number && (!double.IsFinite(number) || number < 0 ||
                     (Scores.Contains(v.Metric) && number > 10))))
             {

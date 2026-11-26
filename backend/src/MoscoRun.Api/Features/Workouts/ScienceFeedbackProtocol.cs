@@ -1,4 +1,4 @@
-using System.Globalization;
+using MoscoRun.Domain.Analysis;
 using MoscoRun.Domain.Workouts;
 using MoscoRun.Infrastructure.Persistence;
 
@@ -17,6 +17,7 @@ internal static class ScienceFeedbackProtocol
         new("sleepDuration", "s"), new("napDuration", "s"),
         new("energyIntake", "kcal"), new("carbohydrateIntake", "g"), new("proteinIntake", "g"),
         new("fatIntake", "g"), new("fluidIntake", "mL"), new("sodiumIntake", "mg"), new("caffeineIntake", "mg"),
+        new(ScientificFeedbackKeys.DailyCompleteMetric, "1"),
     ];
 
     private static readonly KeyValuePair<string, string>[] SessionMetrics =
@@ -34,8 +35,8 @@ internal static class ScienceFeedbackProtocol
 
     public static string EntryId(DateOnly? day, Workout? workout) =>
         workout is not null
-            ? FormattableString.Invariant($"web-workout:{workout.Id:N}:r{workout.Revision}")
-            : "web-daily:" + day.GetValueOrDefault().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            ? ScientificFeedbackKeys.Session(workout.Id, workout.Revision)
+            : ScientificFeedbackKeys.Daily(day.GetValueOrDefault());
 
     public static DateTimeOffset ReferenceTime(DateOnly? day, Workout? workout) =>
         workout?.EndedAt ?? new DateTimeOffset(day.GetValueOrDefault().ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
@@ -57,6 +58,7 @@ internal static class ScienceFeedbackProtocol
         {
             byMetric.TryGetValue(metric.Key, out var value);
             if (value is { } number && (!double.IsFinite(number) || number < 0 ||
+                (string.Equals(metric.Key, ScientificFeedbackKeys.DailyCompleteMetric, StringComparison.Ordinal) && number is not (0 or 1)) ||
                 (string.Equals(metric.Value, "0-10", StringComparison.Ordinal) && number > 10) || (string.Equals(metric.Value, "s", StringComparison.Ordinal) && number > 86400)))
             {
                 return null;
