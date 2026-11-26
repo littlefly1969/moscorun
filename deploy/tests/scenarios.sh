@@ -223,16 +223,29 @@ else
 fi
 
 step "Backup e ripristino con dati reali"
+# Fixture scientifiche sintetiche, solo sullo stack isolato di CI.
+sql "insert into moscorun.scientific_observations (owner_id,id,metric,unit,value,time,available_at,source,method,input_ids)
+     select id,'00000000-0000-4000-8000-000000000001','heartRate','bpm',145,now(),now(),'ci-backup','Measured','{}'
+     from moscorun.\"AspNetUsers\" order by id limit 1" >/dev/null
+sql "insert into moscorun.scientific_observations (owner_id,id,metric,unit,value,time,available_at,source,method,derivation_version,input_ids)
+     select owner_id,'00000000-0000-4000-8000-000000000002','ciDerived','native',null,time,available_at,'ci-backup','Derived','v1',array[id]
+     from moscorun.scientific_observations where source='ci-backup' and id='00000000-0000-4000-8000-000000000001'" >/dev/null
+scientific_count="$(sql "select count(*) from moscorun.scientific_observations where source='ci-backup'")"
+[[ "$scientific_count" == 2 ]] || fail "fixture scientifiche mancanti"
+science_before="$(sql "select md5(string_agg(to_jsonb(o)::text, ',' order by owner_id,id)) from moscorun.scientific_observations o")"
 "$SCRIPT" backup
 backup="$(<"$DEPLOY_DIR/.state/last-backup")"
 weighings="$(sql "select count(*) from moscorun.weighings")"
 users="$(sql "select count(*) from moscorun.\"AspNetUsers\"")"
 ((weighings > 0)) || fail "servono pesate (create dagli E2E) per verificare il ripristino"
 sql "delete from moscorun.weighings" >/dev/null
+sql "delete from moscorun.scientific_observations" >/dev/null
+[[ "$(sql "select count(*) from moscorun.scientific_observations")" == 0 ]] || fail "simulazione perdita scientifica non riuscita"
 [[ "$(sql "select count(*) from moscorun.weighings")" == 0 ]] || fail "simulazione della perdita non riuscita"
 echo RIPRISTINA | "$SCRIPT" restore "$backup"
 [[ "$(sql "select count(*) from moscorun.weighings")" == "$weighings" ]] || fail "pesate non ripristinate"
 [[ "$(sql "select count(*) from moscorun.\"AspNetUsers\"")" == "$users" ]] || fail "utenti non ripristinati"
+[[ "$(sql "select md5(string_agg(to_jsonb(o)::text, ',' order by owner_id,id)) from moscorun.scientific_observations o")" == "$science_before" ]] || fail "osservazioni scientifiche o lineage non ripristinati"
 session_valid || fail "sessione non valida dopo il ripristino"
 smoke
 pass "ripristinate $weighings pesate e $users utenti"
