@@ -173,6 +173,46 @@ public sealed class WorkoutTests
     }
 
     [Fact]
+    public void Sub_millisecond_bounds_share_the_resolution_of_track_and_series()
+    {
+        var start = TestTracks.Start.AddTicks(4_567);
+        var end = start.AddSeconds(10).AddTicks(3_210);
+        var recording = Recording(end: end, track: [new TrackPoint(start, 41, 12), new TrackPoint(end, 41.0001, 12)],
+            series: new Dictionary<SeriesMetric, IReadOnlyList<SeriesSample>>
+            {
+                [SeriesMetric.HeartRate] = [new SeriesSample(start, 120), new SeriesSample(end, 130)],
+            }) with
+        { StartedAt = start, ActiveDuration = TimeSpan.FromSeconds(10), DistanceM = 30 };
+
+        var content = Valid(recording);
+
+        content.Workout.StartedAt.Should().Be(TestTracks.Start);
+        content.Workout.EndedAt.Should().Be(TestTracks.Start.AddSeconds(10));
+        content.Route!.Points().Select(p => p.Time).Should().Equal(content.Workout.StartedAt, content.Workout.EndedAt);
+        content.Series.Single().Samples().Select(p => p.Time).Should().Equal(content.Workout.StartedAt, content.Workout.EndedAt);
+    }
+
+    [Fact]
+    public void Sub_millisecond_bounds_keep_the_hash_of_their_millisecond()
+    {
+        var aligned = Valid(Recording());
+        var shifted = Valid(Recording(end: TestTracks.Start.AddHours(1).AddTicks(9_999)) with
+        {
+            StartedAt = TestTracks.Start.AddTicks(1),
+        });
+
+        shifted.Workout.ContentHash.Should().Equal(aligned.Workout.ContentHash);
+    }
+
+    [Fact]
+    public void Start_and_end_inside_the_same_millisecond_are_rejected()
+    {
+        var recording = Recording(end: TestTracks.Start.AddTicks(9_000));
+
+        Workout.Create(Owner, DeviceId, recording, Now).Errors.Should().Contain(e => e.Code == "workout.time.invalid");
+    }
+
+    [Fact]
     public void Empty_series_are_not_stored()
     {
         var content = Valid(Recording(series: new Dictionary<SeriesMetric, IReadOnlyList<SeriesSample>> { [SeriesMetric.Power] = [] }));
