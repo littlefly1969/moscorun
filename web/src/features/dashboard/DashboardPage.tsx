@@ -4,6 +4,7 @@ import { formatDateTime, formatDeltaKg, formatKg, formatRelative, freshness } fr
 import { useSetAttribution, useSummary, useWeighings } from "./queries";
 import { StatCard } from "./StatCard";
 import { DailySciencePanel } from "./DailySciencePanel";
+import { DailySessionLoadPanel } from "./DailySessionLoadPanel";
 import { ScienceFeedbackPanel } from "../science/ScienceFeedbackPanel";
 
 // La libreria dei grafici è il pacchetto più pesante: caricata a parte, dopo i dati essenziali.
@@ -87,6 +88,7 @@ export function DashboardPage() {
 
       <DailySciencePanel />
       <ScienceFeedbackPanel />
+      <DailySessionLoadPanel />
 
       <section className="card" aria-labelledby="sources-title">
         <h2 id="sources-title">Sorgenti dati</h2>

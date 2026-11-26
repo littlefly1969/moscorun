@@ -102,8 +102,8 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
@@ -112,8 +112,8 @@
               }
             }
           },
-          "200": {
-            "description": "OK",
+          "201": {
+            "description": "Created",
             "content": {
               "application/json": {
                 "schema": {
@@ -154,8 +154,8 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
@@ -164,8 +164,8 @@
               }
             }
           },
-          "200": {
-            "description": "OK",
+          "201": {
+            "description": "Created",
             "content": {
               "application/json": {
                 "schema": {
@@ -352,6 +352,47 @@
           },
           "409": {
             "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/science/load": {
+      "get": {
+        "tags": [
+          "Cruscotto"
+        ],
+        "operationId": "GetDailySessionLoad",
+        "parameters": [
+          {
+            "name": "last",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailySessionLoadReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -650,9 +691,6 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found"
-          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -662,6 +700,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -711,9 +752,6 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found"
-          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -723,6 +761,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1177,6 +1218,110 @@
               "number"
             ],
             "format": "double"
+          }
+        }
+      },
+      "DailySessionLoadPoint": {
+        "required": [
+          "day",
+          "status",
+          "sessions",
+          "ratedSessions",
+          "load",
+          "availableAt",
+          "attestationAvailableAt"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "sessions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ratedSessions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "load": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "availableAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "attestationAvailableAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "DailySessionLoadReport": {
+        "required": [
+          "lastDay",
+          "asOf",
+          "methodVersion",
+          "unit",
+          "days",
+          "recentWeek",
+          "rolling"
+        ],
+        "type": "object",
+        "properties": {
+          "lastDay": {
+            "type": "string",
+            "format": "date"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "methodVersion": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailySessionLoadPoint"
+            }
+          },
+          "recentWeek": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TrainingLoadSummary"
+              }
+            ]
+          },
+          "rolling": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RollingLoadSummary"
+              }
+            ]
           }
         }
       },
@@ -1797,6 +1942,32 @@
           }
         }
       },
+      "RollingLoadSummary": {
+        "required": [
+          "recentMean",
+          "priorMean",
+          "recentToPriorRatio"
+        ],
+        "type": "object",
+        "properties": {
+          "recentMean": {
+            "type": "number",
+            "format": "double"
+          },
+          "priorMean": {
+            "type": "number",
+            "format": "double"
+          },
+          "recentToPriorRatio": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        },
+        "description": "Confronto descrittivo di medie giornaliere in finestre disgiunte, non score di rischio."
+      },
       "RouteFeature": {
         "required": [
           "type",
@@ -2251,6 +2422,39 @@
               "number"
             ],
             "description": "Precisione orizzontale in metri.",
+            "format": "double"
+          }
+        }
+      },
+      "TrainingLoadSummary": {
+        "required": [
+          "totalLoad",
+          "meanDailyLoad",
+          "monotony",
+          "strain"
+        ],
+        "type": "object",
+        "properties": {
+          "totalLoad": {
+            "type": "number",
+            "format": "double"
+          },
+          "meanDailyLoad": {
+            "type": "number",
+            "format": "double"
+          },
+          "monotony": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "strain": {
+            "type": [
+              "null",
+              "number"
+            ],
             "format": "double"
           }
         }

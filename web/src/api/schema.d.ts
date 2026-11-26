@@ -141,6 +141,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/science/load": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GetDailySessionLoad"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/device": {
     parameters: {
       query?: never;
@@ -439,6 +455,32 @@ export interface components {
       /** Format: double */
       weightTrendKgPerWeek: null | number;
     };
+    DailySessionLoadPoint: {
+      /** Format: date */
+      day: string;
+      status: string;
+      /** Format: int32 */
+      sessions: number;
+      /** Format: int32 */
+      ratedSessions: number;
+      /** Format: double */
+      load: null | number;
+      /** Format: date-time */
+      availableAt: null | string;
+      /** Format: date-time */
+      attestationAvailableAt: null | string;
+    };
+    DailySessionLoadReport: {
+      /** Format: date */
+      lastDay: string;
+      /** Format: date-time */
+      asOf: string;
+      methodVersion: string;
+      unit: string;
+      days: components["schemas"]["DailySessionLoadPoint"][];
+      recentWeek: null | components["schemas"]["TrainingLoadSummary"];
+      rolling: null | components["schemas"]["RollingLoadSummary"];
+    };
     DashboardSummary: {
       /**
        * Format: double
@@ -678,6 +720,15 @@ export interface components {
       /** @description Credenziale da configurare nell'agente. Viene mostrata solo ora. */
       token: string;
     };
+    /** @description Confronto descrittivo di medie giornaliere in finestre disgiunte, non score di rischio. */
+    RollingLoadSummary: {
+      /** Format: double */
+      recentMean: number;
+      /** Format: double */
+      priorMean: number;
+      /** Format: double */
+      recentToPriorRatio: null | number;
+    };
     /** @description Tracciato come Feature GeoJSON (RFC 7946), utilizzabile da qualunque libreria di mappe. */
     RouteFeature: {
       /** @description Sempre `Feature`. */
@@ -843,6 +894,16 @@ export interface components {
        * @description Precisione orizzontale in metri.
        */
       accuracyM: null | number;
+    };
+    TrainingLoadSummary: {
+      /** Format: double */
+      totalLoad: number;
+      /** Format: double */
+      meanDailyLoad: number;
+      /** Format: double */
+      monotony: null | number;
+      /** Format: double */
+      strain: null | number;
     };
     UpdateAttributionRequest: {
       attribution: null | components["schemas"]["AttributionStatus"];
@@ -1291,6 +1352,37 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  GetDailySessionLoad: {
+    parameters: {
+      query: {
+        last: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DailySessionLoadReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
       };
     };
   };
