@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.text.InputType
 import android.widget.*
 import com.samsung.android.service.health.tracking.data.HealthTrackerType
+import com.samsung.android.service.health.tracking.data.TrackerUserProfile
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -23,6 +24,7 @@ class CaptureActivity : Activity() {
     private val worker = Executors.newSingleThreadExecutor()
     private val draining = AtomicBoolean(false)
     private var selected: HealthTrackerType? = null
+    private var selectedProfile: TrackerUserProfile? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,34 +77,74 @@ class CaptureActivity : Activity() {
 
     private fun request(type: HealthTrackerType) {
         if (connection == null) { status.text = "Configura il server prima di acquisire"; return }
-        if (type == HealthTrackerType.MF_BIA_ON_DEMAND) {
+        if (type == HealthTrackerType.MF_BIA_ON_DEMAND || type == HealthTrackerType.BIA_ON_DEMAND) {
             AlertDialog.Builder(this).setTitle("Impedenza bioelettrica")
                 .setMessage("Non utilizzare con dispositivi medici impiantati o durante la gravidanza. Segui le istruzioni Samsung per il contatto degli elettrodi.")
-                .setNegativeButton("Annulla", null).setPositiveButton("Continua") { _, _ -> authorize(type) }.show()
+                .setNegativeButton("Annulla", null).setPositiveButton("Continua") { _, _ -> profileDialog(type) }.show()
         } else authorize(type)
     }
 
-    private fun authorize(type: HealthTrackerType) {
+    private fun profileDialog(type: HealthTrackerType) {
+        val form = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        fun number(hintText: String, decimal: Boolean) = EditText(this).apply {
+            hint = hintText
+            inputType = InputType.TYPE_CLASS_NUMBER or (if (decimal) InputType.TYPE_NUMBER_FLAG_DECIMAL else 0)
+            form.addView(this)
+        }
+        val height = number("Altezza (cm)", true)
+        val weight = number("Peso (kg)", true)
+        val age = number("Età (anni)", false)
+        val gender = Spinner(this).apply {
+            adapter = ArrayAdapter(this@CaptureActivity, android.R.layout.simple_spinner_dropdown_item,
+                listOf("Seleziona sesso richiesto dall'SDK", "Femminile", "Maschile"))
+            form.addView(this)
+        }
+        val dialog = AlertDialog.Builder(this).setTitle("Profilo per BIA")
+            .setMessage("Dati richiesti dal calcolo Samsung. Usati solo per questa misura, non salvati.")
+            .setView(form).setNegativeButton("Annulla", null).setPositiveButton("Avvia", null).create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val h = height.text.toString().replace(',', '.').toFloatOrNull()
+                val w = weight.text.toString().replace(',', '.').toFloatOrNull()
+                val a = age.text.toString().toIntOrNull()
+                val g = gender.selectedItemPosition - 1
+                if (h == null || h !in 20f..300f || w == null || w !in 2f..500f ||
+                    a == null || a !in 18..200 || g !in 0..1) {
+                    status.text = "Profilo BIA non valido; completa tutti i campi"
+                    Toast.makeText(this, "Controlla i dati del profilo", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                val profile = TrackerUserProfile.Builder().setHeight(h).setWeight(w).setAge(a).setGender(g).build()
+                dialog.dismiss()
+                authorize(type, profile)
+            }
+        }
+        dialog.show()
+    }
+
+    private fun authorize(type: HealthTrackerType, profile: TrackerUserProfile? = null) {
         val permission = if (type == HealthTrackerType.ACCELEROMETER_CONTINUOUS)
             Manifest.permission.ACTIVITY_RECOGNITION else Manifest.permission.BODY_SENSORS
-        if (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) start(type)
-        else { selected = type; requestPermissions(arrayOf(permission), 1) }
+        if (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) start(type, profile)
+        else { selected = type; selectedProfile = profile; requestPermissions(arrayOf(permission), 1) }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1) {
             val type = selected
+            val profile = selectedProfile
             selected = null
-            if (type != null && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) start(type)
+            selectedProfile = null
+            if (type != null && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) start(type, profile)
             else status.text = "Permesso non concesso"
         }
     }
 
-    private fun start(type: HealthTrackerType) {
+    private fun start(type: HealthTrackerType, profile: TrackerUserProfile?) {
         val target = connection ?: return
         // Capture the account at session start, never route a late callback to new credentials.
-        runCatching { capture.start(type) { payloads ->
+        runCatching { capture.start(type, profile) { payloads ->
             queue.append(target, payloads)
             drain()
         } }.onFailure { status.text = "Tracker non disponibile o SDK non autorizzato" }

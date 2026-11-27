@@ -8,6 +8,8 @@ import com.samsung.android.service.health.tracking.HealthTrackingService
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.HealthTrackerType
 import com.samsung.android.service.health.tracking.data.ValueKey
+import com.samsung.android.service.health.tracking.data.PpgType
+import com.samsung.android.service.health.tracking.data.TrackerUserProfile
 import it.moscorun.sensor.SensorChannel
 import it.moscorun.sensor.SensorChunk
 import it.moscorun.sensor.SensorPayload
@@ -31,13 +33,19 @@ class SamsungCapture(context: Context, private val status: (String) -> Unit,
 
     fun connect() = service.connectService()
 
-    fun start(type: HealthTrackerType, store: (List<SensorPayload>) -> Unit) {
+    fun start(type: HealthTrackerType, profile: TrackerUserProfile?, store: (List<SensorPayload>) -> Unit) {
         stop()
         require(type in supported && type in service.trackingCapability.supportHealthTrackerTypes)
         session = UUID.randomUUID()
         val run = session
         val current = ++generation
-        val active = service.getHealthTracker(type)
+        val active = when (type) {
+            HealthTrackerType.PPG_CONTINUOUS, HealthTrackerType.PPG_ON_DEMAND ->
+                service.getHealthTracker(type, setOf(PpgType.GREEN, PpgType.IR, PpgType.RED))
+            HealthTrackerType.BIA_ON_DEMAND, HealthTrackerType.MF_BIA_ON_DEMAND ->
+                service.getHealthTracker(type, requireNotNull(profile))
+            else -> service.getHealthTracker(type)
+        }
         tracker = active
         run {
             active.setEventListener(object : HealthTracker.TrackerEventListener {
@@ -74,9 +82,10 @@ class SamsungCapture(context: Context, private val status: (String) -> Unit,
     private fun channels(type: HealthTrackerType, points: List<DataPoint>): Map<SensorChannel, List<SensorSample>> {
         val output = linkedMapOf<SensorChannel, MutableList<SensorSample>>()
         fun <T : Number> add(metric: String, unit: String, field: String, key: ValueKey<T>,
-            reported: Boolean = false, transform: (T) -> Double = { it.toDouble() }) {
+            reported: Boolean = false, successfulBiaOnly: Boolean = false, transform: (T) -> Double = { it.toDouble() }) {
             val channel = SensorChannel(metric, unit, type.name + ":" + field, !reported)
             for (point in points) {
+                if (successfulBiaOnly && runCatching { point.getValue(ValueKey.BiaSet.STATUS) }.getOrNull() != 0) continue
                 val value = runCatching { point.getValue(key) }.getOrNull() ?: continue
                 output.getOrPut(channel) { mutableListOf() }.add(SensorSample(point.timestamp, transform(value)))
             }
@@ -137,6 +146,20 @@ class SamsungCapture(context: Context, private val status: (String) -> Unit,
                 add("heartRate", "bpm", "HEART_RATE", ValueKey.SpO2Set.HEART_RATE, reported = true)
                 add("spo2Status", "native", "STATUS", ValueKey.SpO2Set.STATUS)
             }
+            HealthTrackerType.BIA_ON_DEMAND -> {
+                add("biaStatus", "native", "STATUS", ValueKey.BiaSet.STATUS)
+                add("biaProgress", "native", "PROGRESS", ValueKey.BiaSet.PROGRESS)
+                add("fatPercentage", "%", "BODY_FAT_RATIO", ValueKey.BiaSet.BODY_FAT_RATIO, reported = true, successfulBiaOnly = true)
+                add("fatMass", "kg", "BODY_FAT_MASS", ValueKey.BiaSet.BODY_FAT_MASS, reported = true, successfulBiaOnly = true)
+                add("fatFreePercentage", "%", "FAT_FREE_RATIO", ValueKey.BiaSet.FAT_FREE_RATIO, reported = true, successfulBiaOnly = true)
+                add("fatFreeMass", "kg", "FAT_FREE_MASS", ValueKey.BiaSet.FAT_FREE_MASS, reported = true, successfulBiaOnly = true)
+                add("skeletalMusclePercentage", "%", "SKELETAL_MUSCLE_RATIO", ValueKey.BiaSet.SKELETAL_MUSCLE_RATIO, reported = true, successfulBiaOnly = true)
+                add("skeletalMuscleMass", "kg", "SKELETAL_MUSCLE_MASS", ValueKey.BiaSet.SKELETAL_MUSCLE_MASS, reported = true, successfulBiaOnly = true)
+                add("bodyWaterVolume", "L", "TOTAL_BODY_WATER", ValueKey.BiaSet.TOTAL_BODY_WATER, reported = true, successfulBiaOnly = true)
+                add("biaBasalMetabolicRate", "kcal", "BASAL_METABOLIC_RATE", ValueKey.BiaSet.BASAL_METABOLIC_RATE, reported = true, successfulBiaOnly = true)
+                add("impedance", "ohm", "BODY_IMPEDANCE_MAGNITUDE", ValueKey.BiaSet.BODY_IMPEDANCE_MAGNITUDE, reported = false, successfulBiaOnly = true)
+                add("biaImpedancePhase", "deg", "BODY_IMPEDANCE_DEGREE", ValueKey.BiaSet.BODY_IMPEDANCE_DEGREE, reported = false, successfulBiaOnly = true)
+            }
             HealthTrackerType.MF_BIA_ON_DEMAND -> {
                 add("mfBiaStatus", "native", "STATUS", ValueKey.MfBiaSet.STATUS)
                 add("mfBiaProgress", "native", "PROGRESS", ValueKey.MfBiaSet.PROGRESS)
@@ -159,6 +182,6 @@ class SamsungCapture(context: Context, private val status: (String) -> Unit,
             HealthTrackerType.PPG_ON_DEMAND, HealthTrackerType.ACCELEROMETER_CONTINUOUS,
             HealthTrackerType.HEART_RATE_CONTINUOUS, HealthTrackerType.EDA_CONTINUOUS,
             HealthTrackerType.SKIN_TEMPERATURE_CONTINUOUS, HealthTrackerType.SKIN_TEMPERATURE_ON_DEMAND,
-            HealthTrackerType.SPO2_ON_DEMAND, HealthTrackerType.MF_BIA_ON_DEMAND)
+            HealthTrackerType.SPO2_ON_DEMAND, HealthTrackerType.BIA_ON_DEMAND, HealthTrackerType.MF_BIA_ON_DEMAND)
     }
 }

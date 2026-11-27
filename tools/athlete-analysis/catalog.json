@@ -1064,6 +1064,34 @@
       "category": "rawSignals",
       "availability": "capability-dependent",
       "interpretation": "method_required"
+    },
+    {
+      "metric": "biaStatus",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "biaProgress",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "biaImpedancePhase",
+      "unit": "deg",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "biaBasalMetabolicRate",
+      "unit": "kcal",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
     }
   ]
 }

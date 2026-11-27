@@ -147,7 +147,8 @@ function PhoneDiagnostics({
             {report.windowsRead > 0
               ? "Finestre lette: " + number.format(report.windowsRead)
               : "Nessuna finestra completata"}{" "}
-            · estremi delle finestre {date(report.firstReadFrom)} – {date(report.readThrough)} (non necessariamente contigue).
+            · estremi delle finestre {date(report.firstReadFrom)} – {date(report.readThrough)} (non
+            necessariamente contigue).
           </p>
           {metric && !report.metrics.some((item) => item.metric === metric) && (
             <p>La metrica selezionata non è dichiarata in questo rapporto. Capacità non verificata.</p>

@@ -11,7 +11,7 @@ describe("ambiente scientifico", () => {
     expect(await screen.findByRole("heading", { name: "Atlante delle metriche" })).toBeInTheDocument();
     const catalog = screen.getByRole("region", { name: "Catalogo metriche" });
     expect(within(catalog).getAllByRole("row")).toHaveLength(metricCatalog.length + 1);
-    expect(metricCatalog).toHaveLength(152);
+    expect(metricCatalog).toHaveLength(156);
     await userEvent.type(screen.getByLabelText("Cerca metrica"), "groundContactTime");
     expect(within(catalog).getAllByRole("row")).toHaveLength(2);
     await userEvent.click(within(catalog).getByRole("button", { name: "Tempo di contatto a terra" }));

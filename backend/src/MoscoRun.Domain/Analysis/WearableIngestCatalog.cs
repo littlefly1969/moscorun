@@ -88,6 +88,12 @@ public static class WearableIngestCatalog
         "mfBiaPhase250k",
         "pulseInterval",
         "pulseIntervalStatus",
+        "fatPercentage", "fatMass", "fatFreePercentage", "fatFreeMass", "skeletalMusclePercentage", "skeletalMuscleMass",
+        "bodyWaterVolume", "impedance",
+        "biaStatus",
+        "biaProgress",
+        "biaImpedancePhase",
+        "biaBasalMetabolicRate",
         "airTemperature", "humidity", "windSpeed", "windDirection", "barometricPressure",
     };
 
