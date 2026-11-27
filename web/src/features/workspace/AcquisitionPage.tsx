@@ -14,16 +14,18 @@ interface Cursor {
 const number = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 3 });
 const sources = ["health-connect", "samsung-health", "garmin-connect", "athlete-feedback", "bilancia"];
 const label = (id: string) => metricCatalog.find((metric) => metric.id === id)?.label ?? id;
-const date = (value: string | null | undefined) => value ? new Date(value).toLocaleString("it-IT") : "—";
+const date = (value: string | null | undefined) => (value ? new Date(value).toLocaleString("it-IT") : "—");
 
 function ObservationHistory({ metric, source }: { metric: string; source: string }) {
   const history = useInfiniteQuery({
     queryKey: ["acquisition", "history", metric, source],
     initialPageParam: null as Cursor | null,
     queryFn: ({ pageParam }) =>
-      unwrap(api.GET("/api/v1/science/inventory/observations", {
-        params: { query: { metric, source, limit: 50, ...pageParam } },
-      })),
+      unwrap(
+        api.GET("/api/v1/science/inventory/observations", {
+          params: { query: { metric, source, limit: 50, ...pageParam } },
+        }),
+      ),
     getNextPageParam: (page) => {
       const last = page.items.at(-1);
       return page.hasMore && last ? { asOf: page.asOf, beforeTime: last.time, beforeId: last.id } : undefined;
@@ -55,10 +57,19 @@ function ObservationHistory({ metric, source }: { metric: string; source: string
                 <tr key={item.id}>
                   <td>{date(item.time)}</td>
                   <td>{item.value == null ? "Mancante" : number.format(item.value) + " " + item.unit}</td>
-                  <td>{item.method}<small className="sw-muted"> {item.providerAlgorithm ?? "Origine non dichiarata"}</small></td>
+                  <td>
+                    {item.method}
+                    <small className="sw-muted"> {item.providerAlgorithm ?? "Origine non dichiarata"}</small>
+                  </td>
                   <td>{date(item.availableAt)}</td>
                   <td>{item.externalRevision ?? "—"}</td>
-                  <td>{item.workoutId ? <Link to={"/allenamenti/" + item.workoutId}>Seduta</Link> : "Giornaliero / autonomo"}</td>
+                  <td>
+                    {item.workoutId ? (
+                      <Link to={"/allenamenti/" + item.workoutId}>Seduta</Link>
+                    ) : (
+                      "Giornaliero / autonomo"
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -66,31 +77,57 @@ function ObservationHistory({ metric, source }: { metric: string; source: string
         </div>
       )}
       {history.hasNextPage && (
-        <button type="button" disabled={history.isFetchingNextPage} onClick={() => {
-          void history.fetchNextPage();
-        }}>Altre osservazioni</button>
+        <button
+          type="button"
+          disabled={history.isFetchingNextPage}
+          onClick={() => {
+            void history.fetchNextPage();
+          }}
+        >
+          Altre osservazioni
+        </button>
       )}
     </section>
   );
 }
 
-function PhoneDiagnostics({ inventory, source, metric }: { inventory: Inventory; source: string; metric: string }) {
+function PhoneDiagnostics({
+  inventory,
+  source,
+  metric,
+}: {
+  inventory: Inventory;
+  source: string;
+  metric: string;
+}) {
   const snapshots = inventory.diagnostics.filter((item) => source === "all" || item.report.source === source);
   const deviceName = (id: string) => inventory.devices.find((device) => device.id === id)?.name ?? id;
   return (
     <section className="card" aria-label="Diagnostica trasmessa dal telefono">
       <h2>Telefono · ultimo rapporto per sorgente</h2>
-      <p className="sw-muted">Rapporti dichiarati dall'app, non verifica diretta dei sensori. I contatori riguardano una
-        singola esecuzione e possono comprendere reinvii. Confermato significa risposta di accettazione del server,
-        non necessariamente una nuova revisione. L'archivio può essere cambiato nel frattempo.</p>
-      {snapshots.length === 0 && <p>Nessun rapporto diagnostico ricevuto: permessi e letture del telefono sconosciuti.</p>}
+      <p className="sw-muted">
+        Rapporti dichiarati dall'app, non verifica diretta dei sensori. I contatori riguardano una singola
+        esecuzione e possono comprendere reinvii. Confermato significa risposta di accettazione del server,
+        non necessariamente una nuova revisione. L'archivio può essere cambiato nel frattempo.
+      </p>
+      {snapshots.length === 0 && (
+        <p>Nessun rapporto diagnostico ricevuto: permessi e letture del telefono sconosciuti.</p>
+      )}
       {snapshots.map(({ deviceId, receivedAt, report }) => (
         <div className="sw-acquisition-group" key={deviceId + "/" + report.source}>
-          <h3>{deviceName(deviceId)} · {report.source}</h3>
-          <p>Ultima diagnostica ricevuta: {date(receivedAt)} · stato {report.state} ·
-            esecuzione {date(report.startedAt)} – {date(report.finishedAt)}</p>
-          <p>{report.windowsRead > 0 ? "Finestre lette: " + number.format(report.windowsRead) :
-            "Nessuna finestra completata"} · da {date(report.firstReadFrom)} a {date(report.readThrough)}.</p>
+          <h3>
+            {deviceName(deviceId)} · {report.source}
+          </h3>
+          <p>
+            Ultima diagnostica ricevuta: {date(receivedAt)} · stato {report.state} · esecuzione{" "}
+            {date(report.startedAt)} – {date(report.finishedAt)}
+          </p>
+          <p>
+            {report.windowsRead > 0
+              ? "Finestre lette: " + number.format(report.windowsRead)
+              : "Nessuna finestra completata"}{" "}
+            · da {date(report.firstReadFrom)} a {date(report.readThrough)}.
+          </p>
           {metric && !report.metrics.some((item) => item.metric === metric) && (
             <p>La metrica selezionata non è dichiarata in questo rapporto. Capacità non verificata.</p>
           )}
@@ -109,26 +146,37 @@ function PhoneDiagnostics({ inventory, source, metric }: { inventory: Inventory;
                 </tr>
               </thead>
               <tbody>
-                {report.metrics.filter((item) => !metric || item.metric === metric).map((item) => (
-                  <tr key={item.metric}>
-                    <th scope="row">{label(item.metric)}</th>
-                    <td>{item.permission === "granted" ? "Concesso" :
-                      item.permission === "denied" ? "Non concesso" : "Sconosciuto"}</td>
-                    <td>{item.permission === "granted" && report.windowsRead > 0 ? item.read : "—"}</td>
-                    <td>{item.attempted}</td>
-                    <td>{item.confirmed}</td>
-                    <td>{item.rejected} ({item.conflicts} conflitti)</td>
-                    <td>{item.attempted - item.confirmed - item.rejected}</td>
-                    <td>{item.read - item.attempted}</td>
-                  </tr>
-                ))}
+                {report.metrics
+                  .filter((item) => !metric || item.metric === metric)
+                  .map((item) => (
+                    <tr key={item.metric}>
+                      <th scope="row">{label(item.metric)}</th>
+                      <td>
+                        {item.permission === "granted"
+                          ? "Concesso"
+                          : item.permission === "denied"
+                            ? "Non concesso"
+                            : "Sconosciuto"}
+                      </td>
+                      <td>{item.permission === "granted" && report.windowsRead > 0 ? item.read : "—"}</td>
+                      <td>{item.attempted}</td>
+                      <td>{item.confirmed}</td>
+                      <td>
+                        {item.rejected} ({item.conflicts} conflitti)
+                      </td>
+                      <td>{item.attempted - item.confirmed - item.rejected}</td>
+                      <td>{item.read - item.attempted}</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
         </div>
       ))}
-      <p className="sw-muted">Se un rapporto è vecchio, il permesso corrente resta ignoto. Un esito incerto non
-        prova che il dato sia assente sul server: controlla l'inventario sottostante.</p>
+      <p className="sw-muted">
+        Se un rapporto è vecchio, il permesso corrente resta ignoto. Un esito incerto non prova che il dato
+        sia assente sul server: controlla l'inventario sottostante.
+      </p>
     </section>
   );
 }
@@ -140,99 +188,202 @@ function InventoryView({ inventory }: { inventory: Inventory }) {
   const [presentOnly, setPresentOnly] = useState(false);
   const [history, setHistory] = useState<{ metric: string; source: string } | null>(null);
   const [selected, setSelected] = useState(params.get("metrica") ?? "");
-  const allSources = Array.from(new Set([...sources, ...inventory.observations.map((row) => row.source),
-    ...inventory.signals.map((row) => row.source)]));
-  const ids = Array.from(new Set([...metricCatalog.map((metric) => metric.id),
-    ...inventory.observations.map((row) => row.metric), ...inventory.signals.map((row) => row.metric)]));
+  const allSources = Array.from(
+    new Set([
+      ...sources,
+      ...inventory.observations.map((row) => row.source),
+      ...inventory.signals.map((row) => row.source),
+    ]),
+  );
+  const ids = Array.from(
+    new Set([
+      ...metricCatalog.map((metric) => metric.id),
+      ...inventory.observations.map((row) => row.metric),
+      ...inventory.signals.map((row) => row.metric),
+    ]),
+  );
   const observations = inventory.observations.filter((row) => source === "all" || row.source === source);
   const signals = inventory.signals.filter((row) => source === "all" || row.source === source);
   const scales = source === "all" || source === "bilancia" ? inventory.scales : [];
-  const deviceName = (id: string | null) => id == null ? "Non registrato" :
-    inventory.devices.find((device) => device.id === id)?.name ?? id;
+  const deviceName = (id: string | null) =>
+    id == null ? "Non registrato" : (inventory.devices.find((device) => device.id === id)?.name ?? id);
   const rows = ids.map((id) => {
     const values = observations.filter((row) => row.metric === id);
     const chunks = signals.filter((row) => row.metric === id);
-    const scaleRows = id === "weight" || id === "impedance" ? scales.reduce((sum, row) =>
-      sum + (id === "weight" ? row.weighings : row.withImpedance), 0) : 0;
+    const scaleRows =
+      id === "weight" || id === "impedance"
+        ? scales.reduce((sum, row) => sum + (id === "weight" ? row.weighings : row.withImpedance), 0)
+        : 0;
     const stored = values.reduce((sum, row) => sum + row.revisionRows, 0);
     const nonNull = values.reduce((sum, row) => sum + row.nonNullRows, 0);
     const chunkCount = chunks.reduce((sum, row) => sum + row.chunkRevisions, 0);
     const sampleCount = chunks.reduce((sum, row) => sum + row.storedSamples, 0);
-    const last = [...values.map((row) => row.lastAvailableAt), ...chunks.map((row) => row.lastAvailableAt),
-      ...(scaleRows > 0 ? scales.filter((row) => id === "weight" || row.withImpedance > 0).map((row) => row.lastReceivedAt) : [])]
-      .sort((a, b) => Date.parse(b) - Date.parse(a))[0];
+    const last = [
+      ...values.map((row) => row.lastAvailableAt),
+      ...chunks.map((row) => row.lastAvailableAt),
+      ...(scaleRows > 0
+        ? scales.filter((row) => id === "weight" || row.withImpedance > 0).map((row) => row.lastReceivedAt)
+        : []),
+    ].sort((a, b) => Date.parse(b) - Date.parse(a))[0];
     return { id, values, chunks, scaleRows, stored, nonNull, chunkCount, sampleCount, last };
   });
   const present = (row: (typeof rows)[number]) => row.stored > 0 || row.chunkCount > 0 || row.scaleRows > 0;
   const normalized = search.trim().toLocaleLowerCase("it-IT");
-  const visible = rows.filter((row) => (!presentOnly || present(row)) &&
-    (label(row.id) + " " + row.id).toLocaleLowerCase("it-IT").includes(normalized))
+  const visible = rows
+    .filter(
+      (row) =>
+        (!presentOnly || present(row)) &&
+        (label(row.id) + " " + row.id).toLocaleLowerCase("it-IT").includes(normalized),
+    )
     .sort((a, b) => Number(present(b)) - Number(present(a)));
   const current = rows.find((row) => row.id === selected);
   const daily = metricCatalog.find((metric) => metric.id === current?.id)?.access === "daily";
   return (
     <>
       <div className="sw-index">
-        <span><strong>{rows.filter(present).length}</strong> metriche con record nell'archivio</span>
-        <span><strong>{observations.reduce((sum, row) => sum + row.revisionRows, 0)}</strong> revisioni osservazioni</span>
-        <span><strong>{signals.reduce((sum, row) => sum + row.chunkRevisions, 0)}</strong> revisioni chunk</span>
-        <span><strong>{scales.reduce((sum, row) => sum + row.weighings, 0)}</strong> pesate</span>
+        <span>
+          <strong>{rows.filter(present).length}</strong> metriche con record nell'archivio
+        </span>
+        <span>
+          <strong>{observations.reduce((sum, row) => sum + row.revisionRows, 0)}</strong> revisioni
+          osservazioni
+        </span>
+        <span>
+          <strong>{signals.reduce((sum, row) => sum + row.chunkRevisions, 0)}</strong> revisioni chunk
+        </span>
+        <span>
+          <strong>{scales.reduce((sum, row) => sum + row.weighings, 0)}</strong> pesate
+        </span>
       </div>
-      <p className="sw-muted">Inventario al {date(inventory.asOf)}. I conteggi includono revisioni e non sono misure uniche.
-        I chunk possono contenere campioni mancanti. Le pesate includono anche quelle non attribuite o escluse.
-        Le serie native delle sedute restano in Allenamenti.</p>
+      <p className="sw-muted">
+        Inventario al {date(inventory.asOf)}. I conteggi includono revisioni e non sono misure uniche. I chunk
+        possono contenere campioni mancanti. Le pesate includono anche quelle non attribuite o escluse. Le
+        serie native delle sedute restano in Allenamenti.
+      </p>
       <div className="sw-controls">
-        <label>Sorgente
-          <select value={source} onChange={(event) => {
-            setSource(event.target.value);
-            setHistory(null);
-          }}>
+        <label>
+          Sorgente
+          <select
+            value={source}
+            onChange={(event) => {
+              setSource(event.target.value);
+              setHistory(null);
+            }}
+          >
             <option value="all">Tutte le sorgenti</option>
-            {allSources.map((item) => <option value={item} key={item}>{item}</option>)}
+            {allSources.map((item) => (
+              <option value={item} key={item}>
+                {item}
+              </option>
+            ))}
           </select>
         </label>
-        <label>Cerca metrica
-          <input type="search" value={search} onChange={(event) => { setSearch(event.target.value); }} />
+        <label>
+          Cerca metrica
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+            }}
+          />
         </label>
         <label className="sw-check">
-          <input type="checkbox" checked={presentOnly} onChange={(event) => { setPresentOnly(event.target.checked); }} />
+          <input
+            type="checkbox"
+            checked={presentOnly}
+            onChange={(event) => {
+              setPresentOnly(event.target.checked);
+            }}
+          />
           Solo record presenti
         </label>
       </div>
       <PhoneDiagnostics inventory={inventory} source={source} metric={selected} />
-      <p>La colonna Lettore HC attuale indica le capacità implementate nella versione corrente del codice Android
-        (Health Connect), non quelle dell’app installata o dell’orologio. Per i permessi effettivi consulta il rapporto.</p>
-      <p>Un conteggio zero significa solo che non ci sono record nella sezione di archivio interrogata,
-        non che l'orologio non misuri il dato o che il telefono non abbia i permessi.</p>
+      <p>
+        La colonna Lettore HC attuale indica le capacità implementate nella versione corrente del codice
+        Android (Health Connect), non quelle dell’app installata o dell’orologio. Per i permessi effettivi
+        consulta il rapporto.
+      </p>
+      <p>
+        Un conteggio zero significa solo che non ci sono record nella sezione di archivio interrogata, non che
+        l'orologio non misuri il dato o che il telefono non abbia i permessi.
+      </p>
       {current && (
         <section className="card" aria-label="Provenienza della metrica">
           <h2>{label(current.id)}</h2>
-          <button type="button" onClick={() => { setSelected(""); setParams({}); setHistory(null); }}>Mostra tutte le metriche</button>
-          <p>{healthConnectReaderMetrics.has(current.id) ? "Lettore Android Health Connect: acquisizione prevista dal codice." :
-            "Lettore Android Health Connect: acquisizione non prevista dal codice corrente."} Non è una verifica dell’hardware o della versione installata.</p>
-          <p>{daily ? "Analisi giornaliera prevista" : "Non esposta dal motore giornaliero"} ·
-            la disponibilità per gli altri motori dipende dai loro protocolli.</p>
+          <button
+            type="button"
+            onClick={() => {
+              setSelected("");
+              setParams({});
+              setHistory(null);
+            }}
+          >
+            Mostra tutte le metriche
+          </button>
+          <p>
+            {healthConnectReaderMetrics.has(current.id)
+              ? "Lettore Android Health Connect: acquisizione prevista dal codice."
+              : "Lettore Android Health Connect: acquisizione non prevista dal codice corrente."}{" "}
+            Non è una verifica dell’hardware o della versione installata.
+          </p>
+          <p>
+            {daily ? "Analisi giornaliera prevista" : "Non esposta dal motore giornaliero"} · la disponibilità
+            per gli altri motori dipende dai loro protocolli.
+          </p>
           {!present(current) && <p>Nessun record scientifico o pesata in questa selezione.</p>}
           {current.values.map((row, index) => (
             <div className="sw-acquisition-group" key={index}>
-              <h3>{row.source} · {row.method}</h3>
-              <p>{deviceName(row.deviceId)} · {row.session ? "Seduta" : "Autonomo"} · {row.unit}</p>
-              <p>{row.nonNullRows}/{row.revisionRows} revisioni con valore · prima {date(row.firstTime)} · ultima {date(row.lastTime)}
-                · disponibile dal server fino a {date(row.lastAvailableAt)}</p>
-              <button type="button" onClick={() => { setHistory({ metric: current.id, source: row.source }); }}>Vedi osservazioni: {row.source}</button>
+              <h3>
+                {row.source} · {row.method}
+              </h3>
+              <p>
+                {deviceName(row.deviceId)} · {row.session ? "Seduta" : "Autonomo"} · {row.unit}
+              </p>
+              <p>
+                {row.nonNullRows}/{row.revisionRows} revisioni con valore · prima {date(row.firstTime)} ·
+                ultima {date(row.lastTime)}· disponibile dal server fino a {date(row.lastAvailableAt)}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setHistory({ metric: current.id, source: row.source });
+                }}
+              >
+                Vedi osservazioni: {row.source}
+              </button>
             </div>
           ))}
           {current.chunks.map((row, index) => (
             <div className="sw-acquisition-group" key={index}>
-              <h3>{row.source} · segnale {row.method}</h3>
-              <p>{deviceName(row.deviceId)} · {row.chunkRevisions} revisioni chunk · {row.storedSamples} campioni memorizzati</p>
-              <p>Prima {date(row.firstTime)} · ultima {date(row.lastTime)} · ultima ricezione {date(row.lastAvailableAt)}</p>
+              <h3>
+                {row.source} · segnale {row.method}
+              </h3>
+              <p>
+                {deviceName(row.deviceId)} · {row.chunkRevisions} revisioni chunk · {row.storedSamples}{" "}
+                campioni memorizzati
+              </p>
+              <p>
+                Prima {date(row.firstTime)} · ultima {date(row.lastTime)} · ultima ricezione{" "}
+                {date(row.lastAvailableAt)}
+              </p>
             </div>
           ))}
-          {current.scaleRows > 0 && <p>{current.scaleRows} record bilancia · <Link to="/forma">Verifica pesate e attribuzione</Link></p>}
+          {current.scaleRows > 0 && (
+            <p>
+              {current.scaleRows} record bilancia · <Link to="/forma">Verifica pesate e attribuzione</Link>
+            </p>
+          )}
         </section>
       )}
-      {history && <ObservationHistory key={history.metric + "/" + history.source} metric={history.metric} source={history.source} />}
+      {history && (
+        <ObservationHistory
+          key={history.metric + "/" + history.source}
+          metric={history.metric}
+          source={history.source}
+        />
+      )}
       <section aria-label="Inventario delle metriche">
         <div className="table-scroll">
           <table>
@@ -251,18 +402,36 @@ function InventoryView({ inventory }: { inventory: Inventory }) {
               {visible.map((row) => (
                 <tr key={row.id} data-selected={selected === row.id}>
                   <th scope="row">
-                    <button className="sw-metric-name" type="button" aria-pressed={selected === row.id} onClick={() => {
-                      setSelected(row.id);
-                      setParams({ metrica: row.id });
-                      setHistory(null);
-                    }}>{label(row.id)}</button>
+                    <button
+                      className="sw-metric-name"
+                      type="button"
+                      aria-pressed={selected === row.id}
+                      onClick={() => {
+                        setSelected(row.id);
+                        setParams({ metrica: row.id });
+                        setHistory(null);
+                      }}
+                    >
+                      {label(row.id)}
+                    </button>
                     <small className="sw-muted"> {row.id}</small>
                   </th>
-                  <td>{row.nonNull > 0 || row.scaleRows > 0 ? "Valori presenti" : row.chunkCount > 0 ? "Chunk presenti" :
-                    row.stored > 0 ? "Solo valori mancanti" : "Nessun record"}</td>
+                  <td>
+                    {row.nonNull > 0 || row.scaleRows > 0
+                      ? "Valori presenti"
+                      : row.chunkCount > 0
+                        ? "Chunk presenti"
+                        : row.stored > 0
+                          ? "Solo valori mancanti"
+                          : "Nessun record"}
+                  </td>
                   <td>{healthConnectReaderMetrics.has(row.id) ? "Prevista" : "Non prevista"}</td>
-                  <td>{row.nonNull}/{row.stored}</td>
-                  <td>{row.chunkCount}/{row.sampleCount}</td>
+                  <td>
+                    {row.nonNull}/{row.stored}
+                  </td>
+                  <td>
+                    {row.chunkCount}/{row.sampleCount}
+                  </td>
                   <td>{row.scaleRows}</td>
                   <td>{date(row.last)}</td>
                 </tr>
@@ -275,16 +444,25 @@ function InventoryView({ inventory }: { inventory: Inventory }) {
       <section className="card" aria-label="Pesate per dispositivo">
         <h2>Bilancia · attribuzione</h2>
         {scales.length === 0 && <p>Nessuna pesata nella selezione.</p>}
-        {scales.map((row, index) => <p key={index}>{deviceName(row.deviceId)} · {row.attribution} · {row.weighings} pesate,
-          {row.withImpedance} con impedenza · ultima ricezione {date(row.lastReceivedAt)}</p>)}
+        {scales.map((row, index) => (
+          <p key={index}>
+            {deviceName(row.deviceId)} · {row.attribution} · {row.weighings} pesate,
+            {row.withImpedance} con impedenza · ultima ricezione {date(row.lastReceivedAt)}
+          </p>
+        ))}
         <Link to="/forma">Apri Forma</Link>
       </section>
       <section className="card" aria-label="Stato dei dispositivi">
         <h2>Dispositivi registrati</h2>
-        <p>Ultimo contatto autenticato: non equivale a un dato ricevuto. Permessi e letture del telefono
-          vanno verificati con il rapporto diagnostico, quando disponibile.</p>
-        {inventory.devices.map((device) => <p key={device.id}>{device.name} · {device.revokedAt ? "Revocato" :
-          "Ultimo contatto " + date(device.lastSeenAt)}</p>)}
+        <p>
+          Ultimo contatto autenticato: non equivale a un dato ricevuto. Permessi e letture del telefono vanno
+          verificati con il rapporto diagnostico, quando disponibile.
+        </p>
+        {inventory.devices.map((device) => (
+          <p key={device.id}>
+            {device.name} · {device.revokedAt ? "Revocato" : "Ultimo contatto " + date(device.lastSeenAt)}
+          </p>
+        ))}
         <Link to="/dispositivi">Gestisci dispositivi</Link>
       </section>
     </>
@@ -303,9 +481,19 @@ export function AcquisitionPage() {
         <h1>Acquisizione</h1>
         <p>Verifica quali dati sono realmente memorizzati sul server, indipendentemente dalle analisi.</p>
       </header>
-      <button type="button" disabled={inventory.isFetching} onClick={() => { void inventory.refetch(); }}>Aggiorna inventario</button>
+      <button
+        type="button"
+        disabled={inventory.isFetching}
+        onClick={() => {
+          void inventory.refetch();
+        }}
+      >
+        Aggiorna inventario
+      </button>
       {inventory.isPending && <p role="status">Interrogazione dell'archivio…</p>}
-      {inventory.isError && <p role="alert">Inventario non disponibile: non è possibile stabilire se i dati esistono.</p>}
+      {inventory.isError && (
+        <p role="alert">Inventario non disponibile: non è possibile stabilire se i dati esistono.</p>
+      )}
       {inventory.data && !inventory.isError && <InventoryView inventory={inventory.data} />}
     </>
   );

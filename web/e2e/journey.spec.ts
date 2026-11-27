@@ -183,7 +183,10 @@ test("allenamento dal telefono: elenco, dettaglio e percorso senza cartografia",
   expect(overflow).toBeLessThanOrEqual(0);
 });
 
-test("acquisizione scientifica: verifica dati e diagnostica effettivamente ricevuti", async ({ page, request }, testInfo) => {
+test("acquisizione scientifica: verifica dati e diagnostica effettivamente ricevuti", async ({
+  page,
+  request,
+}, testInfo) => {
   await login(page);
   await page.getByRole("link", { name: "Dispositivi" }).click();
   const deviceName = `Telefono scienza E2E ${testInfo.project.name} ${Date.now()}`;
@@ -197,33 +200,49 @@ test("acquisizione scientifica: verifica dati e diagnostica effettivamente ricev
   const measured = new Date(now - 86400000).toISOString();
   const body = {
     source: "health-connect",
-    samples: [{
-      externalId: `hc:e2e-${testInfo.project.name}-${now}`,
-      revision: "1",
-      revisionOrder: 1,
-      metric: "spo2",
-      unit: "%",
-      value: 97,
-      time: measured,
-      method: "Measured",
-      providerAlgorithm: "com.sec.android.app.shealth",
-    }],
+    samples: [
+      {
+        externalId: `hc:e2e-${testInfo.project.name}-${now}`,
+        revision: "1",
+        revisionOrder: 1,
+        metric: "spo2",
+        unit: "%",
+        value: 97,
+        time: measured,
+        method: "Measured",
+        providerAlgorithm: "com.sec.android.app.shealth",
+      },
+    ],
   };
   expect((await request.post("/api/v1/ingest/observations", { headers, data: body })).status()).toBe(200);
-  expect((await request.post("/api/v1/ingest/science-diagnostic", {
-    headers,
-    data: {
-      source: "health-connect",
-      runId: crypto.randomUUID(),
-      startedAt: new Date(now - 60000).toISOString(),
-      finishedAt: new Date(now).toISOString(),
-      state: "COMPLETED",
-      firstReadFrom: new Date(now - 7 * 86400000).toISOString(),
-      readThrough: new Date(now - 300000).toISOString(),
-      windowsRead: 1,
-      metrics: [{ metric: "spo2", permission: "granted", read: 1, attempted: 1, confirmed: 1, rejected: 0, conflicts: 0 }],
-    },
-  })).status()).toBe(204);
+  expect(
+    (
+      await request.post("/api/v1/ingest/science-diagnostic", {
+        headers,
+        data: {
+          source: "health-connect",
+          runId: crypto.randomUUID(),
+          startedAt: new Date(now - 60000).toISOString(),
+          finishedAt: new Date(now).toISOString(),
+          state: "COMPLETED",
+          firstReadFrom: new Date(now - 7 * 86400000).toISOString(),
+          readThrough: new Date(now - 300000).toISOString(),
+          windowsRead: 1,
+          metrics: [
+            {
+              metric: "spo2",
+              permission: "granted",
+              read: 1,
+              attempted: 1,
+              confirmed: 1,
+              rejected: 0,
+              conflicts: 0,
+            },
+          ],
+        },
+      })
+    ).status(),
+  ).toBe(204);
   await page.goto("/acquisizione");
   await expect(page.getByRole("heading", { name: "Acquisizione", level: 1 })).toBeVisible();
   await page.getByLabel("Cerca metrica").fill("spo2");

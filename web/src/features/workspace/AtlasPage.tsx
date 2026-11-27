@@ -138,7 +138,11 @@ function MetricInspector({
         <p>Stima del dispositivo: non equivale a una misurazione fisiologica diretta.</p>
       )}
       {report ? <MetricHistory report={report} /> : <p>{state}</p>}
-      <p><Link to={"/acquisizione?metrica=" + encodeURIComponent(metric.id)}>Verifica presenza nell’archivio remoto</Link></p>
+      <p>
+        <Link to={"/acquisizione?metrica=" + encodeURIComponent(metric.id)}>
+          Verifica presenza nell’archivio remoto
+        </Link>
+      </p>
       {metric.access === "diary" && diary?.status === "recorded" && (
         <>
           <div className="sw-value">
@@ -259,8 +263,11 @@ export function AtlasPage() {
         <p className="sw-kicker">01 / Osservatorio scientifico</p>
         <h1>Atlante delle metriche</h1>
         <p>Il patrimonio osservabile dell’atleta. Ogni misura conserva fonte, metodo e disponibilità.</p>
-        <p>Archivio remoto: tutte le sorgenti scientifiche e la bilancia, indipendentemente dal giorno del motore daily.
-          Le serie native delle sedute sono in Allenamenti. <Link to="/acquisizione">Apri il Centro acquisizione</Link>.</p>
+        <p>
+          Archivio remoto: tutte le sorgenti scientifiche e la bilancia, indipendentemente dal giorno del
+          motore daily. Le serie native delle sedute sono in Allenamenti.{" "}
+          <Link to="/acquisizione">Apri il Centro acquisizione</Link>.
+        </p>
       </header>
       <div className="sw-index">
         <span>
@@ -380,9 +387,11 @@ export function AtlasPage() {
                         <td>{metric.unit}</td>
                         <td className="sw-numeric">{value == null ? "—" : number.format(value)}</td>
                         <td>{lookup(metric)}</td>
-                        <td><Link to={"/acquisizione?metrica=" + encodeURIComponent(metric.id)}>
-                          {archiveStatus(inventory.isError ? undefined : inventory.data, metric.id)}
-                        </Link></td>
+                        <td>
+                          <Link to={"/acquisizione?metrica=" + encodeURIComponent(metric.id)}>
+                            {archiveStatus(inventory.isError ? undefined : inventory.data, metric.id)}
+                          </Link>
+                        </td>
                         <td>
                           <button
                             type="button"
