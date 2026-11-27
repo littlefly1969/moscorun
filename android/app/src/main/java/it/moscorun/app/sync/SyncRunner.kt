@@ -3,6 +3,7 @@ package it.moscorun.app.sync
 import android.content.Context
 import android.content.SharedPreferences
 import it.moscorun.app.model.Provider
+import it.moscorun.app.science.ScienceLimits
 import it.moscorun.app.science.ScienceOutcome
 import it.moscorun.app.science.ScienceReader
 import it.moscorun.app.science.ScienceState
@@ -60,6 +61,7 @@ class SyncRunner(
     /** Daily scientific data, read after the workouts; null leaves the scientific part out. */
     private val science: (() -> ScienceReader)? = null,
     private val scienceStore: ScienceStateStore? = store as? ScienceStateStore,
+    private val additionalScience: () -> List<ScienceReader> = { emptyList() },
 ) {
     /** State partition of the current configuration, or null when no server is configured. */
     fun scope(): String? = settings.serverUrl?.let { SyncScope.of(it, prefs.accountId) }
@@ -100,24 +102,48 @@ class SyncRunner(
         legacy?.importInto(store, scope, now())
 
         val started = now()
-        val workouts = SyncEngine(source(prefs.provider), api, store, scope, SyncPlan(prefs.historyYears), limits, now, shouldStop, progress).run()
-        val result = if (workouts.outcome == RunOutcome.COMPLETED) withScience(workouts, api, scope, started, shouldStop, progress) else workouts
+        val readers = listOfNotNull(science?.invoke()) + additionalScience()
+        val independent = readers.any { it.isolatedStreams } && scienceStore != null
+        val workoutLimits = if (independent) limits.copy(maxRunMillis = limits.maxRunMillis / 2) else limits
+        val workouts = SyncEngine(source(prefs.provider), api, store, scope, SyncPlan(prefs.historyYears), workoutLimits, now, shouldStop, progress).run()
+        val scienceAllowed = workouts.outcome == RunOutcome.COMPLETED ||
+            independent && workouts.outcome in setOf(RunOutcome.MORE_WORK, RunOutcome.SOURCE_BLOCKED)
+        val result = if (scienceAllowed) withScience(workouts, readers, api, scope, started, shouldStop, progress) else workouts
         prefs.authBlocked = result.outcome == RunOutcome.AUTH_REQUIRED
         return result
     }
 
     /**
-     * The scientific part runs only once the workouts are up to date, within what is left of the time budget:
-     * observations linked to a workout must never reach the server before it. Its problems never hide the
+     * Standalone scientific observations use reserved time even while workout history is incomplete.
+     * Each independent source gets a share of the remaining budget. Its problems never hide the
      * workouts' result, except a refused token, which stops everything.
      */
-    private suspend fun withScience(workouts: SyncResult, api: ServerApi, scope: String, started: Instant,
+    private suspend fun withScience(workouts: SyncResult, readers: List<ScienceReader>, api: ServerApi, scope: String, started: Instant,
         shouldStop: () -> Boolean, progress: (SyncProgress) -> Unit): SyncResult {
-        val reader = science?.invoke() ?: return workouts
+        if (readers.isEmpty()) return workouts
         val positions = scienceStore ?: return workouts
-        progress(SyncProgress("Invio dei dati scientifici", workouts.report))
-        val outcome = ScienceSync(reader, api, positions, scope, now = now,
-            shouldStop = { shouldStop() || Duration.between(started, now()).toMillis() >= limits.maxRunMillis }).run()
+        var combined = workouts
+        for ((index, reader) in readers.withIndex()) {
+            if (combined.outcome == RunOutcome.AUTH_REQUIRED) break
+            val remaining = (limits.maxRunMillis - Duration.between(started, now()).toMillis()).coerceAtLeast(0)
+            val deadline = now().plusMillis(remaining / (readers.size - index))
+            val current = syncScienceReader(combined, reader, api, positions, scope, started,
+                shouldStop, deadline, progress)
+            combined = if (current.outcome == RunOutcome.AUTH_REQUIRED) current
+                else if (combined.outcome in setOf(RunOutcome.MORE_WORK, RunOutcome.SOURCE_BLOCKED))
+                    current.copy(outcome = combined.outcome) else current
+        }
+        store.saveStatus(scope, store.status(scope).copy(outcome = combined.outcome, message = combined.message))
+        return combined
+    }
+
+    private suspend fun syncScienceReader(workouts: SyncResult, reader: ScienceReader, api: ServerApi, positions: ScienceStateStore,
+        scope: String, started: Instant, shouldStop: () -> Boolean, deadline: Instant, progress: (SyncProgress) -> Unit): SyncResult {
+        progress(SyncProgress("Invio dei dati scientifici: ${reader.source}", workouts.report))
+        val historyYears = if (prefs.historyYears == SyncPlan.ALL_HISTORY) limits.maxHistoryYears else prefs.historyYears
+        val scienceLimits = if (reader.isolatedStreams) ScienceLimits(historyDays = historyYears * 365) else ScienceLimits()
+        val outcome = ScienceSync(reader, api, positions, scope, limits = scienceLimits, now = now,
+            shouldStop = { shouldStop() || !now().isBefore(deadline) || Duration.between(started, now()).toMillis() >= limits.maxRunMillis }).run()
         val telemetry = if (outcome.state != ScienceState.AUTH_REQUIRED && !shouldStop())
             outcome.diagnostic?.let { api.postScienceDiagnostic(it.json()) }
         else null
@@ -127,10 +153,11 @@ class SyncRunner(
             null -> "Diagnostica remota non inviata"
             else -> "Diagnostica remota non confermata (${telemetry.name})"
         }
-        val message = listOf(workouts.message, outcome.describe(), telemetryMessage).joinToString(". ") { it.trimEnd('.', ' ') } + "."
+        val message = listOf(workouts.message, reader.source + ": " + outcome.describe(), telemetryMessage).joinToString(". ") { it.trimEnd('.', ' ') } + "."
         val result = when (outcome.state) {
             ScienceState.AUTH_REQUIRED -> SyncResult(RunOutcome.AUTH_REQUIRED, workouts.report, outcome.message)
             ScienceState.MORE_WORK -> SyncResult(RunOutcome.MORE_WORK, workouts.report, message)
+            ScienceState.RETRY_LATER -> if (reader.isolatedStreams) SyncResult(RunOutcome.MORE_WORK, workouts.report, message) else workouts.copy(message = message)
             else -> workouts.copy(message = message)
         }
         if (result.message != workouts.message) store.saveStatus(scope, store.status(scope).copy(outcome = result.outcome, message = result.message))

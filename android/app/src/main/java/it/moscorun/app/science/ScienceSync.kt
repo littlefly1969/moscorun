@@ -62,7 +62,7 @@ class ScienceSync(
     private val now: () -> Instant = Instant::now,
     private val shouldStop: () -> Boolean = { false },
 ) {
-    private val diagnostics = ScienceDiagnostics(reader.source, now())
+    private val diagnostics = ScienceDiagnostics(reader.source, now(), reader.supportedMetrics)
     private var sent = 0
     private var imported = 0
     private var rejected = 0
@@ -77,7 +77,7 @@ class ScienceSync(
     } catch (e: Halt) {
         result(e.state, e.reason)
     } catch (_: SecurityException) {
-        result(ScienceState.SKIPPED, "Health Connect non consente la lettura dei dati scientifici ora: apri MoscoRun o concedi l'accesso in background.")
+        result(ScienceState.SKIPPED, "La sorgente non consente la lettura dei dati scientifici ora: apri MoscoRun e controlla i permessi.")
     } catch (e: Exception) {
         result(ScienceState.SKIPPED, "Lettura dei dati scientifici non riuscita (${e.javaClass.simpleName}): nuovo tentativo alla prossima sincronizzazione.")
     }
@@ -88,20 +88,22 @@ class ScienceSync(
         if (availability.metrics.isEmpty()) return result(ScienceState.SKIPPED, availability.message ?: "Nessun dato scientifico da leggere.")
 
         val end = now().minus(limits.settle)
-        val confirmed = store.scienceSyncedUntil(scope, reader.source)
+        if (reader.isolatedStreams) return executeStreams(availability, end)
+        val checkpoint = reader.checkpoint(availability)
+        val confirmed = store.scienceSyncedUntil(scope, checkpoint)
         var from = confirmed?.minus(days(limits.revisitDays))
             ?: end.minus(days(if (availability.history) limits.historyDays else limits.initialDays))
         while (from.isBefore(end)) {
             if (shouldStop()) return result(ScienceState.MORE_WORK, "Dati scientifici in corso, riprendono alla prossima sincronizzazione")
             val to = minOf(end, from.plus(days(limits.windowDays)))
             val observations = reader.read(from, to, availability.metrics)
-            diagnostics.read(from, to, observations)
+            diagnostics.read(from, to, observations, availability.metrics)
             observations.chunked(ScienceUpload.MAX_BATCH).forEach {
                 diagnostics.attempted(it)
                 send(it)
             }
             // Never moves backwards: a revisit of days already confirmed leaves the position where it was.
-            if (confirmed == null || to.isAfter(confirmed)) store.saveScienceSyncedUntil(scope, reader.source, to)
+            if (confirmed == null || to.isAfter(confirmed)) store.saveScienceSyncedUntil(scope, checkpoint, to)
             from = to
         }
         val message = lastRejection?.let { "Dati scientifici aggiornati; ultimo rifiuto del server: $it" }
@@ -109,6 +111,89 @@ class ScienceSync(
             ?: "Dati scientifici aggiornati"
         return result(ScienceState.COMPLETED, message)
     }
+
+    /**
+     * Independent two-sided coverage per permission group. Start with recent measures, then fill older windows
+     * round-robin. A failed SDK read leaves that stream's coverage untouched and cannot block other metrics.
+     */
+    private suspend fun executeStreams(availability: ScienceAvailability, end: Instant): ScienceResult {
+        val floor = end.minus(days(if (availability.history) limits.historyDays else limits.initialDays))
+        val streams = availability.metrics.intersect(reader.supportedMetrics).map { group ->
+            val key = reader.checkpoint(availability.copy(metrics = setOf(group))) + ":coverage-v2"
+            val width = if (group in setOf(ScienceMetric.HEART_RATE, ScienceMetric.SAMSUNG_HEART,
+                    ScienceMetric.SAMSUNG_OXYGEN, ScienceMetric.SAMSUNG_SKIN)) Duration.ofDays(1)
+                else days(limits.windowDays)
+            val newer = store.scienceSyncedUntil(scope, "$key:newer")
+            val older = store.scienceSyncedUntil(scope, "$key:older")
+            Stream(group, key, width, newer, older)
+        }.sortedBy { it.newer ?: Instant.MIN }
+        val failed = mutableSetOf<ScienceMetric>()
+
+        suspend fun readWindow(stream: Stream, from: Instant, to: Instant): Boolean {
+            if (shouldStop()) throw Halt(ScienceState.MORE_WORK, "Dati scientifici in corso; checkpoint conservati.")
+            val observations = try {
+                reader.read(from, to, setOf(stream.group))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                failed += stream.group
+                diagnostics.readFailed(setOf(stream.group))
+                return false
+            }
+            diagnostics.read(from, to, observations, setOf(stream.group))
+            observations.chunked(ScienceUpload.MAX_BATCH).forEach {
+                if (shouldStop()) throw Halt(ScienceState.MORE_WORK, "Invio scientifico interrotto; finestra da ripetere.")
+                diagnostics.attempted(it)
+                send(it)
+            }
+            return true
+        }
+
+        // Give each stream a turn before importing the next window of any stream.
+        var advanced: Boolean
+        do {
+            advanced = false
+            for (stream in streams) {
+                if (stream.group in failed || (stream.newer != null && !stream.newer!!.isBefore(end))) continue
+                val previous = stream.newer
+                val overlap = minOf(days(limits.revisitDays), stream.width.dividedBy(4))
+                val from = if (previous == null) maxOf(floor, end.minus(stream.width))
+                    else maxOf(stream.older ?: floor, floor, previous.minus(overlap))
+                val to = minOf(end, from.plus(stream.width))
+                if (!from.isBefore(to)) continue
+                if (!readWindow(stream, from, to)) continue
+                if (previous == null || stream.older == null) {
+                    stream.older = from
+                    store.saveScienceSyncedUntil(scope, "${stream.key}:older", from)
+                }
+                stream.newer = to
+                store.saveScienceSyncedUntil(scope, "${stream.key}:newer", to)
+                advanced = true
+            }
+        } while (advanced)
+
+        do {
+            advanced = false
+            for (stream in streams) {
+                if (stream.group in failed) continue
+                val to = stream.older?.let { minOf(it, end) } ?: continue
+                if (!to.isAfter(floor)) continue
+                val from = maxOf(floor, to.minus(stream.width))
+                if (!readWindow(stream, from, to)) continue
+                stream.older = from
+                store.saveScienceSyncedUntil(scope, "${stream.key}:older", from)
+                advanced = true
+            }
+        } while (advanced)
+
+        if (failed.isNotEmpty()) return result(ScienceState.RETRY_LATER,
+            "Lettura incompleta: " + failed.joinToString(", ") { it.label } + ". Gli altri flussi restano sincronizzati.")
+        return result(ScienceState.COMPLETED, lastRejection?.let { "Dati aggiornati; ultimo rifiuto: $it" }
+            ?: "Dati scientifici aggiornati")
+    }
+
+    private data class Stream(val group: ScienceMetric, val key: String, val width: Duration,
+        var newer: Instant?, var older: Instant?)
 
     private fun send(batch: List<ScienceObservation>) {
         val answer = server.postObservations(ScienceUpload.json(reader.source, batch))

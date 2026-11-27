@@ -49,7 +49,7 @@ class WireFormatTest {
         // ScienceDiagnosticReport: no biometric value or record identifier may enter the telemetry.
         assertEquals(listOf("source", "runId", "startedAt", "finishedAt", "state", "firstReadFrom", "readThrough",
             "windowsRead", "metrics"), fields(ScienceDiagnosticReport::class.java))
-        assertEquals(listOf("metric", "permission", "read", "attempted", "confirmed", "rejected", "conflicts"),
+        assertEquals(listOf("metric", "permission", "read", "attempted", "confirmed", "rejected", "conflicts", "windowsRead", "readError"),
             fields(ScienceMetricDiagnostic::class.java))
     }
 

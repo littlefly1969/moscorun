@@ -72,7 +72,12 @@ class HealthConnectScienceMappingTest {
             SleepStage(start.plusSeconds(7200), start.plusSeconds(14400), SleepSessionRecord.STAGE_TYPE_DEEP),
             SleepStage(start.plusSeconds(14400), end, SleepSessionRecord.STAGE_TYPE_REM))
 
-        val withStages = HealthConnectScienceMapping.observations(ScienceRecord.Sleep(origin, start, end, stages)).associateBy { it.metric }
+        val mapped = HealthConnectScienceMapping.observations(ScienceRecord.Sleep(origin, start, end, stages))
+        val withStages = mapped.associateBy { it.metric }
+        val stageRows = mapped.filter { it.metric == "sleepStageDuration" }
+        assertEquals(4, stageRows.size)
+        assertEquals(4, stageRows.map { it.externalId }.distinct().size)
+        assertTrue(stageRows.any { it.nativeMetric.endsWith("." + SleepSessionRecord.STAGE_TYPE_AWAKE) })
         val withoutStages = HealthConnectScienceMapping.observations(ScienceRecord.Sleep(origin, start, end, emptyList()))
 
         assertEquals(8 * 3600.0, withStages.getValue("sleepInBedDuration").value!!, 0.0)

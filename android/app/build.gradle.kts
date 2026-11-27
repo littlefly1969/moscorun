@@ -119,6 +119,7 @@ val samsungSdkMissingMessage = """
 android.sourceSets {
     // The real source when the AAR is present; otherwise a stand-in that reports the source as unavailable.
     getByName("main").java.srcDir(if (hasSamsungSdk) "src/samsung/java" else "src/samsungStub/java")
+    getByName("test").java.srcDir("../sensor-core/src/main/java")
     if (!hasSamsungSdk) getByName("test").java.srcDir("src/testSamsungStub/java")
 }
 val requireSamsungSdk by tasks.registering {

@@ -123,6 +123,15 @@ class MainActivity : ComponentActivity(), AppHost {
 
     override suspend fun scienceAvailability() = graph.science.availability()
 
+    override suspend fun samsungScienceAvailability() = graph.samsungScience.availability()
+
+    override fun requestSamsungSciencePermissions(done: () -> Unit) {
+        scope.launch {
+            graph.samsungScience.requestPermissions(this@MainActivity)
+            done()
+        }
+    }
+
     override fun requestSciencePermissions(done: () -> Unit) {
         scope.launch {
             val requestable = graph.science.requestable()

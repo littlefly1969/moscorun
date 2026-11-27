@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { api, unwrap, type Schemas } from "../../api/client";
 import { metricCatalog } from "./metricCatalog";
-import { healthConnectReaderMetrics } from "./inventoryStatus";
+import { healthConnectReaderMetrics, samsungReaderMetrics } from "./inventoryStatus";
 
 type Inventory = Schemas["ScientificInventory"];
 interface Cursor {
@@ -12,7 +12,14 @@ interface Cursor {
   beforeId: string;
 }
 const number = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 3 });
-const sources = ["health-connect", "samsung-health", "garmin-connect", "athlete-feedback", "bilancia"];
+const sources = [
+  "health-connect",
+  "samsung-health",
+  "samsung-sensor",
+  "garmin-connect",
+  "athlete-feedback",
+  "bilancia",
+];
 const label = (id: string) => metricCatalog.find((metric) => metric.id === id)?.label ?? id;
 const date = (value: string | null | undefined) => (value ? new Date(value).toLocaleString("it-IT") : "—");
 
@@ -65,6 +72,15 @@ function ObservationHistory({ metric, source }: { metric: string; source: string
                   <td>
                     {item.method}
                     <small className="sw-muted"> {item.providerAlgorithm ?? "Origine non dichiarata"}</small>
+                    {item.nativeMetric && (
+                      <div className="sw-muted">
+                        {item.nativeMetric} · {item.nativeValue ?? "—"} {item.nativeUnit} ·{" "}
+                        {item.mappingVersion}
+                      </div>
+                    )}
+                    {item.possibleCrossSourceDuplicate && (
+                      <div>Possibile doppione Samsung / Health Connect (record conservati separatamente)</div>
+                    )}
                   </td>
                   <td>{date(item.availableAt)}</td>
                   <td>{item.externalRevision ?? "—"}</td>
@@ -131,7 +147,8 @@ function PhoneDiagnostics({
             {report.windowsRead > 0
               ? "Finestre lette: " + number.format(report.windowsRead)
               : "Nessuna finestra completata"}{" "}
-            · da {date(report.firstReadFrom)} a {date(report.readThrough)}.
+            · estremi delle finestre {date(report.firstReadFrom)} – {date(report.readThrough)} (non
+            necessariamente contigue).
           </p>
           {metric && !report.metrics.some((item) => item.metric === metric) && (
             <p>La metrica selezionata non è dichiarata in questo rapporto. Capacità non verificata.</p>
@@ -147,6 +164,7 @@ function PhoneDiagnostics({
                 <tr>
                   <th scope="col">Metrica</th>
                   <th scope="col">Permesso</th>
+                  <th scope="col">Lettura SDK</th>
                   <th scope="col">Letti</th>
                   <th scope="col">Tentati</th>
                   <th scope="col">Confermati</th>
@@ -168,7 +186,20 @@ function PhoneDiagnostics({
                             ? "Non concesso"
                             : "Sconosciuto"}
                       </td>
-                      <td>{item.permission === "granted" && report.windowsRead > 0 ? item.read : "—"}</td>
+                      <td>
+                        {item.readError
+                          ? "Errore di lettura"
+                          : item.windowsRead == null
+                            ? "Dettaglio non disponibile"
+                            : item.windowsRead === 0
+                              ? "Non letta in questo run"
+                              : `${item.windowsRead} finestre`}
+                      </td>
+                      <td>
+                        {item.permission === "granted" && (item.windowsRead ?? report.windowsRead) > 0
+                          ? item.read
+                          : "—"}
+                      </td>
                       <td>{item.attempted}</td>
                       <td>{item.confirmed}</td>
                       <td>
@@ -407,6 +438,7 @@ function InventoryView({ inventory }: { inventory: Inventory }) {
                 <th scope="col">Metrica</th>
                 <th scope="col">Stato archivio</th>
                 <th scope="col">Lettore HC attuale</th>
+                <th scope="col">Samsung SDK</th>
                 <th scope="col">Valori / revisioni</th>
                 <th scope="col">Chunk / campioni</th>
                 <th scope="col">Pesate</th>
@@ -441,6 +473,7 @@ function InventoryView({ inventory }: { inventory: Inventory }) {
                           : "Nessun record"}
                   </td>
                   <td>{healthConnectReaderMetrics.has(row.id) ? "Prevista" : "Non prevista"}</td>
+                  <td>{samsungReaderMetrics.has(row.id) ? "Prevista" : "Non prevista"}</td>
                   <td>
                     {row.nonNull}/{row.stored}
                   </td>

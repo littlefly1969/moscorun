@@ -13,7 +13,7 @@ import android.widget.RadioButton
 import android.widget.Spinner
 import android.widget.TextView
 import it.moscorun.app.model.Provider
-import it.moscorun.app.science.ScienceMetric
+import it.moscorun.app.science.ScienceCapabilities
 import it.moscorun.app.settings.AppPreferences
 import it.moscorun.app.settings.ServerSetup
 import it.moscorun.app.settings.TokenState
@@ -146,19 +146,32 @@ class SettingsScreen(private val setup: (AppHost) -> ServerSetup) : Screen() {
 
     private fun LinearLayout.scienceCard() = card {
         label("Dati scientifici", 17f, bold = true)
-        label("Sonno, frequenza cardiaca a riposo, HRV, saturazione, respirazione e VO2max, letti da Health Connect anche se " +
-            "gli allenamenti arrivano da Samsung Health. Sono facoltativi e si inviano dopo gli allenamenti.", 13f, color = Palette.muted)
+        label("Health Connect: battito, composizione corporea, attività, sonno, nutrizione e parametri biometrici. " +
+            "Permessi facoltativi; i dati vengono inviati al server dopo gli allenamenti.", 13f, color = Palette.muted)
         val status = label("Verifica dei permessi…", 13f, color = Palette.muted)
         val grant = action("Concedi i permessi") {
             host.requestSciencePermissions { if (attached) host.refresh() }
         }.apply { visibility = View.GONE }
-        recheckScience = { visible.launch { showScience(status, grant) } }
+        label("Samsung Health Data SDK (diretto)", 16f, bold = true)
+        label("Storico Samsung: composizione corporea, battito, ossigeno, sonno, temperatura, pressione, alimentazione e altri dati esposti dall'SDK. ECG e stress storico non sono esposti da questa API.", 13f, color = Palette.muted)
+        val samsungStatus = label("Verifica dei permessi Samsung…", 13f, color = Palette.muted)
+        action("Concedi permessi scientifici Samsung") {
+            host.requestSamsungSciencePermissions { if (attached) host.refresh() }
+        }
+        recheckScience = { visible.launch {
+            showScience(status, grant)
+            val availability = host.samsungScienceAvailability()
+            val missing = ScienceCapabilities.samsung - availability.metrics
+            samsungStatus.text = if (!availability.permissionsKnown) availability.message ?: "Permessi sconosciuti."
+                else if (missing.isEmpty()) "Tutti i permessi scientifici Samsung concessi."
+                else "Non concessi: " + missing.joinToString(", ") { it.label }
+        } }
         recheckScience?.invoke()
     }
 
     private suspend fun showScience(status: TextView, grant: Button) {
         val availability = host.scienceAvailability()
-        val missing = ScienceMetric.entries - availability.metrics
+        val missing = ScienceCapabilities.healthConnect - availability.metrics
         status.text = when {
             !availability.permissionsKnown -> availability.message ?: "Stato dei permessi sconosciuto."
             availability.metrics.isEmpty() -> availability.message ?: "Nessun dato scientifico concesso."

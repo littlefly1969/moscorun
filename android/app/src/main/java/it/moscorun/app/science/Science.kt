@@ -17,6 +17,40 @@ enum class ScienceMetric(val label: String) {
     OXYGEN_SATURATION("saturazione di ossigeno"),
     RESPIRATORY_RATE("frequenza respiratoria"),
     VO2_MAX("VO2max"),
+    HEART_RATE("frequenza cardiaca"),
+    WEIGHT("peso"),
+    BODY_FAT("grasso corporeo"),
+    LEAN_MASS("massa magra"),
+    BODY_WATER("acqua corporea"),
+    BONE_MASS("massa ossea"),
+    BMR("metabolismo basale"),
+    HEIGHT("altezza"),
+    BLOOD_PRESSURE("pressione arteriosa"),
+    BODY_TEMPERATURE("temperatura corporea"),
+    BLOOD_GLUCOSE("glicemia"),
+    STEPS("passi"),
+    DISTANCE("distanza"),
+    FLOORS("piani saliti"),
+    TOTAL_ENERGY("dispendio energetico"),
+    ACTIVE_ENERGY("energia attiva"),
+    NUTRITION("nutrizione"),
+    HYDRATION("idratazione"),
+    SAMSUNG_BODY("composizione corporea Samsung"),
+    SAMSUNG_HEART("battito Samsung"),
+    SAMSUNG_OXYGEN("ossigeno Samsung"),
+    SAMSUNG_SKIN("temperatura cutanea Samsung"),
+    SAMSUNG_SLEEP("punteggio sonno Samsung"),
+    SAMSUNG_PRESSURE("pressione Samsung"),
+    SAMSUNG_NUTRITION("nutrizione Samsung"),
+    SAMSUNG_WATER("acqua Samsung"),
+    SAMSUNG_GLUCOSE("glicemia Samsung"),
+    SAMSUNG_TEMP("temperatura corporea Samsung"),
+    SAMSUNG_FLOORS("piani saliti Samsung"),
+    SAMSUNG_ENERGY("Energy Score Samsung"),
+    SAMSUNG_STEPS("passi aggregati Samsung"),
+    SAMSUNG_ACTIVITY("attività aggregata Samsung"),
+    SAMSUNG_RHYTHM("notifiche ritmo irregolare Samsung"),
+    SAMSUNG_APNEA("segnalazioni apnea Samsung"),
 }
 
 /**
@@ -35,6 +69,9 @@ data class ScienceObservation(
     val nativeMetric: String,
     val nativeUnit: String,
     val nativeValue: Double?,
+    val mappingVersion: String = HealthConnectScienceMapping.MAPPING_VERSION,
+    val externalRevision: String = revision.toString(),
+    val revisionOrder: Long? = revision,
 )
 
 /** What the reader may read now: an empty set means the scientific part waits, without blocking the workouts. */
@@ -55,6 +92,15 @@ data class ScienceAvailability(
 interface ScienceReader {
     /** The `source` stored by the server. */
     val source: String
+
+    /** Explicit capability of this reader, not a hardware claim. */
+    val supportedMetrics: Set<ScienceMetric> get() = ScienceMetric.entries.filterNot { it.name.startsWith("SAMSUNG_") }.toSet()
+
+    /** True for multi-family SDKs whose permissions and progress must stay independent. */
+    val isolatedStreams: Boolean get() = false
+
+    /** Local cursor identity; source on the wire stays unchanged. */
+    fun checkpoint(availability: ScienceAvailability): String = source
 
     suspend fun availability(): ScienceAvailability
 

@@ -29,6 +29,9 @@ public sealed class WearableIngestCatalogTests
 
     [Theory]
     [InlineData("rrInterval", "ms", true)]
+    [InlineData("ppgGreen", "native", true)]
+    [InlineData("ecgLeadOff", "native", true)]
+    [InlineData("mfBiaMagnitude50k", "native", true)]
     [InlineData("groundContactTime", "ms", true)]
     [InlineData("verticalOscillation", "m", true)]
     [InlineData("airTemperature", "Cel", true)]
@@ -66,6 +69,7 @@ public sealed class WearableIngestCatalogTests
     [InlineData("health-connect", true)]
     [InlineData("samsung-health", true)]
     [InlineData("garmin-connect", true)]
+    [InlineData("samsung-sensor", true)]
     [InlineData("Health-Connect", false)]
     [InlineData("fitbit", false)]
     [InlineData(null, false)]

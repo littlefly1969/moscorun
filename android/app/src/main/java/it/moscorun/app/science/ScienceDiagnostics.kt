@@ -8,7 +8,8 @@ import java.util.UUID
 /** Per-run counters of mapped observations, not raw SDK records, sensor capabilities or unique stored revisions. */
 @WireFormat
 data class ScienceMetricDiagnostic(val metric: String, val permission: String, val read: Int,
-    val attempted: Int, val confirmed: Int, val rejected: Int, val conflicts: Int)
+    val attempted: Int, val confirmed: Int, val rejected: Int, val conflicts: Int,
+    val windowsRead: Int? = null, val readError: Boolean? = null)
 
 @WireFormat
 data class ScienceDiagnosticReport(val source: String, val runId: String, val startedAt: String,
@@ -21,20 +22,12 @@ data class ScienceDiagnosticReport(val source: String, val runId: String, val st
     }
 }
 
-internal class ScienceDiagnostics(private val source: String, private val started: Instant) {
+internal class ScienceDiagnostics(private val source: String, private val started: Instant, supported: Set<ScienceMetric>) {
     private val runId = UUID.randomUUID().toString()
     private data class Counter(var read: Int = 0, var attempted: Int = 0, var confirmed: Int = 0,
-        var rejected: Int = 0, var conflicts: Int = 0)
+        var rejected: Int = 0, var conflicts: Int = 0, var windowsRead: Int = 0, var readError: Boolean = false)
 
-    private val keys = linkedMapOf(
-        "restingHeartRate" to ScienceMetric.RESTING_HEART_RATE,
-        "hrvRmssd" to ScienceMetric.HRV_RMSSD,
-        "sleepDuration" to ScienceMetric.SLEEP,
-        "sleepInBedDuration" to ScienceMetric.SLEEP,
-        "spo2" to ScienceMetric.OXYGEN_SATURATION,
-        "respirationRate" to ScienceMetric.RESPIRATORY_RATE,
-        "vo2max" to ScienceMetric.VO2_MAX,
-    )
+    private val keys = ScienceCapabilities.fieldsFor(supported)
     private val counters = keys.keys.associateWith { Counter() }
     private var availability: ScienceAvailability? = null
     private var first: Instant? = null
@@ -43,11 +36,16 @@ internal class ScienceDiagnostics(private val source: String, private val starte
 
     fun permissions(value: ScienceAvailability) { availability = value }
 
-    fun read(from: Instant, to: Instant, items: List<ScienceObservation>) {
-        if (first == null) first = from
-        through = to
+    fun read(from: Instant, to: Instant, items: List<ScienceObservation>, groups: Set<ScienceMetric>) {
+        first = minOf(first ?: from, from)
+        through = maxOf(through ?: to, to)
         windows++
+        keys.filterValues { it in groups }.keys.forEach { counters.getValue(it).windowsRead++ }
         items.forEach { counters[it.metric]?.let { c -> c.read++ } }
+    }
+
+    fun readFailed(groups: Set<ScienceMetric>) {
+        keys.filterValues { it in groups }.keys.forEach { counters.getValue(it).readError = true }
     }
 
     fun attempted(items: List<ScienceObservation>) { items.forEach { counters[it.metric]?.let { c -> c.attempted++ } } }
@@ -71,6 +69,6 @@ internal class ScienceDiagnostics(private val source: String, private val starte
                     permission in access.metrics -> "granted"
                     else -> "denied"
                 }
-                ScienceMetricDiagnostic(metric, status, c.read, c.attempted, c.confirmed, c.rejected, c.conflicts)
+                ScienceMetricDiagnostic(metric, status, c.read, c.attempted, c.confirmed, c.rejected, c.conflicts, c.windowsRead, c.readError)
             })
 }
