@@ -182,3 +182,63 @@ test("allenamento dal telefono: elenco, dettaglio e percorso senza cartografia",
   );
   expect(overflow).toBeLessThanOrEqual(0);
 });
+
+test("acquisizione scientifica: verifica dati e diagnostica effettivamente ricevuti", async ({ page, request }, testInfo) => {
+  await login(page);
+  await page.getByRole("link", { name: "Dispositivi" }).click();
+  const deviceName = `Telefono scienza E2E ${testInfo.project.name} ${Date.now()}`;
+  await page.getByLabel("Nome").fill(deviceName);
+  await page.getByLabel("Tipo").selectOption({ label: "Telefono Android" });
+  await page.getByRole("button", { name: "Crea e genera token" }).click();
+  const token = (await page.locator("code.token").textContent())?.trim() ?? "";
+  await page.getByRole("button", { name: "Ho salvato il token" }).click();
+  const headers = { Authorization: `Bearer ${token}` };
+  const now = Date.now();
+  const measured = new Date(now - 86400000).toISOString();
+  const body = {
+    source: "health-connect",
+    samples: [{
+      externalId: `hc:e2e-${testInfo.project.name}-${now}`,
+      revision: "1",
+      revisionOrder: 1,
+      metric: "spo2",
+      unit: "%",
+      value: 97,
+      time: measured,
+      method: "Measured",
+      providerAlgorithm: "com.sec.android.app.shealth",
+    }],
+  };
+  expect((await request.post("/api/v1/ingest/observations", { headers, data: body })).status()).toBe(200);
+  expect((await request.post("/api/v1/ingest/science-diagnostic", {
+    headers,
+    data: {
+      source: "health-connect",
+      runId: crypto.randomUUID(),
+      startedAt: new Date(now - 60000).toISOString(),
+      finishedAt: new Date(now).toISOString(),
+      state: "COMPLETED",
+      firstReadFrom: new Date(now - 7 * 86400000).toISOString(),
+      readThrough: new Date(now - 300000).toISOString(),
+      windowsRead: 1,
+      metrics: [{ metric: "spo2", permission: "granted", read: 1, attempted: 1, confirmed: 1, rejected: 0, conflicts: 0 }],
+    },
+  })).status()).toBe(204);
+  await page.goto("/acquisizione");
+  await expect(page.getByRole("heading", { name: "Acquisizione", level: 1 })).toBeVisible();
+  await page.getByLabel("Cerca metrica").fill("spo2");
+  const catalog = page.getByRole("region", { name: "Inventario delle metriche" });
+  await expect(catalog.getByRole("row", { name: /Saturazione SpO₂/ })).toContainText("Valori presenti");
+  await catalog.getByRole("button", { name: "Saturazione SpO₂" }).click();
+  const phone = page.getByRole("region", { name: "Diagnostica trasmessa dal telefono" });
+  await expect(phone.getByRole("heading", { name: deviceName + " · health-connect" })).toBeVisible();
+  const details = page.getByRole("region", { name: "Provenienza della metrica" });
+  await expect(details).toContainText("Non esposta dal motore giornaliero");
+  await details.getByRole("button", { name: "Vedi osservazioni: health-connect" }).first().click();
+  await expect(page.getByRole("region", { name: "Storico delle osservazioni" })).toContainText("97 %");
+  await expectNoA11yViolations(page);
+  const overflow = await page.evaluate<number>(
+    "document.documentElement.scrollWidth - document.documentElement.clientWidth",
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+});

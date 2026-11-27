@@ -5,7 +5,11 @@ import { api, unwrap, type Schemas } from "../../api/client";
 import { metricCatalog } from "./metricCatalog";
 
 type Inventory = Schemas["ScientificInventory"];
-type Cursor = { asOf: string; beforeTime: string; beforeId: string };
+interface Cursor {
+  asOf: string;
+  beforeTime: string;
+  beforeId: string;
+}
 const number = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 3 });
 const sources = ["health-connect", "samsung-health", "garmin-connect", "athlete-feedback", "bilancia"];
 const label = (id: string) => metricCatalog.find((metric) => metric.id === id)?.label ?? id;

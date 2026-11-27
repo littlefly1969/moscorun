@@ -39,4 +39,4 @@ jobs:
         run: npm run test:coverage
       - working-directory: backend
         if: always()
-        run: dotnet test --no-build -c Release -- --filter-class '*ScientificIngestEndpointTests'
+        run: dotnet test --project tests/MoscoRun.IntegrationTests --no-build -c Release -- --filter-class '*Scientific*Tests' --filter-class '*ScienceDiagnosticEndpointTests'
