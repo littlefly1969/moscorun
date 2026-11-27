@@ -122,7 +122,9 @@ public sealed class ScientificDataLifecycle(MoscoRunDbContext db, TimeProvider c
         var signals = await db.Set<ScientificSignalChunkRow>().Where(x => x.OwnerId == ownerId).ExecuteDeleteAsync(ct);
         var checkpoints = await db.Set<ScientificSyncCheckpointRow>().Where(x => x.OwnerId == ownerId).ExecuteDeleteAsync(ct);
         var observations = await db.Set<ScientificObservationRow>().Where(x => x.OwnerId == ownerId).ExecuteDeleteAsync(ct);
-        return new ScientificLifecycleCounts(observations, feedback, signals, runs, models, checkpoints, FenceChanges: changed);
+        var diagnostics = await db.Set<ScienceDiagnosticRow>().Where(x => x.OwnerId == ownerId).ExecuteDeleteAsync(ct);
+        return new ScientificLifecycleCounts(observations, feedback, signals, runs, models, checkpoints,
+            FenceChanges: changed, Diagnostics: diagnostics);
     }
 
     private async Task<T> LockedAsync<T>(Guid ownerId, Func<CancellationToken, Task<T>> action, CancellationToken ct)

@@ -490,6 +490,45 @@ namespace MoscoRun.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("MoscoRun.Infrastructure.Persistence.ScienceDiagnosticRow", b =>
+                {
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("device_id");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("source");
+
+                    b.Property<Guid>("RunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("run_id");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("payload");
+
+                    b.HasKey("OwnerId", "DeviceId", "Source")
+                        .HasName("pk_science_diagnostics");
+
+                    b.ToTable("science_diagnostics", "moscorun");
+                });
+
             modelBuilder.Entity("MoscoRun.Infrastructure.Persistence.ScientificLifecycleFenceRow", b =>
                 {
                     b.Property<Guid>("OwnerId")
@@ -1301,6 +1340,16 @@ namespace MoscoRun.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_scientific_lifecycle_audit_asp_net_users_owner_id");
+                });
+
+            modelBuilder.Entity("MoscoRun.Infrastructure.Persistence.ScienceDiagnosticRow", b =>
+                {
+                    b.HasOne("MoscoRun.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_science_diagnostics_asp_net_users_owner_id");
                 });
 
 #pragma warning restore 612, 618

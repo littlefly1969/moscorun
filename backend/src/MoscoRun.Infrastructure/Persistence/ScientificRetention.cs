@@ -58,7 +58,9 @@ internal sealed class ScientificRetention(MoscoRunDbContext db)
         var signals = await db.Set<ScientificSignalChunkRow>().CountAsync(x => x.OwnerId == ownerId && x.AvailableTicks < cutoff.UtcTicks, ct);
         var runs = await CountAsync(ownerId, cutoff, RunCandidates, ct);
         var models = await CountAsync(ownerId, cutoff, ModelCandidates, ct);
-        return new ScientificLifecycleCounts(observations, feedback, signals, runs, models, ProtectedObservations: old - observations);
+        var diagnostics = await db.Set<ScienceDiagnosticRow>().CountAsync(x => x.OwnerId == ownerId && x.ReceivedAt < cutoff, ct);
+        return new ScientificLifecycleCounts(observations, feedback, signals, runs, models,
+            ProtectedObservations: old - observations, Diagnostics: diagnostics);
     }
 
     public async Task<ScientificLifecycleCounts> ApplyAsync(Guid ownerId, DateTimeOffset cutoff, CancellationToken ct)
@@ -71,8 +73,9 @@ internal sealed class ScientificRetention(MoscoRunDbContext db)
         var models = await db.Set<ScientificModelArtifactRow>().Where(x => x.OwnerId == ownerId && x.RegisteredAt < cutoff &&
             !db.Set<ScientificModelRunRow>().Any(run => run.OwnerId == ownerId && run.ModelId == x.ModelId &&
                 run.Version == x.Version)).ExecuteDeleteAsync(ct);
+        var diagnostics = await db.Set<ScienceDiagnosticRow>().Where(x => x.OwnerId == ownerId && x.ReceivedAt < cutoff).ExecuteDeleteAsync(ct);
         return new ScientificLifecycleCounts(observations, feedback, signals, runs, models,
-            ProtectedObservations: preview.ProtectedObservations);
+            ProtectedObservations: preview.ProtectedObservations, Diagnostics: diagnostics);
     }
 
     private Task<int> CountAsync(Guid ownerId, DateTimeOffset cutoff, string candidates, CancellationToken ct) =>

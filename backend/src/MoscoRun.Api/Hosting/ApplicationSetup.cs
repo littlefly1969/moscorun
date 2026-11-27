@@ -175,6 +175,7 @@ public static class ApplicationSetup
         v1.MapWorkoutEndpoints();
         v1.MapScientificIngestEndpoints();
         v1.MapScientificInventoryEndpoints();
+        v1.MapScienceDiagnosticEndpoints();
         v1.MapDeviceEndpoints();
         v1.MapDashboardEndpoints();
         v1.MapMapEndpoints();

@@ -26,7 +26,9 @@ internal sealed class ScientificArchiveWriter(MoscoRunDbContext db)
             .Where(x => x.OwnerId == ownerId).OrderBy(x => x.OperationId), 100, ct);
         _ = await WriteRowsAsync(destination, "ingestionFence", db.Set<ScientificLifecycleFenceRow>().AsNoTracking()
             .Where(x => x.OwnerId == ownerId).OrderBy(x => x.OwnerId), 1, ct);
-        return new ScientificLifecycleCounts(observations, feedback, signals, runs, models, checkpoints);
+        var diagnostics = await WriteRowsAsync(destination, "scienceDiagnostic", db.Set<ScienceDiagnosticRow>().AsNoTracking()
+            .Where(x => x.OwnerId == ownerId).OrderBy(x => x.DeviceId).ThenBy(x => x.Source), 100, ct);
+        return new ScientificLifecycleCounts(observations, feedback, signals, runs, models, checkpoints, Diagnostics: diagnostics);
     }
 
     private static async Task<int> WriteRowsAsync<T>(Stream destination, string kind, IQueryable<T> query, int batch,

@@ -41,12 +41,13 @@ public sealed class ScientificInventoryReader(MoscoRunDbContext db)
         var devices = await db.Devices.AsNoTracking().Where(x => x.OwnerId == ownerId)
             .OrderBy(x => x.Name).Select(x => new InventoryDevice(x.Id, x.Name, x.LastSeenAt, x.RevokedAt)).ToListAsync(ct);
 
+        var diagnostics = await new ScienceDiagnosticStore(db, TimeProvider.System).ReadAsync(ownerId, asOf, ct);
         return new ScientificInventory(asOf, observations,
             signals.Select(x => new SignalInventoryGroup(x.Metric, x.Unit, x.Source, x.Method, x.DeviceId, x.Session,
                 x.Chunks, x.Samples, new DateTimeOffset(x.First, TimeSpan.Zero), new DateTimeOffset(x.Last, TimeSpan.Zero),
                 new DateTimeOffset(x.Available, TimeSpan.Zero))).ToArray(),
             scales.Select(x => new ScaleInventoryGroup(x.DeviceId, x.Attribution.ToString(), x.Count, x.WithImpedance,
-                x.First, x.Last, x.Received)).ToArray(), devices);
+                x.First, x.Last, x.Received)).ToArray(), devices, diagnostics);
     }
 
     public async Task<InventoryObservationPage> ReadObservationsAsync(Guid ownerId, string metric, string source,
