@@ -1999,8 +1999,8 @@ export interface components {
       /** Format: int32 */
       conflicts: number;
       /** Format: int32 */
-      windowsRead: null | number;
-      readError: null | boolean;
+      windowsRead?: number | null;
+      readError?: boolean | null;
     };
     ScientificInventory: {
       /** Format: date-time */
