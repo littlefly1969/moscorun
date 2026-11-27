@@ -1410,6 +1410,12 @@ export interface components {
       externalRevision: null | string;
       /** Format: int64 */
       revisionOrder: null | number;
+      nativeMetric?: null | string;
+      nativeUnit?: null | string;
+      /** Format: double */
+      nativeValue?: null | number;
+      mappingVersion?: null | string;
+      possibleCrossSourceDuplicate?: null | boolean;
     };
     InventoryObservationPage: {
       /** Format: date-time */

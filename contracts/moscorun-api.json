@@ -4370,6 +4370,37 @@
               "integer"
             ],
             "format": "int64"
+          },
+          "nativeMetric": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nativeUnit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nativeValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "mappingVersion": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "possibleCrossSourceDuplicate": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },

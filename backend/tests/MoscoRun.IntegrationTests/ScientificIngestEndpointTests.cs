@@ -59,6 +59,34 @@ public sealed class ScientificIngestEndpointTests(ApiFactory factory)
         };
 
     [Fact]
+    public async Task Inventory_preserves_native_data_and_marks_only_possible_cross_source_duplicates()
+    {
+        var (user, phone, _, _) = await PhoneAsync();
+        var (otherUser, otherPhone, _, _) = await PhoneAsync();
+        var sample = Hrv(Yesterday, metric: "weight", unit: "kg", value: 72.4);
+        (await phone.PostAsJsonAsync(Observations, new { source = "health-connect", samples = new[] { sample } }, Ct))
+            .StatusCode.Should().Be(HttpStatusCode.OK);
+        (await otherPhone.PostAsJsonAsync(Observations, new { source = "samsung-health", samples = new[] { sample } }, Ct))
+            .StatusCode.Should().Be(HttpStatusCode.OK);
+        const string path = "/api/v1/science/inventory/observations?metric=weight&source=health-connect";
+        var initial = (await user.GetFromJsonAsync<InventoryObservationPage>(path, Json.Options, Ct))!;
+        initial.Items.Should().ContainSingle().Which.PossibleCrossSourceDuplicate.Should().BeFalse();
+        var direct = Hrv(Yesterday, id: "sh:weight", metric: "weight", unit: "kg", value: 72.4);
+        (await phone.PostAsJsonAsync(Observations, new { source = "samsung-health", samples = new[] { direct } }, Ct))
+            .StatusCode.Should().Be(HttpStatusCode.OK);
+        var matched = (await user.GetFromJsonAsync<InventoryObservationPage>(path, Json.Options, Ct))!;
+        var observation = matched.Items.Should().ContainSingle().Subject;
+        observation.PossibleCrossSourceDuplicate.Should().BeTrue();
+        observation.NativeMetric.Should().Be("HeartRateVariabilityRmssdRecord");
+        observation.NativeValue.Should().Be(72.4);
+        observation.MappingVersion.Should().Be("hc-science-v1");
+        (await otherUser.GetFromJsonAsync<InventoryObservationPage>(path, Json.Options, Ct))!.Items.Should().BeEmpty();
+        var inventory = (await user.GetFromJsonAsync<ScientificInventory>("/api/v1/science/inventory", Json.Options, Ct))!;
+        inventory.Observations.Should().HaveCount(2);
+        inventory.Observations.Sum(x => x.RevisionRows).Should().Be(2);
+    }
+
+    [Fact]
     public async Task Inventory_reports_actual_rows_and_keeps_other_athletes_out()
     {
         var (user, phone, _, device) = await PhoneAsync();

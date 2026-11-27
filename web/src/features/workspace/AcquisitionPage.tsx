@@ -65,6 +65,14 @@ function ObservationHistory({ metric, source }: { metric: string; source: string
                   <td>
                     {item.method}
                     <small className="sw-muted"> {item.providerAlgorithm ?? "Origine non dichiarata"}</small>
+                    {item.nativeMetric && (
+                      <div className="sw-muted">
+                        {item.nativeMetric} · {item.nativeValue ?? "—"} {item.nativeUnit} · {item.mappingVersion}
+                      </div>
+                    )}
+                    {item.possibleCrossSourceDuplicate && (
+                      <div>Possibile doppione Samsung / Health Connect (record conservati separatamente)</div>
+                    )}
                   </td>
                   <td>{date(item.availableAt)}</td>
                   <td>{item.externalRevision ?? "—"}</td>

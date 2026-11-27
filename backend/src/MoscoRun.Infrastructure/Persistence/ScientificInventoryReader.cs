@@ -65,16 +65,29 @@ public sealed class ScientificInventoryReader(MoscoRunDbContext db)
     public async Task<InventoryObservationPage> ReadObservationsAsync(Guid ownerId, string metric, string source,
         DateTimeOffset asOf, DateTimeOffset? beforeTime, Guid? beforeId, int limit, CancellationToken ct = default)
     {
-        var query = db.Set<ScientificObservationRow>().AsNoTracking().Where(x => x.OwnerId == ownerId &&
+        var archive = db.Set<ScientificObservationRow>().AsNoTracking();
+        var query = archive.Where(x => x.OwnerId == ownerId &&
             x.Metric == metric && x.Source == source && x.AvailableAt <= asOf);
         if (beforeTime is { } time && beforeId is { } id)
         {
             query = query.Where(x => x.Time < time || (x.Time == time && x.Id.CompareTo(id) < 0));
         }
 
+        // Only an exact coincidence of point measures with shared Samsung app provenance is a candidate.
+        // Never merge/delete records or treat overlapping intervals/aggregates as identical.
+        var pointMetrics = new[] { "heartRate", "restingHeartRate", "spo2", "weight", "fatPercentage", "fatFreeMass",
+            "bodyWater", "bodyTemperature", "skinTemperature", "bloodGlucose", "systolicBloodPressure", "diastolicBloodPressure" };
+        var checkDuplicates = pointMetrics.Contains(metric, StringComparer.Ordinal) && source is "health-connect" or "samsung-health";
+        var counterpart = string.Equals(source, "health-connect", StringComparison.Ordinal) ? "samsung-health" : "health-connect";
         var rows = await query.OrderByDescending(x => x.Time).ThenByDescending(x => x.Id).Take(limit + 1)
             .Select(x => new InventoryObservation(x.Id, x.Metric, x.Unit, x.Value, x.Source, x.Method,
-                x.ProviderAlgorithm, x.ImportDeviceId, x.WorkoutId, x.Time, x.AvailableAt, x.ExternalRevision, x.ExternalRevisionOrder))
+                x.ProviderAlgorithm, x.ImportDeviceId, x.WorkoutId, x.Time, x.AvailableAt, x.ExternalRevision, x.ExternalRevisionOrder,
+                x.NativeMetric, x.NativeUnit, x.NativeValue, x.MappingVersion,
+                checkDuplicates && x.Value != null && x.WorkoutId == null && x.ProviderAlgorithm == "com.sec.android.app.shealth"
+                    ? archive.Any(other => other.OwnerId == ownerId && other.Source == counterpart && other.Metric == metric &&
+                        other.Time == x.Time && other.Unit == x.Unit && other.Value == x.Value && other.WorkoutId == null &&
+                        other.ProviderAlgorithm == x.ProviderAlgorithm && other.AvailableAt <= asOf)
+                    : null))
             .ToListAsync(ct);
         return new InventoryObservationPage(asOf, rows.Take(limit).ToArray(), rows.Count > limit);
     }

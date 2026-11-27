@@ -31,3 +31,6 @@ distinti, nessuna imputazione. Nessun export, accesso non ufficiale o simulazion
 Public CI usa lo stub esplicito Samsung; solo la build privata con AAR reale verifica i tipi SDK.
 
 Samsung Health Monitor: l'SDK 1.1.0 espone le notifiche di ritmo irregolare e il risultato della segnalazione di rischio apnea se è stato consentito il trasferimento in Samsung Health. Sono risultati del fornitore, non diagnosi, non ECG. Il valore 1 indica DETECTED; 0 solo NOT_DETECTED esplicitamente presente per apnea. UNDEFINED non è trasformato in zero. Fonte: https://developer.samsung.com/health/data/release-note.html
+
+## Corrispondenze cross-source
+Lo storico mostra il campo/unità/valore nativo e versione di mapping. Segnala una possibile coincidenza solo su metriche puntuali esplicite, con stesso atleta, valore, istante, unità e app Samsung di origine, tra Samsung SDK e Health Connect. Non è una prova d'identità fisica; nessuna cancellazione o fusione automatica, aggregati e sessioni esclusi. Il motore scientifico conserva la scelta di sorgente.
