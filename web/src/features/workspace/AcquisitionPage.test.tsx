@@ -213,6 +213,13 @@ describe("centro acquisizione", () => {
     expect(screen.getByRole("region", { name: "Diagnostica trasmessa dal telefono" })).toHaveTextContent(
       "Sconosciuto",
     );
+    for (const name of [
+      "Contatori per metrica, tabella scorrevole",
+      "Gruppi in archivio, tabella scorrevole",
+    ]) {
+      // Le tabelle scorrevoli devono ricevere il fuoco da tastiera (axe scrollable-region-focusable).
+      expect(screen.getByRole("region", { name })).toHaveAttribute("tabindex", "0");
+    }
     const catalog = screen.getByRole("region", { name: "Inventario delle metriche" });
     expect(within(catalog).getByRole("row", { name: /Fatica/ })).toHaveTextContent("Solo valori mancanti");
     await userEvent.click(within(catalog).getByRole("button", { name: "Intervallo RR" }));

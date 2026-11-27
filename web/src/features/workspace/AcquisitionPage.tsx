@@ -43,7 +43,7 @@ function ObservationHistory({ metric, source }: { metric: string; source: string
         <div
           className="table-scroll"
           role="region"
-          aria-label="Tabella dello storico delle osservazioni"
+          aria-label="Revisioni in archivio, tabella scorrevole"
           tabIndex={0}
         >
           <table>
@@ -139,7 +139,7 @@ function PhoneDiagnostics({
           <div
             className="table-scroll"
             role="region"
-            aria-label="Tabella della diagnostica per metrica"
+            aria-label="Contatori per metrica, tabella scorrevole"
             tabIndex={0}
           >
             <table>
@@ -398,7 +398,7 @@ function InventoryView({ inventory }: { inventory: Inventory }) {
         <div
           className="table-scroll"
           role="region"
-          aria-label="Tabella dell’inventario delle metriche"
+          aria-label="Gruppi in archivio, tabella scorrevole"
           tabIndex={0}
         >
           <table>
