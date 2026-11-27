@@ -11,14 +11,7 @@ public sealed class ScienceDiagnosticStore(MoscoRunDbContext db, TimeProvider cl
     public static bool IsValid(ScienceDiagnosticReport report, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(report);
-        if (!WearableIngestCatalog.IsSource(report.Source) || report.RunId == Guid.Empty ||
-            report.StartedAt == default || report.FinishedAt < report.StartedAt ||
-            report.FinishedAt > now.AddMinutes(5) || report.FinishedAt - report.StartedAt > TimeSpan.FromDays(1) ||
-            report.State is not ("COMPLETED" or "MORE_WORK" or "SKIPPED" or "RETRY_LATER" or "AUTH_REQUIRED") ||
-            report.WindowsRead is < 0 or > 10000 ||
-            (report.WindowsRead == 0 && (report.FirstReadFrom.HasValue || report.ReadThrough.HasValue)) ||
-            (report.WindowsRead > 0 && (report.FirstReadFrom is null || report.ReadThrough is null ||
-                report.FirstReadFrom >= report.ReadThrough || report.ReadThrough > report.FinishedAt)) ||
+        if (!HasValidIdentity(report) || !HasValidTiming(report, now) || !HasValidWindows(report) ||
             report.Metrics is null || report.Metrics.Count is < 1 or > 100)
         {
             return false;
@@ -27,18 +20,70 @@ public sealed class ScienceDiagnosticStore(MoscoRunDbContext db, TimeProvider cl
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var item in report.Metrics)
         {
-            if (item is null || string.IsNullOrWhiteSpace(item.Metric) || !ScientificMetricCatalog.IsKnown(item.Metric) ||
-                !seen.Add(item.Metric) || item.Permission is not ("granted" or "denied" or "unknown") ||
-                item.Read < 0 || item.Attempted < 0 || item.Attempted > item.Read ||
-                item.Rejected < 0 || item.Rejected > item.Attempted || item.Confirmed < 0 ||
-                item.Confirmed > item.Attempted - item.Rejected || item.Conflicts < 0 || item.Conflicts > item.Rejected ||
-                ((report.WindowsRead == 0 || !string.Equals(item.Permission, "granted", StringComparison.Ordinal)) && item.Read != 0))
+            if (item is null || !IsValidMetric(item, report.WindowsRead) || !seen.Add(item.Metric))
             {
                 return false;
             }
         }
 
         return true;
+    }
+
+    private static bool HasValidIdentity(ScienceDiagnosticReport report) =>
+        WearableIngestCatalog.IsSource(report.Source) && report.RunId != Guid.Empty &&
+        report.State is "COMPLETED" or "MORE_WORK" or "SKIPPED" or "RETRY_LATER" or "AUTH_REQUIRED";
+
+    private static bool HasValidTiming(ScienceDiagnosticReport report, DateTimeOffset now)
+    {
+        if (report.StartedAt == default || report.FinishedAt < report.StartedAt)
+        {
+            return false;
+        }
+
+        return report.FinishedAt <= now.AddMinutes(5) && report.FinishedAt - report.StartedAt <= TimeSpan.FromDays(1);
+    }
+
+    private static bool HasValidWindows(ScienceDiagnosticReport report)
+    {
+        if (report.WindowsRead is < 0 or > 10000)
+        {
+            return false;
+        }
+
+        if (report.WindowsRead == 0)
+        {
+            return report.FirstReadFrom is null && report.ReadThrough is null;
+        }
+
+        if (report.FirstReadFrom is not { } first || report.ReadThrough is not { } through)
+        {
+            return false;
+        }
+
+        return first < through && through <= report.FinishedAt;
+    }
+
+    private static bool IsValidMetric(ScienceMetricDiagnostic item, int windowsRead)
+    {
+        if (string.IsNullOrWhiteSpace(item.Metric) || !ScientificMetricCatalog.IsKnown(item.Metric) ||
+            item.Permission is not ("granted" or "denied" or "unknown"))
+        {
+            return false;
+        }
+
+        var readable = windowsRead > 0 && string.Equals(item.Permission, "granted", StringComparison.Ordinal);
+        return HasValidCounts(item) && (readable || item.Read == 0);
+    }
+
+    // Read >= Attempted >= Confirmed + Rejected and Rejected >= Conflicts, all non-negative.
+    private static bool HasValidCounts(ScienceMetricDiagnostic item)
+    {
+        if (item.Confirmed < 0 || item.Conflicts < 0 || item.Conflicts > item.Rejected)
+        {
+            return false;
+        }
+
+        return (long)item.Confirmed + item.Rejected <= item.Attempted && item.Attempted <= item.Read;
     }
 
     public Task<bool> SaveAsync(Guid ownerId, Guid deviceId, ScienceDiagnosticReport report, CancellationToken ct = default)

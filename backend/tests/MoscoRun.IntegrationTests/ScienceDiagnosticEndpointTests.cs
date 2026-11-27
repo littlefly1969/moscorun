@@ -55,6 +55,23 @@ public sealed class ScienceDiagnosticEndpointTests(ApiFactory factory)
         (await phone.PostAsJsonAsync(Uri, report, Ct)).StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var invalid = report with { Metrics = [new ScienceMetricDiagnostic("spo2", "granted", 1, 1, 1, 1, 0)] };
         (await phone.PostAsJsonAsync(Uri, invalid, Ct)).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var baseline = Report();
+        var rejected = new[]
+        {
+            baseline with { Metrics = [new ScienceMetricDiagnostic("spo2", "granted", 1, 2, 0, 0, 0)] },
+            baseline with { Metrics = [new ScienceMetricDiagnostic("spo2", "granted", 5, int.MinValue, 1, 0, 0)] },
+            baseline with { Metrics = [new ScienceMetricDiagnostic("spo2", "granted", 5, 5, 0, 1, 2)] },
+            baseline with { Metrics = [new ScienceMetricDiagnostic("unknownMetric", "granted", 0, 0, 0, 0, 0)] },
+            baseline with { WindowsRead = 0 },
+            baseline with { ReadThrough = baseline.FinishedAt.AddSeconds(1) },
+            baseline with { FinishedAt = baseline.StartedAt.AddSeconds(-1) },
+            baseline with { State = "UNKNOWN" },
+        };
+        foreach (var body in rejected)
+        {
+            (await phone.PostAsJsonAsync(Uri, body, Ct)).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
         (await user.GetFromJsonAsync<ScientificInventory>(Inventory, Json.Options, Ct))!.Diagnostics.Should().BeEmpty();
     }
 
