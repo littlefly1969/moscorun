@@ -12,7 +12,14 @@ interface Cursor {
   beforeId: string;
 }
 const number = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 3 });
-const sources = ["health-connect", "samsung-health", "samsung-sensor", "garmin-connect", "athlete-feedback", "bilancia"];
+const sources = [
+  "health-connect",
+  "samsung-health",
+  "samsung-sensor",
+  "garmin-connect",
+  "athlete-feedback",
+  "bilancia",
+];
 const label = (id: string) => metricCatalog.find((metric) => metric.id === id)?.label ?? id;
 const date = (value: string | null | undefined) => (value ? new Date(value).toLocaleString("it-IT") : "—");
 
@@ -67,7 +74,8 @@ function ObservationHistory({ metric, source }: { metric: string; source: string
                     <small className="sw-muted"> {item.providerAlgorithm ?? "Origine non dichiarata"}</small>
                     {item.nativeMetric && (
                       <div className="sw-muted">
-                        {item.nativeMetric} · {item.nativeValue ?? "—"} {item.nativeUnit} · {item.mappingVersion}
+                        {item.nativeMetric} · {item.nativeValue ?? "—"} {item.nativeUnit} ·{" "}
+                        {item.mappingVersion}
                       </div>
                     )}
                     {item.possibleCrossSourceDuplicate && (
