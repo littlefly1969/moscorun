@@ -58,6 +58,18 @@ class MoscoRunServer(baseUrl: String, private val token: String,
         is PostAnswer.Failed -> ScienceUploadResult(ScienceOutcome.RETRY, answer.message)
     }
 
+    override fun postScienceDiagnostic(json: String): ScienceOutcome = when (val answer = post("/api/v1/ingest/science-diagnostic", json)) {
+        is PostAnswer.Response -> when (answer.code) {
+            200, 204 -> ScienceOutcome.STORED
+            400, 413 -> ScienceOutcome.INVALID
+            409 -> ScienceOutcome.CONFLICT
+            401, 403 -> ScienceOutcome.UNAUTHORIZED
+            404 -> ScienceOutcome.UNSUPPORTED
+            else -> ScienceOutcome.RETRY
+        }
+        is PostAnswer.Failed -> ScienceOutcome.RETRY
+    }
+
     private sealed interface PostAnswer {
         data class Response(val code: Int, val body: String?) : PostAnswer
 

@@ -35,12 +35,13 @@ enum class ScienceState {
     AUTH_REQUIRED,
 }
 
-data class ScienceResult(val state: ScienceState, val sent: Int = 0, val imported: Int = 0, val rejected: Int = 0, val message: String) {
+data class ScienceResult(val state: ScienceState, val sent: Int = 0, val imported: Int = 0, val rejected: Int = 0, val message: String, val diagnostic: ScienceDiagnosticReport? = null) {
     fun describe(): String = buildString {
         append(message)
         if (sent > 0 || rejected > 0) append(" (osservazioni: $imported nuove su $sent inviate")
         if (rejected > 0) append(", $rejected rifiutate")
         if (sent > 0 || rejected > 0) append(")")
+        diagnostic?.let { append(". Dettaglio scientifico: ").append(it.describe()) }
     }
 }
 
@@ -61,6 +62,7 @@ class ScienceSync(
     private val now: () -> Instant = Instant::now,
     private val shouldStop: () -> Boolean = { false },
 ) {
+    private val diagnostics = ScienceDiagnostics(reader.source, now())
     private var sent = 0
     private var imported = 0
     private var rejected = 0
@@ -82,6 +84,7 @@ class ScienceSync(
 
     private suspend fun execute(): ScienceResult {
         val availability = reader.availability()
+        diagnostics.permissions(availability)
         if (availability.metrics.isEmpty()) return result(ScienceState.SKIPPED, availability.message ?: "Nessun dato scientifico da leggere.")
 
         val end = now().minus(limits.settle)
@@ -92,7 +95,11 @@ class ScienceSync(
             if (shouldStop()) return result(ScienceState.MORE_WORK, "Dati scientifici in corso, riprendono alla prossima sincronizzazione")
             val to = minOf(end, from.plus(days(limits.windowDays)))
             val observations = reader.read(from, to, availability.metrics)
-            observations.chunked(ScienceUpload.MAX_BATCH).forEach { send(it) }
+            diagnostics.read(from, to, observations)
+            observations.chunked(ScienceUpload.MAX_BATCH).forEach {
+                diagnostics.attempted(it)
+                send(it)
+            }
             // Never moves backwards: a revisit of days already confirmed leaves the position where it was.
             if (confirmed == null || to.isAfter(confirmed)) store.saveScienceSyncedUntil(scope, reader.source, to)
             from = to
@@ -106,13 +113,18 @@ class ScienceSync(
     private fun send(batch: List<ScienceObservation>) {
         val answer = server.postObservations(ScienceUpload.json(reader.source, batch))
         when (answer.outcome) {
-            ScienceOutcome.STORED -> { sent += batch.size; imported += answer.imported }
+            ScienceOutcome.STORED -> {
+                sent += batch.size
+                imported += answer.imported
+                diagnostics.confirmed(batch)
+            }
             ScienceOutcome.INVALID, ScienceOutcome.CONFLICT ->
                 if (batch.size > 1) {
                     send(batch.subList(0, batch.size / 2))
                     send(batch.subList(batch.size / 2, batch.size))
                 } else {
                     rejected++
+                    diagnostics.rejected(batch.single(), answer.outcome == ScienceOutcome.CONFLICT)
                     lastRejection = answer.detail?.take(MAX_DETAIL)
                 }
             ScienceOutcome.UNAUTHORIZED -> throw Halt(ScienceState.AUTH_REQUIRED, answer.detail ?: "Token non accettato dal server.")
@@ -121,7 +133,7 @@ class ScienceSync(
         }
     }
 
-    private fun result(state: ScienceState, message: String) = ScienceResult(state, sent, imported, rejected, message)
+    private fun result(state: ScienceState, message: String) = ScienceResult(state, sent, imported, rejected, message, diagnostics.report(state, now()))
 
     private fun days(count: Int) = Duration.ofDays(count.toLong())
 

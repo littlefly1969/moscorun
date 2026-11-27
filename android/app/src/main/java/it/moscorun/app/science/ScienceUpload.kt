@@ -65,4 +65,7 @@ data class ScienceUploadResult(val outcome: ScienceOutcome, val detail: String? 
 /** The server operation the scientific part needs; servers without it answer as [ScienceOutcome.UNSUPPORTED]. */
 interface ScienceServer {
     fun postObservations(json: String): ScienceUploadResult = ScienceUploadResult(ScienceOutcome.UNSUPPORTED)
+
+    /** Best-effort telemetry, separate from observation acceptance. */
+    fun postScienceDiagnostic(json: String): ScienceOutcome = ScienceOutcome.UNSUPPORTED
 }

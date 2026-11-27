@@ -31,13 +31,13 @@ class HealthConnectScienceReader(context: Context) : ScienceReader {
 
     override suspend fun availability(): ScienceAvailability {
         if (HealthConnectClient.getSdkStatus(appContext) != HealthConnectClient.SDK_AVAILABLE)
-            return ScienceAvailability(emptySet(), message = "Health Connect non è disponibile: i dati scientifici non vengono letti.")
+            return ScienceAvailability(emptySet(), message = "Health Connect non è disponibile: i dati scientifici non vengono letti.", permissionsKnown = false)
         val granted = try {
             client.permissionController.getGrantedPermissions()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            return ScienceAvailability(emptySet(), message = "Health Connect non risponde (${e.javaClass.simpleName}).")
+            return ScienceAvailability(emptySet(), message = "Health Connect non risponde (${e.javaClass.simpleName}).", permissionsKnown = false)
         }
         val metrics = grantedMetrics(granted)
         val message = when {
