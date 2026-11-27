@@ -34,6 +34,8 @@ internal class FakeScienceServer : ScienceServer {
     val requests = mutableListOf<Int>()
     var refused = setOf<String>()
     var outcome: ScienceOutcome? = null
+    val diagnostics = mutableListOf<String>()
+    var diagnosticOutcome = ScienceOutcome.STORED
 
     override fun postObservations(json: String): ScienceUploadResult {
         val ids = JsonParser.parseString(json).asJsonObject.getAsJsonArray("samples").map { it.asJsonObject["externalId"].asString }
@@ -43,6 +45,11 @@ internal class FakeScienceServer : ScienceServer {
         val fresh = ids.filter { it !in stored }
         stored += fresh
         return ScienceUploadResult(ScienceOutcome.STORED, imported = fresh.size)
+    }
+
+    override fun postScienceDiagnostic(json: String): ScienceOutcome {
+        diagnostics += json
+        return diagnosticOutcome
     }
 }
 

@@ -223,6 +223,26 @@ class MoscoRunServerObservationsTest {
         assertEquals("samples[0].metric: non ammessa", server().postObservations("{}").detail)
     }
 
+    @Test fun `diagnostic is posted compressed to its own endpoint`() {
+        status = 204
+        responseBody = ""
+
+        assertEquals(ScienceOutcome.STORED, server().postScienceDiagnostic("""{"source":"health-connect"}"""))
+        assertEquals("POST /api/v1/ingest/science-diagnostic HTTP/1.1", requestLine)
+        assertEquals("""{"source":"health-connect"}""", received)
+    }
+
+    @Test fun `maps server answers to diagnostic outcomes`() {
+        mapOf(200 to ScienceOutcome.STORED, 204 to ScienceOutcome.STORED, 400 to ScienceOutcome.INVALID,
+            413 to ScienceOutcome.INVALID, 409 to ScienceOutcome.CONFLICT, 401 to ScienceOutcome.UNAUTHORIZED,
+            403 to ScienceOutcome.UNAUTHORIZED, 404 to ScienceOutcome.UNSUPPORTED, 429 to ScienceOutcome.RETRY,
+            503 to ScienceOutcome.RETRY).forEach { (code, outcome) ->
+            status = code
+            responseBody = """{"title":"t$code"}"""
+            assertEquals("HTTP $code", outcome, server().postScienceDiagnostic("{}"))
+        }
+    }
+
     @Test fun `unreachable server asks for a retry instead of throwing`() {
         val port = http.port
         http.close()
