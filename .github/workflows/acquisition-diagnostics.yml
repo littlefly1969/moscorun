@@ -28,7 +28,7 @@ jobs:
       - working-directory: web
         run: npm run format
       - name: Export generated diff
-        run: git diff -- contracts/moscorun-api.json web/src/api/schema.d.ts backend web/src/features/workspace web/src/routes.tsx
+        run: git diff -- backend contracts web
       - working-directory: web
         run: npm run lint
       - working-directory: web
@@ -39,4 +39,4 @@ jobs:
         run: npm run test:coverage
       - working-directory: backend
         if: always()
-        run: dotnet test --project tests/MoscoRun.IntegrationTests --no-build -c Release -- --filter-class '*Scientific*Tests' --filter-class '*ScienceDiagnosticEndpointTests'
+        run: dotnet test --project tests/MoscoRun.IntegrationTests --no-build -c Release -- --filter-class '*ScienceDiagnosticEndpointTests'

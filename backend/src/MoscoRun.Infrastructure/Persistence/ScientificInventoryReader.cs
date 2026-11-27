@@ -21,9 +21,17 @@ public sealed class ScientificInventoryReader(MoscoRunDbContext db)
             .GroupBy(x => new { x.Metric, x.Unit, x.Source, x.Method, x.DeviceId, Session = x.WorkoutId != null })
             .Select(g => new
             {
-                g.Key.Metric, g.Key.Unit, g.Key.Source, g.Key.Method, g.Key.DeviceId, g.Key.Session,
-                Chunks = g.LongCount(), Samples = g.Sum(x => (long)x.SampleCount),
-                First = g.Min(x => x.FirstTicks), Last = g.Max(x => x.LastTicks), Available = g.Max(x => x.AvailableTicks),
+                g.Key.Metric,
+                g.Key.Unit,
+                g.Key.Source,
+                g.Key.Method,
+                g.Key.DeviceId,
+                g.Key.Session,
+                Chunks = g.LongCount(),
+                Samples = g.Sum(x => (long)x.SampleCount),
+                First = g.Min(x => x.FirstTicks),
+                Last = g.Max(x => x.LastTicks),
+                Available = g.Max(x => x.AvailableTicks),
             })
             .ToListAsync(ct);
 
@@ -32,9 +40,13 @@ public sealed class ScientificInventoryReader(MoscoRunDbContext db)
             .GroupBy(x => new { x.DeviceId, x.Attribution })
             .Select(g => new
             {
-                g.Key.DeviceId, g.Key.Attribution, Count = g.LongCount(),
+                g.Key.DeviceId,
+                g.Key.Attribution,
+                Count = g.LongCount(),
                 WithImpedance = g.LongCount(x => x.ImpedanceOhm != null),
-                First = g.Min(x => x.MeasuredAt), Last = g.Max(x => x.MeasuredAt), Received = g.Max(x => x.ReceivedAt),
+                First = g.Min(x => x.MeasuredAt),
+                Last = g.Max(x => x.MeasuredAt),
+                Received = g.Max(x => x.ReceivedAt),
             })
             .ToListAsync(ct);
 

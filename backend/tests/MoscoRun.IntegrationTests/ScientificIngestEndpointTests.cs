@@ -67,8 +67,11 @@ public sealed class ScientificIngestEndpointTests(ApiFactory factory)
         var body = new { source = "health-connect", samples = new[] { sample } };
         (await phone.PostAsJsonAsync(Observations, body, Ct)).StatusCode.Should().Be(HttpStatusCode.OK);
         (await phone.PostAsJsonAsync(Observations, body, Ct)).StatusCode.Should().Be(HttpStatusCode.OK);
-        (await phone.PostAsJsonAsync(Observations, new { source = "health-connect",
-            samples = new[] { Hrv(Yesterday, metric: "spo2", unit: "%", revision: "2", value: 98) } }, Ct))
+        (await phone.PostAsJsonAsync(Observations, new
+        {
+            source = "health-connect",
+            samples = new[] { Hrv(Yesterday, metric: "spo2", unit: "%", revision: "2", value: 98) }
+        }, Ct))
             .StatusCode.Should().Be(HttpStatusCode.OK);
         (await phone.PostAsJsonAsync(Signals, Rr(Yesterday), Ct)).StatusCode.Should().Be(HttpStatusCode.Created);
         (await otherPhone.PostAsJsonAsync(Observations, new { source = "health-connect", samples = new[] { Hrv(Yesterday) } }, Ct))

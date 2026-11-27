@@ -269,6 +269,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/ingest/science-diagnostic": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Registra l'ultima diagnostica di acquisizione del telefono senza valori biometrici. */
+    post: operations["SaveScienceDiagnostic"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/device": {
     parameters: {
       query?: never;
@@ -638,6 +655,40 @@ export interface paths {
      * @description Al più 16384 campioni in ordine di tempo strettamente crescente. 201 al primo arrivo, 200 se lo stesso chunk era già presente con contenuto identico, 409 se la stessa revisione arriva con contenuto diverso.
      */
     post: operations["IngestSignal"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/science/inventory": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Inventario delle revisioni scientifiche memorizzate, segnali e pesate dell'atleta. */
+    get: operations["GetScientificInventory"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/science/inventory/observations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Storico paginato delle osservazioni memorizzate, incluse revisioni e valori mancanti. */
+    get: operations["GetInventoryObservations"];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -1329,6 +1380,43 @@ export interface components {
       /** Format: double */
       coverage: number;
     };
+    InventoryDevice: {
+      /** Format: uuid */
+      id: string;
+      name: string;
+      /** Format: date-time */
+      lastSeenAt: null | string;
+      /** Format: date-time */
+      revokedAt: null | string;
+    };
+    InventoryObservation: {
+      /** Format: uuid */
+      id: string;
+      metric: string;
+      unit: string;
+      /** Format: double */
+      value: null | number;
+      source: string;
+      method: string;
+      providerAlgorithm: null | string;
+      /** Format: uuid */
+      deviceId: null | string;
+      /** Format: uuid */
+      workoutId: null | string;
+      /** Format: date-time */
+      time: string;
+      /** Format: date-time */
+      availableAt: string;
+      externalRevision: null | string;
+      /** Format: int64 */
+      revisionOrder: null | number;
+    };
+    InventoryObservationPage: {
+      /** Format: date-time */
+      asOf: string;
+      items: components["schemas"]["InventoryObservation"][];
+      hasMore: boolean;
+    };
     /** @description Geometria GeoJSON (RFC 7946): coordinate `[longitudine, latitudine]` o con altitudine. */
     LineStringGeometry: {
       type: string;
@@ -1373,6 +1461,25 @@ export interface components {
       sodiumMilligramsPerHour: null | number;
       /** Format: double */
       estimatedSweatLitersPerHour: null | number;
+    };
+    ObservationInventoryGroup: {
+      metric: string;
+      unit: string;
+      source: string;
+      method: string;
+      /** Format: uuid */
+      deviceId: null | string;
+      session: boolean;
+      /** Format: int64 */
+      revisionRows: number;
+      /** Format: int64 */
+      nonNullRows: number;
+      /** Format: date-time */
+      firstTime: string;
+      /** Format: date-time */
+      lastTime: string;
+      /** Format: date-time */
+      lastAvailableAt: string;
     };
     /**
      * @description Provenienza epistemica del valore, distinta dalla sorgente tecnica.
@@ -1800,6 +1907,45 @@ export interface components {
       /** Format: double */
       value: null | number;
     };
+    ScaleInventoryGroup: {
+      /** Format: uuid */
+      deviceId: string;
+      attribution: string;
+      /** Format: int64 */
+      weighings: number;
+      /** Format: int64 */
+      withImpedance: number;
+      /** Format: date-time */
+      firstTime: string;
+      /** Format: date-time */
+      lastTime: string;
+      /** Format: date-time */
+      lastReceivedAt: string;
+    };
+    ScienceDiagnosticReport: {
+      source: string;
+      /** Format: uuid */
+      runId: string;
+      /** Format: date-time */
+      startedAt: string;
+      /** Format: date-time */
+      finishedAt: string;
+      state: string;
+      /** Format: date-time */
+      firstReadFrom: null | string;
+      /** Format: date-time */
+      readThrough: null | string;
+      /** Format: int32 */
+      windowsRead: number;
+      metrics: components["schemas"]["ScienceMetricDiagnostic"][];
+    };
+    ScienceDiagnosticSnapshot: {
+      /** Format: uuid */
+      deviceId: string;
+      /** Format: date-time */
+      receivedAt: string;
+      report: components["schemas"]["ScienceDiagnosticReport"];
+    };
     ScienceFeedbackInput: {
       metric: string;
       /** Format: double */
@@ -1838,6 +1984,30 @@ export interface components {
       values: components["schemas"]["ScienceFeedbackInput"][];
       note: null | string;
     };
+    /** @description Contatori delle osservazioni mappate durante una singola esecuzione, non delle misure uniche. */
+    ScienceMetricDiagnostic: {
+      metric: string;
+      permission: string;
+      /** Format: int32 */
+      read: number;
+      /** Format: int32 */
+      attempted: number;
+      /** Format: int32 */
+      confirmed: number;
+      /** Format: int32 */
+      rejected: number;
+      /** Format: int32 */
+      conflicts: number;
+    };
+    ScientificInventory: {
+      /** Format: date-time */
+      asOf: string;
+      observations: components["schemas"]["ObservationInventoryGroup"][];
+      signals: components["schemas"]["SignalInventoryGroup"][];
+      scales: components["schemas"]["ScaleInventoryGroup"][];
+      devices: components["schemas"]["InventoryDevice"][];
+      diagnostics: components["schemas"]["ScienceDiagnosticSnapshot"][];
+    };
     /** @description Serie: `times` in millisecondi Unix e `values` allineati per indice. */
     SeriesDto: {
       /** @description Grandezza. */
@@ -1872,6 +2042,25 @@ export interface components {
     };
     /** @enum {unknown} */
     SeriesMetric: "HeartRate" | "Speed" | "Cadence" | "Power" | null;
+    SignalInventoryGroup: {
+      metric: string;
+      unit: string;
+      source: string;
+      method: string;
+      /** Format: uuid */
+      deviceId: null | string;
+      session: boolean;
+      /** Format: int64 */
+      chunkRevisions: number;
+      /** Format: int64 */
+      storedSamples: number;
+      /** Format: date-time */
+      firstTime: string;
+      /** Format: date-time */
+      lastTime: string;
+      /** Format: date-time */
+      lastAvailableAt: string;
+    };
     SignalSampleDto: {
       /** Format: date-time */
       time: string;
@@ -2966,6 +3155,37 @@ export interface operations {
       };
     };
   };
+  SaveScienceDiagnostic: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ScienceDiagnosticReport"];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
   GetDeviceIdentity: {
     parameters: {
       query?: never;
@@ -3731,6 +3951,62 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["IngestSignalResult"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+        };
+      };
+    };
+  };
+  GetScientificInventory: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ScientificInventory"];
+        };
+      };
+    };
+  };
+  GetInventoryObservations: {
+    parameters: {
+      query: {
+        metric: string;
+        source: string;
+        asOf?: string;
+        beforeTime?: string;
+        beforeId?: string;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["InventoryObservationPage"];
         };
       };
       /** @description Bad Request */

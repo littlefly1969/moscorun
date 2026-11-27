@@ -32,7 +32,7 @@ public sealed class ScienceDiagnosticStore(MoscoRunDbContext db, TimeProvider cl
                 item.Read < 0 || item.Attempted < 0 || item.Attempted > item.Read ||
                 item.Rejected < 0 || item.Rejected > item.Attempted || item.Confirmed < 0 ||
                 item.Confirmed > item.Attempted - item.Rejected || item.Conflicts < 0 || item.Conflicts > item.Rejected ||
-                ((report.WindowsRead == 0 || item.Permission != "granted") && item.Read != 0))
+                ((report.WindowsRead == 0 || !string.Equals(item.Permission, "granted", StringComparison.Ordinal)) && item.Read != 0))
             {
                 return false;
             }
