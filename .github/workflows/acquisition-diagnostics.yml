@@ -25,8 +25,18 @@ jobs:
         run: npm ci --no-audit --no-fund
       - working-directory: web
         run: npm run api:generate
+      - working-directory: web
+        run: npm run format
       - name: Export generated diff
-        run: |
-          git diff -- contracts/moscorun-api.json web/src/api/schema.d.ts
-          git diff -- backend
-      - run: dotnet test backend --no-build -c Release --filter FullyQualifiedName~ScientificIngestEndpointTests
+        run: git diff -- contracts/moscorun-api.json web/src/api/schema.d.ts backend web/src/features/workspace web/src/routes.tsx
+      - working-directory: web
+        run: npm run lint
+      - working-directory: web
+        if: always()
+        run: npm run typecheck
+      - working-directory: web
+        if: always()
+        run: npm run test:coverage
+      - working-directory: backend
+        if: always()
+        run: dotnet test --no-build -c Release -- --filter-class '*ScientificIngestEndpointTests'

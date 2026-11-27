@@ -2,29 +2,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MoscoRun.Infrastructure.Persistence;
 
-public sealed record ObservationInventoryGroup(string Metric, string Unit, string Source, string Method, Guid? DeviceId,
-    bool Session, long RevisionRows, long NonNullRows, DateTimeOffset FirstTime, DateTimeOffset LastTime,
-    DateTimeOffset LastAvailableAt);
-
-public sealed record SignalInventoryGroup(string Metric, string Unit, string Source, string Method, Guid? DeviceId,
-    bool Session, long ChunkRevisions, long StoredSamples, DateTimeOffset FirstTime, DateTimeOffset LastTime,
-    DateTimeOffset LastAvailableAt);
-
-public sealed record ScaleInventoryGroup(Guid DeviceId, string Attribution, long Weighings, long WithImpedance,
-    DateTimeOffset FirstTime, DateTimeOffset LastTime, DateTimeOffset LastReceivedAt);
-
-public sealed record InventoryDevice(Guid Id, string Name, DateTimeOffset? LastSeenAt, DateTimeOffset? RevokedAt);
-
-public sealed record ScientificInventory(DateTimeOffset AsOf, IReadOnlyList<ObservationInventoryGroup> Observations,
-    IReadOnlyList<SignalInventoryGroup> Signals, IReadOnlyList<ScaleInventoryGroup> Scales,
-    IReadOnlyList<InventoryDevice> Devices);
-
-public sealed record InventoryObservation(Guid Id, string Metric, string Unit, double? Value, string Source,
-    string Method, string? ProviderAlgorithm, Guid? DeviceId, Guid? WorkoutId, DateTimeOffset Time,
-    DateTimeOffset AvailableAt, string? ExternalRevision, long? RevisionOrder);
-
-public sealed record InventoryObservationPage(DateTimeOffset AsOf, IReadOnlyList<InventoryObservation> Items, bool HasMore);
-
 /// <summary>Inventario descrittivo dell'archivio, non una selezione scientifica delle revisioni utilizzabili.</summary>
 public sealed class ScientificInventoryReader(MoscoRunDbContext db)
 {
