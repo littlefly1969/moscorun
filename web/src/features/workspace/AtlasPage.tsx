@@ -137,6 +137,7 @@ function MetricInspector({
         <p>Stima del dispositivo: non equivale a una misurazione fisiologica diretta.</p>
       )}
       {report ? <MetricHistory report={report} /> : <p>{state}</p>}
+      <p><Link to={"/acquisizione?metrica=" + encodeURIComponent(metric.id)}>Verifica presenza nell’archivio remoto</Link></p>
       {metric.access === "diary" && diary?.status === "recorded" && (
         <>
           <div className="sw-value">
