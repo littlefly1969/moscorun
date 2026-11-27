@@ -21,20 +21,12 @@ data class ScienceDiagnosticReport(val source: String, val runId: String, val st
     }
 }
 
-internal class ScienceDiagnostics(private val source: String, private val started: Instant) {
+internal class ScienceDiagnostics(private val source: String, private val started: Instant, supported: Set<ScienceMetric>) {
     private val runId = UUID.randomUUID().toString()
     private data class Counter(var read: Int = 0, var attempted: Int = 0, var confirmed: Int = 0,
         var rejected: Int = 0, var conflicts: Int = 0)
 
-    private val keys = linkedMapOf(
-        "restingHeartRate" to ScienceMetric.RESTING_HEART_RATE,
-        "hrvRmssd" to ScienceMetric.HRV_RMSSD,
-        "sleepDuration" to ScienceMetric.SLEEP,
-        "sleepInBedDuration" to ScienceMetric.SLEEP,
-        "spo2" to ScienceMetric.OXYGEN_SATURATION,
-        "respirationRate" to ScienceMetric.RESPIRATORY_RATE,
-        "vo2max" to ScienceMetric.VO2_MAX,
-    )
+    private val keys = ScienceCapabilities.fieldsFor(supported)
     private val counters = keys.keys.associateWith { Counter() }
     private var availability: ScienceAvailability? = null
     private var first: Instant? = null

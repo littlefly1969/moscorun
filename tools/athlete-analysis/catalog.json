@@ -700,6 +700,146 @@
       "category": "feedback",
       "availability": "capability-dependent",
       "interpretation": "self_reported"
+    },
+    {
+      "metric": "basalMetabolicRate",
+      "unit": "kcal/d",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "height",
+      "unit": "cm",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "bodyMassIndex",
+      "unit": "kg/m2",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "fatFreePercentage",
+      "unit": "%",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "musclePercentage",
+      "unit": "%",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "skeletalMusclePercentage",
+      "unit": "%",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "skeletalMuscleMass",
+      "unit": "kg",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "bodyWaterVolume",
+      "unit": "L",
+      "category": "bodyComposition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "systolicBloodPressure",
+      "unit": "mmHg",
+      "category": "cardiovascular",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "diastolicBloodPressure",
+      "unit": "mmHg",
+      "category": "cardiovascular",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "meanBloodPressure",
+      "unit": "mmHg",
+      "category": "cardiovascular",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "pulseRate",
+      "unit": "bpm",
+      "category": "cardiovascular",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "bodyTemperature",
+      "unit": "Cel",
+      "category": "cardiovascular",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "energyScore",
+      "unit": "native",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "bloodGlucose",
+      "unit": "mmol/L",
+      "category": "nutrition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "floorsClimbed",
+      "unit": "1",
+      "category": "daily",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "activeEnergyExpenditure",
+      "unit": "kcal",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "fiberIntake",
+      "unit": "g",
+      "category": "nutrition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "sugarIntake",
+      "unit": "g",
+      "category": "nutrition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "saturatedFatIntake",
+      "unit": "g",
+      "category": "nutrition",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
     }
   ]
 }

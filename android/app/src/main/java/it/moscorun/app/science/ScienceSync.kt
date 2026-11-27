@@ -62,7 +62,7 @@ class ScienceSync(
     private val now: () -> Instant = Instant::now,
     private val shouldStop: () -> Boolean = { false },
 ) {
-    private val diagnostics = ScienceDiagnostics(reader.source, now())
+    private val diagnostics = ScienceDiagnostics(reader.source, now(), reader.supportedMetrics)
     private var sent = 0
     private var imported = 0
     private var rejected = 0
@@ -77,7 +77,7 @@ class ScienceSync(
     } catch (e: Halt) {
         result(e.state, e.reason)
     } catch (_: SecurityException) {
-        result(ScienceState.SKIPPED, "Health Connect non consente la lettura dei dati scientifici ora: apri MoscoRun o concedi l'accesso in background.")
+        result(ScienceState.SKIPPED, "La sorgente non consente la lettura dei dati scientifici ora: apri MoscoRun e controlla i permessi.")
     } catch (e: Exception) {
         result(ScienceState.SKIPPED, "Lettura dei dati scientifici non riuscita (${e.javaClass.simpleName}): nuovo tentativo alla prossima sincronizzazione.")
     }
@@ -88,7 +88,8 @@ class ScienceSync(
         if (availability.metrics.isEmpty()) return result(ScienceState.SKIPPED, availability.message ?: "Nessun dato scientifico da leggere.")
 
         val end = now().minus(limits.settle)
-        val confirmed = store.scienceSyncedUntil(scope, reader.source)
+        val checkpoint = reader.checkpoint(availability)
+        val confirmed = store.scienceSyncedUntil(scope, checkpoint)
         var from = confirmed?.minus(days(limits.revisitDays))
             ?: end.minus(days(if (availability.history) limits.historyDays else limits.initialDays))
         while (from.isBefore(end)) {
@@ -101,7 +102,7 @@ class ScienceSync(
                 send(it)
             }
             // Never moves backwards: a revisit of days already confirmed leaves the position where it was.
-            if (confirmed == null || to.isAfter(confirmed)) store.saveScienceSyncedUntil(scope, reader.source, to)
+            if (confirmed == null || to.isAfter(confirmed)) store.saveScienceSyncedUntil(scope, checkpoint, to)
             from = to
         }
         val message = lastRejection?.let { "Dati scientifici aggiornati; ultimo rifiuto del server: $it" }

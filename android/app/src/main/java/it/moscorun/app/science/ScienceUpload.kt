@@ -32,7 +32,7 @@ object ScienceUpload {
 
     fun item(o: ScienceObservation) = ObservationItem(o.externalId, o.revision.toString(), o.revision, o.metric, o.unit,
         o.value, o.time.toString(), o.method.code, o.providerAlgorithm,
-        ObservationNative(o.nativeMetric, o.nativeUnit, o.nativeValue, HealthConnectScienceMapping.MAPPING_VERSION))
+        ObservationNative(o.nativeMetric, o.nativeUnit, o.nativeValue, o.mappingVersion))
 
     fun json(source: String, observations: List<ScienceObservation>): String {
         require(observations.size in 1..MAX_BATCH) { "Lotto di osservazioni non valido." }
