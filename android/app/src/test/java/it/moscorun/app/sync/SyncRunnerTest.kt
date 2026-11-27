@@ -79,7 +79,7 @@ class SyncRunnerTest {
         assertEquals(listOf("source", "runId", "startedAt", "finishedAt", "state", "firstReadFrom", "readThrough",
             "windowsRead", "metrics"), report.keySet().toList())
         val hrv = report.getAsJsonArray("metrics").map { it.asJsonObject }.single { it["metric"].asString == "hrvRmssd" }
-        assertEquals(listOf("metric", "permission", "read", "attempted", "confirmed", "rejected", "conflicts"), hrv.keySet().toList())
+        assertEquals(listOf("metric", "permission", "read", "attempted", "confirmed", "rejected", "conflicts", "windowsRead", "readError"), hrv.keySet().toList())
         assertEquals("granted", hrv["permission"].asString)
         assertEquals(1, hrv["read"].asInt)
         assertEquals(1, hrv["confirmed"].asInt)
