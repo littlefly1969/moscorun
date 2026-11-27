@@ -44,6 +44,8 @@ data class ScienceAvailability(
     val history: Boolean = false,
     /** Why something is missing, for the status of the run; null when everything is granted. */
     val message: String? = null,
+    /** False when the SDK or permission query is unavailable; absence is not a denial. */
+    val permissionsKnown: Boolean = true,
 )
 
 /**

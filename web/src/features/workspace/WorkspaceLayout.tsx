@@ -7,6 +7,7 @@ const sections = [
   { path: "/laboratorio", number: "03", title: "Laboratorio", hint: "Metodi e protocolli" },
   { path: "/simulatore", number: "04", title: "Simulatore", hint: "Scenari condizionali" },
   { path: "/evidenze", number: "05", title: "Evidenze", hint: "Relazioni documentate" },
+  { path: "/acquisizione", number: "06", title: "Acquisizione", hint: "Archivio e provenienza" },
 ];
 
 export function WorkspaceLayout() {

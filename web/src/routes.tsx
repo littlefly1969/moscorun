@@ -10,6 +10,7 @@ import { WorkspaceLayout } from "./features/workspace/WorkspaceLayout";
 import { AtlasPage } from "./features/workspace/AtlasPage";
 import { ChronoscopePage } from "./features/workspace/ChronoscopePage";
 import { EvidencePage, LaboratoryPage } from "./features/workspace/LaboratoryPage";
+import { AcquisitionPage } from "./features/workspace/AcquisitionPage";
 import { SimulatorPage } from "./features/workspace/SimulatorPage";
 
 export const routes: RouteObject[] = [
@@ -29,6 +30,7 @@ export const routes: RouteObject[] = [
           { path: "laboratorio", element: <LaboratoryPage /> },
           { path: "simulatore", element: <SimulatorPage /> },
           { path: "evidenze", element: <EvidencePage /> },
+          { path: "acquisizione", element: <AcquisitionPage /> },
         ],
       },
       { path: "forma", element: <DashboardPage /> },

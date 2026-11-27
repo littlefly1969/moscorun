@@ -884,6 +884,40 @@
         }
       }
     },
+    "/api/v1/ingest/science-diagnostic": {
+      "post": {
+        "tags": [
+          "Acquisizione"
+        ],
+        "summary": "Registra l'ultima diagnostica di acquisizione del telefono senza valori biometrici.",
+        "operationId": "SaveScienceDiagnostic",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScienceDiagnosticReport"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/device": {
       "get": {
         "tags": [
@@ -2043,6 +2077,108 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/IngestSignalResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/science/inventory": {
+      "get": {
+        "tags": [
+          "Acquisizione"
+        ],
+        "summary": "Inventario delle revisioni scientifiche memorizzate, segnali e pesate dell'atleta.",
+        "operationId": "GetScientificInventory",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScientificInventory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/science/inventory/observations": {
+      "get": {
+        "tags": [
+          "Acquisizione"
+        ],
+        "summary": "Storico paginato delle osservazioni memorizzate, incluse revisioni e valori mancanti.",
+        "operationId": "GetInventoryObservations",
+        "parameters": [
+          {
+            "name": "metric",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "asOf",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "beforeTime",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "beforeId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryObservationPage"
                 }
               }
             }
@@ -4121,6 +4257,145 @@
           }
         }
       },
+      "InventoryDevice": {
+        "required": [
+          "id",
+          "name",
+          "lastSeenAt",
+          "revokedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "lastSeenAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "revokedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "InventoryObservation": {
+        "required": [
+          "id",
+          "metric",
+          "unit",
+          "value",
+          "source",
+          "method",
+          "providerAlgorithm",
+          "deviceId",
+          "workoutId",
+          "time",
+          "availableAt",
+          "externalRevision",
+          "revisionOrder"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "metric": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "source": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "providerAlgorithm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "deviceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workoutId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "externalRevision": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "revisionOrder": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          }
+        }
+      },
+      "InventoryObservationPage": {
+        "required": [
+          "asOf",
+          "items",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventoryObservation"
+            }
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        }
+      },
       "LineStringGeometry": {
         "required": [
           "type",
@@ -4302,6 +4577,66 @@
               "number"
             ],
             "format": "double"
+          }
+        }
+      },
+      "ObservationInventoryGroup": {
+        "required": [
+          "metric",
+          "unit",
+          "source",
+          "method",
+          "deviceId",
+          "session",
+          "revisionRows",
+          "nonNullRows",
+          "firstTime",
+          "lastTime",
+          "lastAvailableAt"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "deviceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "session": {
+            "type": "boolean"
+          },
+          "revisionRows": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nonNullRows": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "firstTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastAvailableAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -5754,6 +6089,126 @@
           }
         }
       },
+      "ScaleInventoryGroup": {
+        "required": [
+          "deviceId",
+          "attribution",
+          "weighings",
+          "withImpedance",
+          "firstTime",
+          "lastTime",
+          "lastReceivedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "attribution": {
+            "type": "string"
+          },
+          "weighings": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "withImpedance": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "firstTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastReceivedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ScienceDiagnosticReport": {
+        "required": [
+          "source",
+          "runId",
+          "startedAt",
+          "finishedAt",
+          "state",
+          "firstReadFrom",
+          "readThrough",
+          "windowsRead",
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "runId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "state": {
+            "type": "string"
+          },
+          "firstReadFrom": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "readThrough": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "windowsRead": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScienceMetricDiagnostic"
+            }
+          }
+        }
+      },
+      "ScienceDiagnosticSnapshot": {
+        "required": [
+          "deviceId",
+          "receivedAt",
+          "report"
+        ],
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receivedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "report": {
+            "$ref": "#/components/schemas/ScienceDiagnosticReport"
+          }
+        }
+      },
       "ScienceFeedbackInput": {
         "required": [
           "metric",
@@ -5912,6 +6367,94 @@
           }
         }
       },
+      "ScienceMetricDiagnostic": {
+        "required": [
+          "metric",
+          "permission",
+          "read",
+          "attempted",
+          "confirmed",
+          "rejected",
+          "conflicts"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "permission": {
+            "type": "string"
+          },
+          "read": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attempted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "confirmed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rejected": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "conflicts": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "description": "Contatori delle osservazioni mappate durante una singola esecuzione, non delle misure uniche."
+      },
+      "ScientificInventory": {
+        "required": [
+          "asOf",
+          "observations",
+          "signals",
+          "scales",
+          "devices",
+          "diagnostics"
+        ],
+        "type": "object",
+        "properties": {
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "observations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObservationInventoryGroup"
+            }
+          },
+          "signals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SignalInventoryGroup"
+            }
+          },
+          "scales": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScaleInventoryGroup"
+            }
+          },
+          "devices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventoryDevice"
+            }
+          },
+          "diagnostics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScienceDiagnosticSnapshot"
+            }
+          }
+        }
+      },
       "SeriesDto": {
         "required": [
           "metric",
@@ -6015,6 +6558,66 @@
           "Power",
           null
         ]
+      },
+      "SignalInventoryGroup": {
+        "required": [
+          "metric",
+          "unit",
+          "source",
+          "method",
+          "deviceId",
+          "session",
+          "chunkRevisions",
+          "storedSamples",
+          "firstTime",
+          "lastTime",
+          "lastAvailableAt"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "deviceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "session": {
+            "type": "boolean"
+          },
+          "chunkRevisions": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "storedSamples": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "firstTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastAvailableAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       },
       "SignalSampleDto": {
         "required": [

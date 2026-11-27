@@ -34,6 +34,8 @@ internal class FakeScienceServer : ScienceServer {
     val requests = mutableListOf<Int>()
     var refused = setOf<String>()
     var outcome: ScienceOutcome? = null
+    val diagnostics = mutableListOf<String>()
+    var diagnosticOutcome = ScienceOutcome.STORED
 
     override fun postObservations(json: String): ScienceUploadResult {
         val ids = JsonParser.parseString(json).asJsonObject.getAsJsonArray("samples").map { it.asJsonObject["externalId"].asString }
@@ -43,6 +45,11 @@ internal class FakeScienceServer : ScienceServer {
         val fresh = ids.filter { it !in stored }
         stored += fresh
         return ScienceUploadResult(ScienceOutcome.STORED, imported = fresh.size)
+    }
+
+    override fun postScienceDiagnostic(json: String): ScienceOutcome {
+        diagnostics += json
+        return diagnosticOutcome
     }
 }
 
@@ -105,6 +112,12 @@ class ScienceSyncTest {
         assertEquals(8, server.stored.size)
         assertEquals(1, result.rejected)
         assertTrue(result.message, result.message.contains("non ammessa"))
+        val counters = result.diagnostic!!.metrics.single { it.metric == "hrvRmssd" }
+        assertEquals(9, counters.read)
+        assertEquals(9, counters.attempted)
+        assertEquals(8, counters.confirmed)
+        assertEquals(1, counters.rejected)
+        assertEquals(0, counters.conflicts)
     }
 
     @Test fun `batches never exceed the server limit`() {
@@ -123,6 +136,7 @@ class ScienceSyncTest {
         assertEquals(ScienceState.SKIPPED, result.state)
         assertEquals("Nessun permesso", result.message)
         assertTrue(reader.windows.isEmpty())
+        assertTrue(result.diagnostic!!.metrics.all { it.permission == "denied" && it.read == 0 })
     }
 
     @Test fun `server answers stop the run without advancing past unconfirmed windows`() {
@@ -135,6 +149,10 @@ class ScienceSyncTest {
 
             assertEquals(answer.name, state, result.state)
             assertNull(answer.name, store.positions["s" to "health-connect"])
+            val counters = result.diagnostic!!.metrics.single { it.metric == "hrvRmssd" }
+            assertEquals(1, counters.attempted)
+            assertEquals(0, counters.confirmed)
+            assertEquals(0, counters.rejected)
         }
     }
 

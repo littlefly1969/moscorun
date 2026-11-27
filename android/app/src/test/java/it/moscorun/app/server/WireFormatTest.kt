@@ -3,6 +3,8 @@ package it.moscorun.app.server
 import it.moscorun.app.science.ObservationBatch
 import it.moscorun.app.science.ObservationItem
 import it.moscorun.app.science.ObservationNative
+import it.moscorun.app.science.ScienceDiagnosticReport
+import it.moscorun.app.science.ScienceMetricDiagnostic
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -15,7 +17,7 @@ import java.lang.reflect.Type
  * Gson reaches from a request body must therefore carry the marker, otherwise its JSON would lose fields in release.
  */
 class WireFormatTest {
-    private val roots = listOf(UploadPayload::class.java, ObservationBatch::class.java)
+    private val roots = listOf(UploadPayload::class.java, ObservationBatch::class.java, ScienceDiagnosticReport::class.java)
 
     @Test
     fun everyAppClassReachableFromARequestBodyIsMarked() {
@@ -29,6 +31,7 @@ class WireFormatTest {
             UploadSeries::class.java, UploadSample::class.java)))
         assertTrue(reachable().containsAll(listOf(ObservationBatch::class.java, ObservationItem::class.java,
             ObservationNative::class.java)))
+        assertTrue(reachable().containsAll(listOf(ScienceDiagnosticReport::class.java, ScienceMetricDiagnostic::class.java)))
     }
 
     @Test
@@ -43,6 +46,11 @@ class WireFormatTest {
         assertEquals(listOf("externalId", "revision", "revisionOrder", "metric", "unit", "value", "time", "method",
             "providerAlgorithm", "native"), fields(ObservationItem::class.java))
         assertEquals(listOf("metric", "unit", "value", "mappingVersion"), fields(ObservationNative::class.java))
+        // ScienceDiagnosticReport: no biometric value or record identifier may enter the telemetry.
+        assertEquals(listOf("source", "runId", "startedAt", "finishedAt", "state", "firstReadFrom", "readThrough",
+            "windowsRead", "metrics"), fields(ScienceDiagnosticReport::class.java))
+        assertEquals(listOf("metric", "permission", "read", "attempted", "confirmed", "rejected", "conflicts"),
+            fields(ScienceMetricDiagnostic::class.java))
     }
 
     private fun fields(type: Class<*>) =

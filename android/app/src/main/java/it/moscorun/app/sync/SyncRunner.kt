@@ -3,6 +3,7 @@ package it.moscorun.app.sync
 import android.content.Context
 import android.content.SharedPreferences
 import it.moscorun.app.model.Provider
+import it.moscorun.app.science.ScienceOutcome
 import it.moscorun.app.science.ScienceReader
 import it.moscorun.app.science.ScienceState
 import it.moscorun.app.science.ScienceStateStore
@@ -117,7 +118,16 @@ class SyncRunner(
         progress(SyncProgress("Invio dei dati scientifici", workouts.report))
         val outcome = ScienceSync(reader, api, positions, scope, now = now,
             shouldStop = { shouldStop() || Duration.between(started, now()).toMillis() >= limits.maxRunMillis }).run()
-        val message = listOf(workouts.message, outcome.describe()).joinToString(". ") { it.trimEnd('.', ' ') } + "."
+        val telemetry = if (outcome.state != ScienceState.AUTH_REQUIRED && !shouldStop())
+            outcome.diagnostic?.let { api.postScienceDiagnostic(it.json()) }
+        else null
+        val telemetryMessage = when (telemetry) {
+            ScienceOutcome.STORED -> "Diagnostica scientifica ricevuta dal server"
+            ScienceOutcome.UNSUPPORTED -> "Diagnostica remota non supportata dal server"
+            null -> "Diagnostica remota non inviata"
+            else -> "Diagnostica remota non confermata (${telemetry.name})"
+        }
+        val message = listOf(workouts.message, outcome.describe(), telemetryMessage).joinToString(". ") { it.trimEnd('.', ' ') } + "."
         val result = when (outcome.state) {
             ScienceState.AUTH_REQUIRED -> SyncResult(RunOutcome.AUTH_REQUIRED, workouts.report, outcome.message)
             ScienceState.MORE_WORK -> SyncResult(RunOutcome.MORE_WORK, workouts.report, message)

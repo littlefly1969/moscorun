@@ -6,6 +6,7 @@ import it.moscorun.app.model.MetricSeries
 import it.moscorun.app.model.Provider
 import it.moscorun.app.model.SourceWorkout
 import it.moscorun.app.model.TrackPoint
+import it.moscorun.app.science.ScienceOutcome
 import it.moscorun.app.science.ScienceServer
 import it.moscorun.app.science.ScienceUploadResult
 import it.moscorun.app.server.DeviceIdentity
@@ -79,6 +80,9 @@ internal class FakeServer : ServerApi {
 
     override fun postObservations(json: String): ScienceUploadResult =
         science?.postObservations(json) ?: super.postObservations(json)
+
+    override fun postScienceDiagnostic(json: String): ScienceOutcome =
+        science?.postScienceDiagnostic(json) ?: super.postScienceDiagnostic(json)
 
     override fun upload(json: String): UploadResult {
         val body = JsonParser.parseString(json).asJsonObject

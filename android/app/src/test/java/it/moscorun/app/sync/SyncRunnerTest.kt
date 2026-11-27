@@ -1,5 +1,6 @@
 package it.moscorun.app.sync
 
+import com.google.gson.JsonParser
 import it.moscorun.app.model.Provider
 import it.moscorun.app.science.FakeScienceReader
 import it.moscorun.app.science.FakeScienceServer
@@ -64,6 +65,45 @@ class SyncRunnerTest {
         assertNotNull(sciencePositions.scienceSyncedUntil(SyncScope.of(SERVER, FakeServer.ACCOUNT), "health-connect"))
         assertTrue(result.message, result.message.contains("Dati scientifici aggiornati"))
         assertEquals(result.message, store.status(SyncScope.of(SERVER, FakeServer.ACCOUNT)).message)
+    }
+
+    @Test fun `the run diagnostic reaches the server with counters only and no biometric values`() {
+        settings.save(SERVER, TOKEN)
+        server.science = scienceServer
+
+        val result = run(scienceRunner())
+
+        val report = JsonParser.parseString(scienceServer.diagnostics.single()).asJsonObject
+        assertEquals("health-connect", report["source"].asString)
+        assertEquals("COMPLETED", report["state"].asString)
+        assertEquals(listOf("source", "runId", "startedAt", "finishedAt", "state", "firstReadFrom", "readThrough",
+            "windowsRead", "metrics"), report.keySet().toList())
+        val hrv = report.getAsJsonArray("metrics").map { it.asJsonObject }.single { it["metric"].asString == "hrvRmssd" }
+        assertEquals(listOf("metric", "permission", "read", "attempted", "confirmed", "rejected", "conflicts"), hrv.keySet().toList())
+        assertEquals("granted", hrv["permission"].asString)
+        assertEquals(1, hrv["read"].asInt)
+        assertEquals(1, hrv["confirmed"].asInt)
+        assertTrue(result.message, result.message.contains("Diagnostica scientifica ricevuta dal server"))
+    }
+
+    @Test fun `a diagnostic the server does not confirm never changes the outcome of the run`() {
+        settings.save(SERVER, TOKEN)
+        server.science = scienceServer.apply { diagnosticOutcome = ScienceOutcome.RETRY }
+
+        val result = run(scienceRunner())
+
+        assertEquals(RunOutcome.COMPLETED, result.outcome)
+        assertEquals(listOf("hc:1"), scienceServer.stored)
+        assertTrue(result.message, result.message.contains("Diagnostica remota non confermata (RETRY)"))
+    }
+
+    @Test fun `no diagnostic is sent with a refused token`() {
+        settings.save(SERVER, TOKEN)
+        server.science = scienceServer.apply { outcome = ScienceOutcome.UNAUTHORIZED }
+
+        run(scienceRunner())
+
+        assertTrue(scienceServer.diagnostics.isEmpty())
     }
 
     @Test fun `scientific data waits while the workouts are not up to date`() {
