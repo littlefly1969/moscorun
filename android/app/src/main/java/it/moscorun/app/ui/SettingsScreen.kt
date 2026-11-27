@@ -160,12 +160,13 @@ class SettingsScreen(private val setup: (AppHost) -> ServerSetup) : Screen() {
         val availability = host.scienceAvailability()
         val missing = ScienceMetric.entries - availability.metrics
         status.text = when {
+            !availability.permissionsKnown -> availability.message ?: "Stato dei permessi sconosciuto."
             availability.metrics.isEmpty() -> availability.message ?: "Nessun dato scientifico concesso."
             missing.isEmpty() -> "Tutti i dati concessi." + (availability.message?.let { " $it" } ?: "")
             else -> "Non concessi: ${missing.joinToString(", ") { it.label }}."
         }
-        status.setTextColor(if (missing.isEmpty()) Palette.green else Palette.warning)
-        grant.visibility = if (missing.isNotEmpty()) View.VISIBLE else View.GONE
+        status.setTextColor(if (availability.permissionsKnown && missing.isEmpty()) Palette.green else Palette.warning)
+        grant.visibility = if (availability.permissionsKnown && missing.isNotEmpty()) View.VISIBLE else View.GONE
     }
 
     private fun confirmProvider(provider: Provider) {

@@ -69,6 +69,65 @@ function ObservationHistory({ metric, source }: { metric: string; source: string
   );
 }
 
+function PhoneDiagnostics({ inventory, source, metric }: { inventory: Inventory; source: string; metric: string }) {
+  const snapshots = inventory.diagnostics.filter((item) => source === "all" || item.report.source === source);
+  const deviceName = (id: string) => inventory.devices.find((device) => device.id === id)?.name ?? id;
+  return (
+    <section className="card" aria-label="Diagnostica trasmessa dal telefono">
+      <h2>Telefono · ultimo rapporto per sorgente</h2>
+      <p className="sw-muted">Rapporti dichiarati dall'app, non verifica diretta dei sensori. I contatori riguardano una
+        singola esecuzione e possono comprendere reinvii. Confermato significa risposta di accettazione del server,
+        non necessariamente una nuova revisione. L'archivio può essere cambiato nel frattempo.</p>
+      {snapshots.length === 0 && <p>Nessun rapporto diagnostico ricevuto: permessi e letture del telefono sconosciuti.</p>}
+      {snapshots.map(({ deviceId, receivedAt, report }) => (
+        <div className="sw-acquisition-group" key={deviceId + "/" + report.source}>
+          <h3>{deviceName(deviceId)} · {report.source}</h3>
+          <p>Ultima diagnostica ricevuta: {date(receivedAt)} · stato {report.state} ·
+            esecuzione {date(report.startedAt)} – {date(report.finishedAt)}</p>
+          <p>{report.windowsRead > 0 ? "Finestre lette: " + number.format(report.windowsRead) :
+            "Nessuna finestra completata"} · da {date(report.firstReadFrom)} a {date(report.readThrough)}.</p>
+          {metric && !report.metrics.some((item) => item.metric === metric) && (
+            <p>La metrica selezionata non è dichiarata in questo rapporto. Capacità non verificata.</p>
+          )}
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Metrica</th>
+                  <th scope="col">Permesso</th>
+                  <th scope="col">Letti</th>
+                  <th scope="col">Tentati</th>
+                  <th scope="col">Confermati</th>
+                  <th scope="col">Rifiutati</th>
+                  <th scope="col">Esito incerto</th>
+                  <th scope="col">Non tentati</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.metrics.filter((item) => !metric || item.metric === metric).map((item) => (
+                  <tr key={item.metric}>
+                    <th scope="row">{label(item.metric)}</th>
+                    <td>{item.permission === "granted" ? "Concesso" :
+                      item.permission === "denied" ? "Non concesso" : "Sconosciuto"}</td>
+                    <td>{item.permission === "granted" && report.windowsRead > 0 ? item.read : "—"}</td>
+                    <td>{item.attempted}</td>
+                    <td>{item.confirmed}</td>
+                    <td>{item.rejected} ({item.conflicts} conflitti)</td>
+                    <td>{item.attempted - item.confirmed - item.rejected}</td>
+                    <td>{item.read - item.attempted}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+      <p className="sw-muted">Se un rapporto è vecchio, il permesso corrente resta ignoto. Un esito incerto non
+        prova che il dato sia assente sul server: controlla l'inventario sottostante.</p>
+    </section>
+  );
+}
+
 function InventoryView({ inventory }: { inventory: Inventory }) {
   const [params, setParams] = useSearchParams();
   const [source, setSource] = useState("all");
@@ -102,7 +161,8 @@ function InventoryView({ inventory }: { inventory: Inventory }) {
   const present = (row: (typeof rows)[number]) => row.stored > 0 || row.chunkCount > 0 || row.scaleRows > 0;
   const normalized = search.trim().toLocaleLowerCase("it-IT");
   const visible = rows.filter((row) => (!presentOnly || present(row)) &&
-    (label(row.id) + " " + row.id).toLocaleLowerCase("it-IT").includes(normalized));
+    (label(row.id) + " " + row.id).toLocaleLowerCase("it-IT").includes(normalized))
+    .sort((a, b) => Number(present(b)) - Number(present(a)));
   const current = rows.find((row) => row.id === selected);
   const daily = metricCatalog.find((metric) => metric.id === current?.id)?.access === "daily";
   return (
@@ -134,11 +194,13 @@ function InventoryView({ inventory }: { inventory: Inventory }) {
           Solo record presenti
         </label>
       </div>
+      <PhoneDiagnostics inventory={inventory} source={source} metric={selected} />
       <p>Un conteggio zero significa solo che non ci sono record nella sezione di archivio interrogata,
         non che l'orologio non misuri il dato o che il telefono non abbia i permessi.</p>
       {current && (
         <section className="card" aria-label="Provenienza della metrica">
           <h2>{label(current.id)}</h2>
+          <button type="button" onClick={() => { setSelected(""); setParams({}); setHistory(null); }}>Mostra tutte le metriche</button>
           <p>{daily ? "Analisi giornaliera prevista" : "Non esposta dal motore giornaliero"} ·
             la disponibilità per gli altri motori dipende dai loro protocolli.</p>
           {!present(current) && <p>Nessun record scientifico o pesata in questa selezione.</p>}
@@ -208,8 +270,8 @@ function InventoryView({ inventory }: { inventory: Inventory }) {
       </section>
       <section className="card" aria-label="Stato dei dispositivi">
         <h2>Dispositivi registrati</h2>
-        <p>Ultimo contatto autenticato: non equivale a un dato ricevuto. Permessi e letture del telefono non sono ancora
-          comunicati per singola metrica al server.</p>
+        <p>Ultimo contatto autenticato: non equivale a un dato ricevuto. Permessi e letture del telefono
+          vanno verificati con il rapporto diagnostico, quando disponibile.</p>
         {inventory.devices.map((device) => <p key={device.id}>{device.name} · {device.revokedAt ? "Revocato" :
           "Ultimo contatto " + date(device.lastSeenAt)}</p>)}
         <Link to="/dispositivi">Gestisci dispositivi</Link>

@@ -95,7 +95,9 @@ class HealthConnectScienceReader(context: Context) : ScienceReader {
             records += page.records
             token = page.pageToken?.takeIf { it.isNotEmpty() }
         } while (token != null && records.size < MAX_RECORDS)
-        return records.take(MAX_RECORDS)
+        // Do not silently truncate a window and then advance the checkpoint beyond unread records.
+        check(token == null && records.size <= MAX_RECORDS) { "Finestra Health Connect troppo densa" }
+        return records
     }
 
     private fun origin(metadata: Metadata) = RecordOrigin(metadata.id, metadata.lastModifiedTime, metadata.dataOrigin.packageName)
