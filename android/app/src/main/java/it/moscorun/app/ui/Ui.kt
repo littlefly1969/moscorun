@@ -64,6 +64,8 @@ interface AppHost {
 
     /** Shows the Health Connect consent screen for the scientific data; [done] runs when the user comes back. */
     fun requestSciencePermissions(done: () -> Unit)
+    suspend fun samsungScienceAvailability(): ScienceAvailability = ScienceAvailability(emptySet(), permissionsKnown = false)
+    fun requestSamsungSciencePermissions(done: () -> Unit) { done() }
 
     /** Shows the consent screen of the source; [done] runs when the user comes back. */
     fun requestSourcePermissions(provider: Provider, done: () -> Unit)

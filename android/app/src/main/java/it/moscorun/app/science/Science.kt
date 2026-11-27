@@ -43,6 +43,10 @@ enum class ScienceMetric(val label: String) {
     SAMSUNG_PRESSURE("pressione Samsung"),
     SAMSUNG_NUTRITION("nutrizione Samsung"),
     SAMSUNG_WATER("acqua Samsung"),
+    SAMSUNG_GLUCOSE("glicemia Samsung"),
+    SAMSUNG_TEMP("temperatura corporea Samsung"),
+    SAMSUNG_FLOORS("piani saliti Samsung"),
+    SAMSUNG_ENERGY("Energy Score Samsung"),
 }
 
 /**

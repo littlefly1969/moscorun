@@ -60,6 +60,7 @@ class SyncRunner(
     /** Daily scientific data, read after the workouts; null leaves the scientific part out. */
     private val science: (() -> ScienceReader)? = null,
     private val scienceStore: ScienceStateStore? = store as? ScienceStateStore,
+    private val additionalScience: () -> List<ScienceReader> = { emptyList() },
 ) {
     /** State partition of the current configuration, or null when no server is configured. */
     fun scope(): String? = settings.serverUrl?.let { SyncScope.of(it, prefs.accountId) }
@@ -113,9 +114,23 @@ class SyncRunner(
      */
     private suspend fun withScience(workouts: SyncResult, api: ServerApi, scope: String, started: Instant,
         shouldStop: () -> Boolean, progress: (SyncProgress) -> Unit): SyncResult {
-        val reader = science?.invoke() ?: return workouts
+        val readers = listOfNotNull(science?.invoke()) + additionalScience()
+        if (readers.isEmpty()) return workouts
         val positions = scienceStore ?: return workouts
-        progress(SyncProgress("Invio dei dati scientifici", workouts.report))
+        var combined = workouts
+        for (reader in readers) {
+            if (combined.outcome == RunOutcome.AUTH_REQUIRED) break
+            val current = syncScienceReader(combined, reader, api, positions, scope, started, shouldStop, progress)
+            combined = if (combined.outcome == RunOutcome.MORE_WORK && current.outcome == RunOutcome.COMPLETED)
+                current.copy(outcome = RunOutcome.MORE_WORK) else current
+        }
+        store.saveStatus(scope, store.status(scope).copy(outcome = combined.outcome, message = combined.message))
+        return combined
+    }
+
+    private suspend fun syncScienceReader(workouts: SyncResult, reader: ScienceReader, api: ServerApi, positions: ScienceStateStore,
+        scope: String, started: Instant, shouldStop: () -> Boolean, progress: (SyncProgress) -> Unit): SyncResult {
+        progress(SyncProgress("Invio dei dati scientifici: ${reader.source}", workouts.report))
         val outcome = ScienceSync(reader, api, positions, scope, now = now,
             shouldStop = { shouldStop() || Duration.between(started, now()).toMillis() >= limits.maxRunMillis }).run()
         val telemetry = if (outcome.state != ScienceState.AUTH_REQUIRED && !shouldStop())
@@ -127,7 +142,7 @@ class SyncRunner(
             null -> "Diagnostica remota non inviata"
             else -> "Diagnostica remota non confermata (${telemetry.name})"
         }
-        val message = listOf(workouts.message, outcome.describe(), telemetryMessage).joinToString(". ") { it.trimEnd('.', ' ') } + "."
+        val message = listOf(workouts.message, reader.source + ": " + outcome.describe(), telemetryMessage).joinToString(". ") { it.trimEnd('.', ' ') } + "."
         val result = when (outcome.state) {
             ScienceState.AUTH_REQUIRED -> SyncResult(RunOutcome.AUTH_REQUIRED, workouts.report, outcome.message)
             ScienceState.MORE_WORK -> SyncResult(RunOutcome.MORE_WORK, workouts.report, message)

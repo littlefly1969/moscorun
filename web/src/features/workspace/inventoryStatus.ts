@@ -67,3 +67,43 @@ export function archiveStatus(inventory: Schemas["ScientificInventory"] | undefi
   }
   return rows > 0 ? "Solo record senza valore" : "Nessun record scientifico/bilancia";
 }
+
+// Samsung SDK storico: capacità del codice, non disponibilità garantita sul dispositivo.
+export const samsungReaderMetrics = new Set([
+  "weight",
+  "height",
+  "basalMetabolicRate",
+  "fatPercentage",
+  "fatMass",
+  "fatFreePercentage",
+  "fatFreeMass",
+  "musclePercentage",
+  "skeletalMusclePercentage",
+  "skeletalMuscleMass",
+  "bodyWaterVolume",
+  "bodyMassIndex",
+  "energyIntake",
+  "carbohydrateIntake",
+  "proteinIntake",
+  "fatIntake",
+  "sodiumIntake",
+  "fiberIntake",
+  "sugarIntake",
+  "saturatedFatIntake",
+  "systolicBloodPressure",
+  "diastolicBloodPressure",
+  "meanBloodPressure",
+  "pulseRate",
+  "heartRate",
+  "spo2",
+  "skinTemperature",
+  "sleepScore",
+  "sleepDuration",
+  "sleepInBedDuration",
+  "sleepStageDuration",
+  "fluidIntake",
+  "bloodGlucose",
+  "bodyTemperature",
+  "floorsClimbed",
+  "energyScore",
+]);

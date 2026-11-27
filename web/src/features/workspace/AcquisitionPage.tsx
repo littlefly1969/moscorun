@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { api, unwrap, type Schemas } from "../../api/client";
 import { metricCatalog } from "./metricCatalog";
-import { healthConnectReaderMetrics } from "./inventoryStatus";
+import { healthConnectReaderMetrics, samsungReaderMetrics } from "./inventoryStatus";
 
 type Inventory = Schemas["ScientificInventory"];
 interface Cursor {
@@ -407,6 +407,7 @@ function InventoryView({ inventory }: { inventory: Inventory }) {
                 <th scope="col">Metrica</th>
                 <th scope="col">Stato archivio</th>
                 <th scope="col">Lettore HC attuale</th>
+                <th scope="col">Samsung SDK</th>
                 <th scope="col">Valori / revisioni</th>
                 <th scope="col">Chunk / campioni</th>
                 <th scope="col">Pesate</th>
@@ -441,6 +442,7 @@ function InventoryView({ inventory }: { inventory: Inventory }) {
                           : "Nessun record"}
                   </td>
                   <td>{healthConnectReaderMetrics.has(row.id) ? "Prevista" : "Non prevista"}</td>
+                  <td>{samsungReaderMetrics.has(row.id) ? "Prevista" : "Non prevista"}</td>
                   <td>
                     {row.nonNull}/{row.stored}
                   </td>
