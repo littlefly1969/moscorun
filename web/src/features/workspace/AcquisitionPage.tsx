@@ -40,7 +40,12 @@ function ObservationHistory({ metric, source }: { metric: string; source: string
       {history.isError && <p role="alert">Impossibile leggere lo storico.</p>}
       {history.isSuccess && items.length === 0 && <p>Nessuna osservazione per questa sorgente.</p>}
       {items.length > 0 && (
-        <div className="table-scroll">
+        <div
+          className="table-scroll"
+          role="region"
+          aria-label="Tabella dello storico delle osservazioni"
+          tabIndex={0}
+        >
           <table>
             <thead>
               <tr>
@@ -131,7 +136,12 @@ function PhoneDiagnostics({
           {metric && !report.metrics.some((item) => item.metric === metric) && (
             <p>La metrica selezionata non è dichiarata in questo rapporto. Capacità non verificata.</p>
           )}
-          <div className="table-scroll">
+          <div
+            className="table-scroll"
+            role="region"
+            aria-label="Tabella della diagnostica per metrica"
+            tabIndex={0}
+          >
             <table>
               <thead>
                 <tr>
@@ -385,7 +395,12 @@ function InventoryView({ inventory }: { inventory: Inventory }) {
         />
       )}
       <section aria-label="Inventario delle metriche">
-        <div className="table-scroll">
+        <div
+          className="table-scroll"
+          role="region"
+          aria-label="Tabella dell’inventario delle metriche"
+          tabIndex={0}
+        >
           <table>
             <thead>
               <tr>

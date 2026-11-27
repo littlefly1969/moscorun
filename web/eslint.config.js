@@ -25,6 +25,9 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["error", { allowConstantExport: true }],
       "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }],
+      // Tabelle scorrevoli: una regione etichettata deve ricevere il fuoco da tastiera
+      // (WCAG 2.1.1, axe scrollable-region-focusable). Solo role="region", nessun altro elemento.
+      "jsx-a11y/no-noninteractive-tabindex": ["error", { tags: [], roles: ["tabpanel", "region"] }],
     },
   },
   {
