@@ -84,4 +84,44 @@ describe("centro acquisizione", () => {
     expect(await screen.findByText(/Nessun rapporto diagnostico ricevuto/)).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Inventario delle metriche" })).toHaveTextContent("Nessun record");
   });
+  it("mostra pesate, valori nulli, dispositivi revocati e permessi ignoti senza mescolare le fonti", async () => {
+    server.use(http.get("*/api/v1/science/inventory", () => HttpResponse.json({
+      ...inventory,
+      observations: [{ ...inventory.observations[0], metric: "fatigue", nonNullRows: 0, deviceId: null }],
+      scales: [{ deviceId: "scale1", attribution: "Rejected", weighings: 3, withImpedance: 1,
+        firstTime: at, lastTime: at, lastReceivedAt: at }],
+      devices: [{ id: "scale1", name: "Bilancia", lastSeenAt: null, revokedAt: at }],
+      diagnostics: [{
+        ...inventory.diagnostics[0],
+        report: { ...inventory.diagnostics[0]?.report, windowsRead: 0, firstReadFrom: null, readThrough: null,
+          metrics: [{ metric: "spo2", permission: "unknown", read: 0, attempted: 0, confirmed: 0, rejected: 0, conflicts: 0 }] },
+      }],
+    })));
+    renderApp("/acquisizione?metrica=weight");
+    const details = await screen.findByRole("region", { name: "Provenienza della metrica" });
+    expect(within(details).getByText(/3 record bilancia/)).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Pesate per dispositivo" })).toHaveTextContent("Rejected");
+    expect(screen.getByRole("region", { name: "Stato dei dispositivi" })).toHaveTextContent("Revocato");
+    expect(screen.getByRole("region", { name: "Diagnostica trasmessa dal telefono" })).toHaveTextContent("Capacità non verificata");
+    await userEvent.click(within(details).getByRole("button", { name: "Mostra tutte le metriche" }));
+    expect(screen.getByRole("region", { name: "Diagnostica trasmessa dal telefono" })).toHaveTextContent("Sconosciuto");
+    const catalog = screen.getByRole("region", { name: "Inventario delle metriche" });
+    expect(within(catalog).getByRole("row", { name: /Fatica/ })).toHaveTextContent("Solo valori mancanti");
+    await userEvent.click(within(catalog).getByRole("button", { name: "Intervallo RR" }));
+    expect(screen.getByRole("region", { name: "Provenienza della metrica" })).toHaveTextContent("120 campioni memorizzati");
+    await userEvent.selectOptions(screen.getByLabelText("Sorgente"), "bilancia");
+    expect(screen.getByRole("region", { name: "Provenienza della metrica" })).toHaveTextContent("Nessun record scientifico");
+    await userEvent.click(screen.getByRole("button", { name: "Aggiorna inventario" }));
+  });
+
+  it("dall'atlante distingue una metrica remota non esposta dal motore daily", async () => {
+    server.use(http.get("*/api/v1/science/inventory", () => HttpResponse.json(inventory)));
+    renderApp("/");
+    await userEvent.type(await screen.findByLabelText("Cerca metrica"), "spo2");
+    const catalog = screen.getByRole("region", { name: "Catalogo metriche" });
+    const link = await within(catalog).findByRole("link", { name: "Presente · 2 valori" });
+    expect(link).toHaveAttribute("href", "/acquisizione?metrica=spo2");
+    await userEvent.click(link);
+    expect(await screen.findByRole("region", { name: "Provenienza della metrica" })).toHaveTextContent("Non esposta dal motore giornaliero");
+  });
 });

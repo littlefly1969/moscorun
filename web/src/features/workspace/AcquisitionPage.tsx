@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { api, unwrap, type Schemas } from "../../api/client";
 import { metricCatalog } from "./metricCatalog";
+import { healthConnectReaderMetrics } from "./inventoryStatus";
 
 type Inventory = Schemas["ScientificInventory"];
 interface Cursor {
@@ -199,12 +200,16 @@ function InventoryView({ inventory }: { inventory: Inventory }) {
         </label>
       </div>
       <PhoneDiagnostics inventory={inventory} source={source} metric={selected} />
+      <p>La colonna Lettore HC attuale indica le capacità implementate nella versione corrente del codice Android
+        (Health Connect), non quelle dell’app installata o dell’orologio. Per i permessi effettivi consulta il rapporto.</p>
       <p>Un conteggio zero significa solo che non ci sono record nella sezione di archivio interrogata,
         non che l'orologio non misuri il dato o che il telefono non abbia i permessi.</p>
       {current && (
         <section className="card" aria-label="Provenienza della metrica">
           <h2>{label(current.id)}</h2>
           <button type="button" onClick={() => { setSelected(""); setParams({}); setHistory(null); }}>Mostra tutte le metriche</button>
+          <p>{healthConnectReaderMetrics.has(current.id) ? "Lettore Android Health Connect: acquisizione prevista dal codice." :
+            "Lettore Android Health Connect: acquisizione non prevista dal codice corrente."} Non è una verifica dell’hardware o della versione installata.</p>
           <p>{daily ? "Analisi giornaliera prevista" : "Non esposta dal motore giornaliero"} ·
             la disponibilità per gli altri motori dipende dai loro protocolli.</p>
           {!present(current) && <p>Nessun record scientifico o pesata in questa selezione.</p>}
@@ -235,6 +240,7 @@ function InventoryView({ inventory }: { inventory: Inventory }) {
               <tr>
                 <th scope="col">Metrica</th>
                 <th scope="col">Stato archivio</th>
+                <th scope="col">Lettore HC attuale</th>
                 <th scope="col">Valori / revisioni</th>
                 <th scope="col">Chunk / campioni</th>
                 <th scope="col">Pesate</th>
@@ -254,6 +260,7 @@ function InventoryView({ inventory }: { inventory: Inventory }) {
                   </th>
                   <td>{row.nonNull > 0 || row.scaleRows > 0 ? "Valori presenti" : row.chunkCount > 0 ? "Chunk presenti" :
                     row.stored > 0 ? "Solo valori mancanti" : "Nessun record"}</td>
+                  <td>{healthConnectReaderMetrics.has(row.id) ? "Prevista" : "Non prevista"}</td>
                   <td>{row.nonNull}/{row.stored}</td>
                   <td>{row.chunkCount}/{row.sampleCount}</td>
                   <td>{row.scaleRows}</td>

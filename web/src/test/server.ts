@@ -88,6 +88,9 @@ export const handlers = [
     HttpResponse.json({ id: "u1", email: "stefano@example.it", displayName: null }),
   ),
   http.get("*/api/v1/dashboard/summary", () => HttpResponse.json(summary)),
+  http.get("*/api/v1/science/inventory", () => HttpResponse.json({
+    asOf: "2026-11-26T12:00:00Z", observations: [], signals: [], scales: [], devices: [], diagnostics: [],
+  })),
   http.get("*/api/v1/weighings", () =>
     HttpResponse.json({
       items: [

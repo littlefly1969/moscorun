@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import { api, unwrap, type Schemas } from "../../api/client";
 import { metricCatalog, metricFamilies, type MetricDefinition } from "./metricCatalog";
 import { ScienceSourceField } from "../science/ScienceSourceField";
+import { archiveStatus } from "./inventoryStatus";
 
 interface Scope {
   source: string;
@@ -170,6 +171,10 @@ function MetricInspector({
 }
 
 export function AtlasPage() {
+  const inventory = useQuery({
+    queryKey: ["acquisition", "inventory"],
+    queryFn: () => unwrap(api.GET("/api/v1/science/inventory")),
+  });
   const [search, setSearch] = useState("");
   const [family, setFamily] = useState("all");
   const [selected, setSelected] = useState("restingHeartRate");
@@ -254,6 +259,8 @@ export function AtlasPage() {
         <p className="sw-kicker">01 / Osservatorio scientifico</p>
         <h1>Atlante delle metriche</h1>
         <p>Il patrimonio osservabile dell’atleta. Ogni misura conserva fonte, metodo e disponibilità.</p>
+        <p>Archivio remoto: tutte le sorgenti scientifiche e la bilancia, indipendentemente dal giorno del motore daily.
+          Le serie native delle sedute sono in Allenamenti. <Link to="/acquisizione">Apri il Centro acquisizione</Link>.</p>
       </header>
       <div className="sw-index">
         <span>
@@ -341,6 +348,7 @@ export function AtlasPage() {
                     <th scope="col">Unità</th>
                     <th scope="col">Valore</th>
                     <th scope="col">Stato</th>
+                    <th scope="col">Archivio remoto</th>
                     <th scope="col">Preferita</th>
                   </tr>
                 </thead>
@@ -372,6 +380,9 @@ export function AtlasPage() {
                         <td>{metric.unit}</td>
                         <td className="sw-numeric">{value == null ? "—" : number.format(value)}</td>
                         <td>{lookup(metric)}</td>
+                        <td><Link to={"/acquisizione?metrica=" + encodeURIComponent(metric.id)}>
+                          {archiveStatus(inventory.isError ? undefined : inventory.data, metric.id)}
+                        </Link></td>
                         <td>
                           <button
                             type="button"

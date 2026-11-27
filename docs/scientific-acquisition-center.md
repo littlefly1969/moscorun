@@ -28,3 +28,7 @@ esportazione, retention e cancellazione scientifica. Migrazione additiva della t
 - I report non sono una prova di completezza del database; dopo offline o server vecchio il telefono conserva
   il riepilogo locale del run, mentre il server mostra solo l'ultimo report ricevuto.
 - Per i connettori che non implementano la telemetria, le capacità restano ignote.
+
+L'Atlante mostra lo stato dell'archivio remoto anche prima della selezione di un giorno di analisi.
+La colonna Lettore HC attuale indica le sette metriche implementate nel codice Android, indipendentemente
+dal rapporto reale o dall'hardware. Le capacità correnti del dispositivo non sono inferite da assenza di dati.
