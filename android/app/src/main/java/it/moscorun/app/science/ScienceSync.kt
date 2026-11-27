@@ -176,7 +176,7 @@ class ScienceSync(
             advanced = false
             for (stream in streams) {
                 if (stream.group in failed) continue
-                val to = stream.older ?: continue
+                val to = stream.older?.let { minOf(it, end) } ?: continue
                 if (!to.isAfter(floor)) continue
                 val from = maxOf(floor, to.minus(stream.width))
                 if (!readWindow(stream, from, to)) continue

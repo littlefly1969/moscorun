@@ -128,7 +128,7 @@ class SyncRunner(
             val remaining = (limits.maxRunMillis - Duration.between(started, now()).toMillis()).coerceAtLeast(0)
             val deadline = now().plusMillis(remaining / (readers.size - index))
             val current = syncScienceReader(combined, reader, api, positions, scope, started,
-                { shouldStop() || !now().isBefore(deadline) }, progress)
+                shouldStop, deadline, progress)
             combined = if (current.outcome == RunOutcome.AUTH_REQUIRED) current
                 else if (combined.outcome in setOf(RunOutcome.MORE_WORK, RunOutcome.SOURCE_BLOCKED))
                     current.copy(outcome = combined.outcome) else current
@@ -138,13 +138,13 @@ class SyncRunner(
     }
 
     private suspend fun syncScienceReader(workouts: SyncResult, reader: ScienceReader, api: ServerApi, positions: ScienceStateStore,
-        scope: String, started: Instant, shouldStop: () -> Boolean, progress: (SyncProgress) -> Unit): SyncResult {
+        scope: String, started: Instant, shouldStop: () -> Boolean, deadline: Instant, progress: (SyncProgress) -> Unit): SyncResult {
         progress(SyncProgress("Invio dei dati scientifici: ${reader.source}", workouts.report))
         val historyYears = if (prefs.historyYears == SyncPlan.ALL_HISTORY) limits.maxHistoryYears else prefs.historyYears
         val scienceLimits = if (reader.isolatedStreams) ScienceLimits(historyDays = historyYears * 365) else ScienceLimits()
         val outcome = ScienceSync(reader, api, positions, scope, limits = scienceLimits, now = now,
-            shouldStop = { shouldStop() || Duration.between(started, now()).toMillis() >= limits.maxRunMillis }).run()
-        val telemetry = if (outcome.state != ScienceState.AUTH_REQUIRED)
+            shouldStop = { shouldStop() || !now().isBefore(deadline) || Duration.between(started, now()).toMillis() >= limits.maxRunMillis }).run()
+        val telemetry = if (outcome.state != ScienceState.AUTH_REQUIRED && !shouldStop())
             outcome.diagnostic?.let { api.postScienceDiagnostic(it.json()) }
         else null
         val telemetryMessage = when (telemetry) {
