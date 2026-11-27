@@ -59,6 +59,54 @@ public sealed class ScientificIngestEndpointTests(ApiFactory factory)
         };
 
     [Fact]
+    public async Task Inventory_reports_actual_rows_and_keeps_other_athletes_out()
+    {
+        var (user, phone, _, device) = await PhoneAsync();
+        var (otherUser, otherPhone, _, _) = await PhoneAsync();
+        var sample = Hrv(Yesterday, metric: "spo2", unit: "%", value: 97);
+        var body = new { source = "health-connect", samples = new[] { sample } };
+        (await phone.PostAsJsonAsync(Observations, body, Ct)).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await phone.PostAsJsonAsync(Observations, body, Ct)).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await phone.PostAsJsonAsync(Observations, new { source = "health-connect",
+            samples = new[] { Hrv(Yesterday, metric: "spo2", unit: "%", revision: "2", value: 98) } }, Ct))
+            .StatusCode.Should().Be(HttpStatusCode.OK);
+        (await phone.PostAsJsonAsync(Signals, Rr(Yesterday), Ct)).StatusCode.Should().Be(HttpStatusCode.Created);
+        (await otherPhone.PostAsJsonAsync(Observations, new { source = "health-connect", samples = new[] { Hrv(Yesterday) } }, Ct))
+            .StatusCode.Should().Be(HttpStatusCode.OK);
+
+        const string inventoryUri = "/api/v1/science/inventory";
+        var response = await user.GetAsync(inventoryUri, Ct);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Headers.CacheControl!.NoStore.Should().BeTrue();
+        var inventory = (await response.Content.ReadFromJsonAsync<ScientificInventory>(Json.Options, Ct))!;
+        var group = inventory.Observations.Should().ContainSingle().Subject;
+        group.Metric.Should().Be("spo2");
+        group.DeviceId.Should().Be(device);
+        group.RevisionRows.Should().Be(2);
+        group.NonNullRows.Should().Be(2);
+        inventory.Signals.Should().ContainSingle().Which.StoredSamples.Should().Be(120);
+        var other = (await otherUser.GetFromJsonAsync<ScientificInventory>(inventoryUri, Json.Options, Ct))!;
+        other.Observations.Should().ContainSingle().Which.Metric.Should().Be("hrvRmssd");
+        other.Signals.Should().BeEmpty();
+
+        const string historyUri = inventoryUri + "/observations?metric=spo2&source=health-connect&limit=1";
+        var first = (await user.GetFromJsonAsync<InventoryObservationPage>(historyUri, Json.Options, Ct))!;
+        first.HasMore.Should().BeTrue();
+        var item = first.Items.Should().ContainSingle().Subject;
+        var next = historyUri + "&asOf=" + Uri.EscapeDataString(first.AsOf.ToString("O", CultureInfo.InvariantCulture)) +
+            "&beforeTime=" + Uri.EscapeDataString(item.Time.ToString("O", CultureInfo.InvariantCulture)) +
+            "&beforeId=" + item.Id;
+        var second = (await user.GetFromJsonAsync<InventoryObservationPage>(next, Json.Options, Ct))!;
+        second.HasMore.Should().BeFalse();
+        second.Items.Should().ContainSingle().Which.Id.Should().NotBe(item.Id);
+        (await otherUser.GetFromJsonAsync<InventoryObservationPage>(historyUri, Json.Options, Ct))!.Items.Should().BeEmpty();
+        (await user.GetAsync(historyUri + "&limit=101", Ct)).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var anonymous = factory.CreateClient();
+        (await anonymous.GetAsync(inventoryUri, Ct)).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        (await phone.GetAsync(inventoryUri, Ct)).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
     public async Task Phone_observations_are_imported_once_with_device_provenance_and_reach_the_daily_engine()
     {
         var (user, phone, owner, device) = await PhoneAsync();
