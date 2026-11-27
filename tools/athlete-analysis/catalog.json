@@ -854,6 +854,202 @@
       "category": "providerEstimates",
       "availability": "capability-dependent",
       "interpretation": "method_required"
+    },
+    {
+      "metric": "ppgGreen",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "ppgInfrared",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "ppgRed",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "ppgGreenStatus",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "ppgInfraredStatus",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "ppgRedStatus",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "ecgLeadOff",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "ecgSequence",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "ecgMaxThreshold",
+      "unit": "mV",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "ecgMinThreshold",
+      "unit": "mV",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "heartRateStatus",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "edaStatus",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "spo2Status",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "skinTemperatureStatus",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "watchAmbientTemperature",
+      "unit": "Cel",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "accelerationRawX",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "accelerationRawY",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "accelerationRawZ",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "mfBiaStatus",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "mfBiaProgress",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "mfBiaMagnitude5k",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "mfBiaPhase5k",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "mfBiaMagnitude10k",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "mfBiaPhase10k",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "mfBiaMagnitude50k",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "mfBiaPhase50k",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "mfBiaMagnitude250k",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "mfBiaPhase250k",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
     }
   ]
 }

@@ -8,7 +8,7 @@ public static class WearableIngestCatalog
 {
     private static readonly HashSet<string> Sources = new(StringComparer.Ordinal)
     {
-        "garmin-connect", "samsung-health", "health-connect",
+        "garmin-connect", "samsung-health", "health-connect", "samsung-sensor",
     };
 
     private static readonly HashSet<string> ObservationMetrics = new(StringComparer.Ordinal)
@@ -58,6 +58,34 @@ public static class WearableIngestCatalog
         "strideLength", "stepSpeedLoss", "stepSpeedLossPercent",
         "accelerationX", "accelerationY", "accelerationZ", "angularVelocityX", "angularVelocityY", "angularVelocityZ",
         "ppg", "ecg", "eda", "muscleOxygenSaturation",
+        "ppgGreen",
+        "ppgInfrared",
+        "ppgRed",
+        "ppgGreenStatus",
+        "ppgInfraredStatus",
+        "ppgRedStatus",
+        "ecgLeadOff",
+        "ecgSequence",
+        "ecgMaxThreshold",
+        "ecgMinThreshold",
+        "heartRateStatus",
+        "edaStatus",
+        "spo2Status",
+        "skinTemperatureStatus",
+        "watchAmbientTemperature",
+        "accelerationRawX",
+        "accelerationRawY",
+        "accelerationRawZ",
+        "mfBiaStatus",
+        "mfBiaProgress",
+        "mfBiaMagnitude5k",
+        "mfBiaPhase5k",
+        "mfBiaMagnitude10k",
+        "mfBiaPhase10k",
+        "mfBiaMagnitude50k",
+        "mfBiaPhase50k",
+        "mfBiaMagnitude250k",
+        "mfBiaPhase250k",
         "airTemperature", "humidity", "windSpeed", "windDirection", "barometricPressure",
     };
 
