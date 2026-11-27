@@ -1222,4 +1222,20 @@ export const metricCatalog: MetricDefinition[] = [
     access: "catalog",
     interpretation: "method_required",
   },
+  {
+    id: "pulseInterval",
+    label: "Intervallo tra pulsazioni · batch",
+    unit: "ms",
+    family: "rawSignals",
+    access: "catalog",
+    interpretation: "method_required",
+  },
+  {
+    id: "pulseIntervalStatus",
+    label: "Stato intervallo tra pulsazioni",
+    unit: "native",
+    family: "rawSignals",
+    access: "catalog",
+    interpretation: "method_required",
+  },
 ];

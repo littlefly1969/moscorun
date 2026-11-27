@@ -1050,6 +1050,20 @@
       "category": "rawSignals",
       "availability": "capability-dependent",
       "interpretation": "method_required"
+    },
+    {
+      "metric": "pulseInterval",
+      "unit": "ms",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "pulseIntervalStatus",
+      "unit": "native",
+      "category": "rawSignals",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
     }
   ]
 }

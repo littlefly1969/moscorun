@@ -18,6 +18,7 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.net.ssl.HttpsURLConnection
 
 data class WatchConnection(val base: String, val token: String) {
+    override fun toString() = "WatchConnection(HTTPS, token redacted)"
     val scope: String get() = MessageDigest.getInstance("SHA-256").digest((base + "\n" + token).toByteArray())
         .joinToString("") { "%02x".format(it) }
 

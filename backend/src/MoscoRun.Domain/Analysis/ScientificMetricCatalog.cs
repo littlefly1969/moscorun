@@ -155,6 +155,8 @@ public static class ScientificMetricCatalog
         ["mfBiaPhase50k"] = "native",
         ["mfBiaMagnitude250k"] = "native",
         ["mfBiaPhase250k"] = "native",
+        ["pulseInterval"] = "ms",
+        ["pulseIntervalStatus"] = "native",
     };
 
     public const int SchemaVersion = 1;

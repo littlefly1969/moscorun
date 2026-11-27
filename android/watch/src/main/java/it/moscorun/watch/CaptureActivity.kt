@@ -50,11 +50,7 @@ class CaptureActivity : Activity() {
                 buttons.removeAllViews()
                 if (available.isEmpty()) buttons.addView(TextView(this).apply { text = "Nessun tracker integrato disponibile" })
                 available.forEach { type -> buttons.addView(button(type.name) { request(type) }) }
-            } }, { payloads ->
-                val target = checkNotNull(connection) { "Server non configurato" }
-                queue.append(target, payloads)
-                drain()
-            })
+            } })
         capture.connect()
         drain()
     }
@@ -104,7 +100,12 @@ class CaptureActivity : Activity() {
     }
 
     private fun start(type: HealthTrackerType) {
-        runCatching { capture.start(type) }.onFailure { status.text = "Tracker non disponibile o SDK non autorizzato" }
+        val target = connection ?: return
+        // Capture the account at session start, never route a late callback to new credentials.
+        runCatching { capture.start(type) { payloads ->
+            queue.append(target, payloads)
+            drain()
+        } }.onFailure { status.text = "Tracker non disponibile o SDK non autorizzato" }
     }
 
     private fun drain() {

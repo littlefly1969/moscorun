@@ -86,6 +86,8 @@ public static class WearableIngestCatalog
         "mfBiaPhase50k",
         "mfBiaMagnitude250k",
         "mfBiaPhase250k",
+        "pulseInterval",
+        "pulseIntervalStatus",
         "airTemperature", "humidity", "windSpeed", "windDirection", "barometricPressure",
     };
 

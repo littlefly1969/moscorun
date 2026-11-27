@@ -16,10 +16,10 @@ import java.util.UUID
 
 /** The actual SDK adapter, not a simulated sensor. Each session is explicitly initiated by the user. */
 class SamsungCapture(context: Context, private val status: (String) -> Unit,
-    private val capabilities: (List<HealthTrackerType>) -> Unit, private val store: (List<SensorPayload>) -> Unit) {
+    private val capabilities: (List<HealthTrackerType>) -> Unit) {
     private var tracker: HealthTracker? = null
     private var session = UUID.randomUUID()
-    private var generation = 0
+    @Volatile private var generation = 0
     private val service: HealthTrackingService = HealthTrackingService(object : ConnectionListener {
         override fun onConnectionSuccess() {
             capabilities(service.trackingCapability.supportHealthTrackerTypes.filter { it in supported })
@@ -31,13 +31,15 @@ class SamsungCapture(context: Context, private val status: (String) -> Unit,
 
     fun connect() = service.connectService()
 
-    fun start(type: HealthTrackerType) {
+    fun start(type: HealthTrackerType, store: (List<SensorPayload>) -> Unit) {
         stop()
         require(type in supported && type in service.trackingCapability.supportHealthTrackerTypes)
         session = UUID.randomUUID()
         val run = session
         val current = ++generation
-        tracker = service.getHealthTracker(type).also { active ->
+        val active = service.getHealthTracker(type)
+        tracker = active
+        run {
             active.setEventListener(object : HealthTracker.TrackerEventListener {
                 override fun onDataReceived(list: List<DataPoint>) {
                     if (current != generation) return
@@ -107,6 +109,19 @@ class SamsungCapture(context: Context, private val status: (String) -> Unit,
             HealthTrackerType.HEART_RATE_CONTINUOUS -> {
                 add("heartRate", "bpm", "HEART_RATE", ValueKey.HeartRateSet.HEART_RATE, reported = true)
                 add("heartRateStatus", "native", "HEART_RATE_STATUS", ValueKey.HeartRateSet.HEART_RATE_STATUS)
+                // The SDK gives an ordered batch, not a timestamp for every beat. Keep its event time and slot.
+                for (point in points) {
+                    val intervals = runCatching { point.getValue(ValueKey.HeartRateSet.IBI_LIST) }.getOrNull().orEmpty()
+                    val flags = runCatching { point.getValue(ValueKey.HeartRateSet.IBI_STATUS_LIST) }.getOrNull().orEmpty()
+                    intervals.forEachIndexed { index, value ->
+                        val channel = SensorChannel("pulseInterval", "ms", type.name + ":IBI_LIST[$index]", false)
+                        output.getOrPut(channel) { mutableListOf() }.add(SensorSample(point.timestamp, value.toDouble()))
+                    }
+                    flags.forEachIndexed { index, value ->
+                        val channel = SensorChannel("pulseIntervalStatus", "native", type.name + ":IBI_STATUS_LIST[$index]", false)
+                        output.getOrPut(channel) { mutableListOf() }.add(SensorSample(point.timestamp, value.toDouble()))
+                    }
+                }
             }
             HealthTrackerType.EDA_CONTINUOUS -> {
                 add("eda", "uS", "SKIN_CONDUCTANCE", ValueKey.EdaSet.SKIN_CONDUCTANCE)
