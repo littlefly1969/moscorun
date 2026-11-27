@@ -1998,6 +1998,9 @@ export interface components {
       rejected: number;
       /** Format: int32 */
       conflicts: number;
+      /** Format: int32 */
+      windowsRead?: number | null;
+      readError?: boolean | null;
     };
     ScientificInventory: {
       /** Format: date-time */

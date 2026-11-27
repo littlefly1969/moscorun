@@ -71,7 +71,13 @@ public sealed class ScienceDiagnosticStore(MoscoRunDbContext db, TimeProvider cl
             return false;
         }
 
-        var readable = windowsRead > 0 && string.Equals(item.Permission, "granted", StringComparison.Ordinal);
+        if (item.WindowsRead < 0 || item.WindowsRead > windowsRead ||
+            (item.WindowsRead > 0 && !string.Equals(item.Permission, "granted", StringComparison.Ordinal)))
+        {
+            return false;
+        }
+
+        var readable = (item.WindowsRead ?? windowsRead) > 0 && string.Equals(item.Permission, "granted", StringComparison.Ordinal);
         return HasValidCounts(item) && (readable || item.Read == 0);
     }
 

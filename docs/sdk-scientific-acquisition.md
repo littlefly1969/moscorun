@@ -2,8 +2,8 @@
 
 Incremento Health Connect e Samsung Health Data SDK diretto. La build privata usa già AAR Samsung 1.1.0.
 I due lettori sono indipendenti dal provider degli allenamenti, con consensi e checkpoint separati. Il
-checkpoint locale include versione del lettore e set di permessi, così un nuovo consenso non salta lo storico.
-Il limite storico iniziale rimane quello del motore ScienceSync (30 giorni o 365 con history).
+checkpoint locale include versione, permesso storico e singola famiglia. Il recupero parte dalle misure recenti e procede a ritroso a turni; i fallimenti di lettura non fanno avanzare il relativo cursore. Una quota del tempo di sincronizzazione è riservata ai dati scientifici anche quando gli allenamenti non sono allineati. Le finestre lette e gli errori sono riportati per metrica (i vecchi rapporti restano compatibili).
+Lo storico segue la scelta dell’utente (fino al limite tecnico di 20 anni), con 30 giorni se Health Connect non concede il permesso storico.
 Il server conserva fonte, revisione, unità e native field; non sommare record provenienti da sorgenti diverse.
 La deduplicazione cross-source richiede un successivo matching verificabile, non uguaglianza numerica.
 

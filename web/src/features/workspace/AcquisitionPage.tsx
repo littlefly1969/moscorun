@@ -131,7 +131,7 @@ function PhoneDiagnostics({
             {report.windowsRead > 0
               ? "Finestre lette: " + number.format(report.windowsRead)
               : "Nessuna finestra completata"}{" "}
-            · da {date(report.firstReadFrom)} a {date(report.readThrough)}.
+            · estremi delle finestre {date(report.firstReadFrom)} – {date(report.readThrough)} (non necessariamente contigue).
           </p>
           {metric && !report.metrics.some((item) => item.metric === metric) && (
             <p>La metrica selezionata non è dichiarata in questo rapporto. Capacità non verificata.</p>
@@ -147,6 +147,7 @@ function PhoneDiagnostics({
                 <tr>
                   <th scope="col">Metrica</th>
                   <th scope="col">Permesso</th>
+                  <th scope="col">Lettura SDK</th>
                   <th scope="col">Letti</th>
                   <th scope="col">Tentati</th>
                   <th scope="col">Confermati</th>
@@ -168,7 +169,20 @@ function PhoneDiagnostics({
                             ? "Non concesso"
                             : "Sconosciuto"}
                       </td>
-                      <td>{item.permission === "granted" && report.windowsRead > 0 ? item.read : "—"}</td>
+                      <td>
+                        {item.readError
+                          ? "Errore di lettura"
+                          : item.windowsRead == null
+                            ? "Dettaglio non disponibile"
+                            : item.windowsRead === 0
+                              ? "Non letta in questo run"
+                              : `${item.windowsRead} finestre`}
+                      </td>
+                      <td>
+                        {item.permission === "granted" && (item.windowsRead ?? report.windowsRead) > 0
+                          ? item.read
+                          : "—"}
+                      </td>
                       <td>{item.attempted}</td>
                       <td>{item.confirmed}</td>
                       <td>

@@ -6404,6 +6404,21 @@
           "conflicts": {
             "type": "integer",
             "format": "int32"
+          },
+          "windowsRead": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32",
+            "default": null
+          },
+          "readError": {
+            "type": [
+              "null",
+              "boolean"
+            ],
+            "default": null
           }
         },
         "description": "Contatori delle osservazioni mappate durante una singola esecuzione, non delle misure uniche."

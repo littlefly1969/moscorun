@@ -46,6 +46,7 @@ class HealthConnectScienceReader(context: Context) : ScienceReader {
     private val client get() = HealthConnectClient.getOrCreate(appContext)
 
     override val source = "health-connect"
+    override val isolatedStreams = true
     override val supportedMetrics get() = ScienceCapabilities.healthConnect
     override fun checkpoint(availability: ScienceAvailability) = ScienceCapabilities.checkpoint(source, "hc-expanded-v1", availability)
 

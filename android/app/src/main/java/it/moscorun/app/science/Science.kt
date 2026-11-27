@@ -90,6 +90,9 @@ interface ScienceReader {
     /** Explicit capability of this reader, not a hardware claim. */
     val supportedMetrics: Set<ScienceMetric> get() = ScienceMetric.entries.filterNot { it.name.startsWith("SAMSUNG_") }.toSet()
 
+    /** True for multi-family SDKs whose permissions and progress must stay independent. */
+    val isolatedStreams: Boolean get() = false
+
     /** Local cursor identity; source on the wire stays unchanged. */
     fun checkpoint(availability: ScienceAvailability): String = source
 

@@ -21,6 +21,7 @@ import java.time.ZoneOffset
 class SamsungScienceReader(context: Context) : ScienceReader {
     private val store by lazy { HealthDataService.getStore(context.applicationContext) }
     override val source = "samsung-health"
+    override val isolatedStreams = true
     override val supportedMetrics get() = ScienceCapabilities.samsung
     override fun checkpoint(availability: ScienceAvailability) = ScienceCapabilities.checkpoint(source, "samsung-data-v1", availability)
 
