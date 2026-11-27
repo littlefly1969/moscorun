@@ -107,6 +107,8 @@ export const samsungReaderMetrics = new Set([
   "bodyTemperature",
   "floorsClimbed",
   "energyScore",
+  "irregularRhythmNotification",
+  "sleepApneaRiskSign",
   "steps",
   "activeDuration",
   "activeEnergyExpenditure",

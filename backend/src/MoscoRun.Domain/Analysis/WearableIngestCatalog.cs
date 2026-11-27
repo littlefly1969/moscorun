@@ -46,6 +46,8 @@ public static class WearableIngestCatalog
         "fiberIntake",
         "sugarIntake",
         "saturatedFatIntake",
+        "irregularRhythmNotification",
+        "sleepApneaRiskSign",
     };
 
     private static readonly HashSet<string> SignalMetrics = new(StringComparer.Ordinal)

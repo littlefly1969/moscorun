@@ -49,6 +49,8 @@ enum class ScienceMetric(val label: String) {
     SAMSUNG_ENERGY("Energy Score Samsung"),
     SAMSUNG_STEPS("passi aggregati Samsung"),
     SAMSUNG_ACTIVITY("attività aggregata Samsung"),
+    SAMSUNG_RHYTHM("notifiche ritmo irregolare Samsung"),
+    SAMSUNG_APNEA("segnalazioni apnea Samsung"),
 }
 
 /**

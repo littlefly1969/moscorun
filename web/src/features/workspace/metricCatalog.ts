@@ -982,4 +982,20 @@ export const metricCatalog: MetricDefinition[] = [
     access: "catalog",
     interpretation: "method_required",
   },
+  {
+    id: "irregularRhythmNotification",
+    label: "Notifica ritmo irregolare Samsung",
+    unit: "1",
+    family: "cardiovascular",
+    access: "catalog",
+    interpretation: "method_required",
+  },
+  {
+    id: "sleepApneaRiskSign",
+    label: "Segnalazione rischio apnea Samsung",
+    unit: "1",
+    family: "providerEstimates",
+    access: "catalog",
+    interpretation: "method_required",
+  },
 ];

@@ -44,6 +44,8 @@ class SamsungScienceReader(context: Context) : ScienceReader {
         ScienceMetric.SAMSUNG_ENERGY to Permission.of(DataTypes.ENERGY_SCORE, AccessType.READ),
         ScienceMetric.SAMSUNG_STEPS to Permission.of(DataTypes.STEPS, AccessType.READ),
         ScienceMetric.SAMSUNG_ACTIVITY to Permission.of(DataTypes.ACTIVITY_SUMMARY, AccessType.READ),
+        ScienceMetric.SAMSUNG_RHYTHM to Permission.of(DataTypes.IRREGULAR_HEART_RHYTHM_NOTIFICATION, AccessType.READ),
+        ScienceMetric.SAMSUNG_APNEA to Permission.of(DataTypes.SLEEP_APNEA, AccessType.READ),
     )
 
     override suspend fun availability(): ScienceAvailability = try {
@@ -159,6 +161,20 @@ class SamsungScienceReader(context: Context) : ScienceReader {
                                 suffix = ":stage:" + stage.startTime)
                         }
                     }
+            }
+            if (ScienceMetric.SAMSUNG_RHYTHM in metrics) {
+                for (point in all(DataTypes.IRREGULAR_HEART_RHYTHM_NOTIFICATION.readDataRequestBuilder, from, to)) {
+                    val status = point.getValue(DataType.IrregularHeartRhythmNotificationType.STATUS)?.name ?: continue
+                    val value = SdkObservationMapping.monitorStatus(status, negativeSupported = false)
+                    addValue(point, "irregularRhythmNotification", "1", value, "IrregularHeartRhythmNotificationType.STATUS.$status")
+                }
+            }
+            if (ScienceMetric.SAMSUNG_APNEA in metrics) {
+                for (point in all(DataTypes.SLEEP_APNEA.readDataRequestBuilder, from, to)) {
+                    val status = point.getValue(DataType.SleepApneaType.DETECTED_SIGN)?.name ?: continue
+                    val value = SdkObservationMapping.monitorStatus(status, negativeSupported = true)
+                    addValue(point, "sleepApneaRiskSign", "1", value, "SleepApneaType.DETECTED_SIGN.$status")
+                }
             }
             if (ScienceMetric.SAMSUNG_STEPS in metrics) {
                 addAll(daily(DataType.StepsType.TOTAL.requestBuilder, from, to, "steps", "1",

@@ -125,6 +125,8 @@ public static class ScientificMetricCatalog
         ["fiberIntake"] = "g",
         ["sugarIntake"] = "g",
         ["saturatedFatIntake"] = "g",
+        ["irregularRhythmNotification"] = "1",
+        ["sleepApneaRiskSign"] = "1",
     };
 
     public const int SchemaVersion = 1;

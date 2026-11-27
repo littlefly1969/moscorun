@@ -15,7 +15,7 @@ La deduplicazione cross-source richiede un successivo matching verificabile, non
 - Samsung Data SDK: composizione corporea (inclusi kg di muscolo scheletrico e volume acqua in L), battito,
   SpO2, temperatura cutanea, sonno e score, pressione, nutrienti, acqua, glicemia, temperatura corporea,
   piani e Energy Score. Campioni di serie storiche mappati come osservazioni puntuali, non come ECG.
-- Catalogo condiviso: 120 metriche, unità esplicite e diagnostica per fonte. BMR non è dispendio giornaliero;
+- Catalogo condiviso: 122 metriche, unità esplicite e diagnostica per fonte. BMR non è dispendio giornaliero;
   percentuale muscolo non è kg; volume acqua in L non è massa in kg.
 - SDK ufficiali: https://developer.samsung.com/health/data/guide/features/data-types.html
   e https://developer.android.com/health-and-fitness/health-connect/data-types
@@ -29,3 +29,5 @@ Sono ora inclusi Steps.TOTAL e i quattro aggregati Activity Summary (giorni conc
 nativi, tutte le classi Health Connect o tutti i nutrienti; i record sovrapposti fra canali rimangono
 distinti, nessuna imputazione. Nessun export, accesso non ufficiale o simulazione di misure.
 Public CI usa lo stub esplicito Samsung; solo la build privata con AAR reale verifica i tipi SDK.
+
+Samsung Health Monitor: l'SDK 1.1.0 espone le notifiche di ritmo irregolare e il risultato della segnalazione di rischio apnea se è stato consentito il trasferimento in Samsung Health. Sono risultati del fornitore, non diagnosi, non ECG. Il valore 1 indica DETECTED; 0 solo NOT_DETECTED esplicitamente presente per apnea. UNDEFINED non è trasformato in zero. Fonte: https://developer.samsung.com/health/data/release-note.html

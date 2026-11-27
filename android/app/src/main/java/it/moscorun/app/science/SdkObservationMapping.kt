@@ -14,6 +14,13 @@ object SdkObservationMapping {
             value, time, method, origin.app.take(200).ifBlank { null }, nativeMetric, nativeUnit,
             nativeValue?.takeIf { it.isFinite() }, version)
     }
+    /** Provider's explicit categorical result. No event or undefined status is not a negative result. */
+    fun monitorStatus(status: String, negativeSupported: Boolean): Double? = when (status) {
+        "DETECTED" -> 1.0
+        "NOT_DETECTED" -> if (negativeSupported) 0.0 else null
+        else -> null
+    }
+
     /**
      * SDK aggregate results have interval bounds and a value, not a native revision timestamp.
      * Keep changed values as unordered revisions; never invent an update time or overwrite a previous result.

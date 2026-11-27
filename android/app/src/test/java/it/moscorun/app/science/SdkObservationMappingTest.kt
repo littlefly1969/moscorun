@@ -49,4 +49,11 @@ class SdkObservationMappingTest {
         assertNull(SdkObservationMapping.samsungDailyAggregate("steps", "1", null, at, end,
             "StepsType.TOTAL", ScienceMethod.PROVIDER_REPORTED))
     }
+    @Test fun `monitor notifications are explicit provider results not diagnoses or inferred negatives`() {
+        assertEquals(1.0, SdkObservationMapping.monitorStatus("DETECTED", false))
+        assertNull(SdkObservationMapping.monitorStatus("NOT_DETECTED", false))
+        assertEquals(0.0, SdkObservationMapping.monitorStatus("NOT_DETECTED", true))
+        assertNull(SdkObservationMapping.monitorStatus("UNDEFINED", true))
+        assertNull(SdkObservationMapping.monitorStatus("unknown", true))
+    }
 }

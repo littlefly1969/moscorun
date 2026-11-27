@@ -840,6 +840,20 @@
       "category": "nutrition",
       "availability": "capability-dependent",
       "interpretation": "method_required"
+    },
+    {
+      "metric": "irregularRhythmNotification",
+      "unit": "1",
+      "category": "cardiovascular",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
+    },
+    {
+      "metric": "sleepApneaRiskSign",
+      "unit": "1",
+      "category": "providerEstimates",
+      "availability": "capability-dependent",
+      "interpretation": "method_required"
     }
   ]
 }
