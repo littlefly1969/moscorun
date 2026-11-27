@@ -25,7 +25,7 @@ La deduplicazione cross-source richiede un successivo matching verificabile, non
 Stress proprietario ed ECG storico non sono tipi leggibili nella Data SDK documentata.
 Samsung Health Sensor SDK consente nuove misure sull'orologio (ECG, PPG, IBI, EDA, MF-BIA ecc.);
 richiede AAR separato, app Wear OS, permessi e test fisici. Non implementato in questo incremento.
-Non ancora coperti tutti gli aggregati Samsung (Steps/Activity Summary e obiettivi), tutti i metadati
+Sono ora inclusi Steps.TOTAL e i quattro aggregati Activity Summary (giorni conclusi), ottenuti dal fornitore senza sommare dispositivi sovrapposti. L'SDK non espone un ordine di revisione per questi aggregati: valore cambiato conservato come revisione distinta e non ordinata. Le fasi del sonno Health Connect conservano codice nativo e intervallo tramite identità. Non ancora coperti gli obiettivi Samsung, tutti i metadati
 nativi, tutte le classi Health Connect o tutti i nutrienti; i record sovrapposti fra canali rimangono
 distinti, nessuna imputazione. Nessun export, accesso non ufficiale o simulazione di misure.
 Public CI usa lo stub esplicito Samsung; solo la build privata con AAR reale verifica i tipi SDK.

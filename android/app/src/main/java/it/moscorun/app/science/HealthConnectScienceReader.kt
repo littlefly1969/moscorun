@@ -48,7 +48,7 @@ class HealthConnectScienceReader(context: Context) : ScienceReader {
     override val source = "health-connect"
     override val isolatedStreams = true
     override val supportedMetrics get() = ScienceCapabilities.healthConnect
-    override fun checkpoint(availability: ScienceAvailability) = ScienceCapabilities.checkpoint(source, "hc-expanded-v1", availability)
+    override fun checkpoint(availability: ScienceAvailability) = ScienceCapabilities.checkpoint(source, "hc-expanded-v2", availability)
 
     override suspend fun availability(): ScienceAvailability {
         if (HealthConnectClient.getSdkStatus(appContext) != HealthConnectClient.SDK_AVAILABLE)
@@ -99,7 +99,7 @@ class HealthConnectScienceReader(context: Context) : ScienceReader {
             if (ScienceMetric.VO2_MAX in metrics) all(Vo2MaxRecord::class, range).mapTo(this) {
                 ScienceRecord.Vo2Max(origin(it.metadata), it.time, it.vo2MillilitersPerMinuteKilogram, it.measurementMethod)
             }
-            if (ScienceMetric.SLEEP in metrics) all(SleepSessionRecord::class, range).mapTo(this) {
+            if (ScienceMetric.SLEEP in metrics) all(SleepSessionRecord::class, TimeRangeFilter.between(from.minusSeconds(172800), to)).mapTo(this) {
                 ScienceRecord.Sleep(origin(it.metadata), it.startTime, it.endTime, it.stages.map { s -> SleepStage(s.startTime, s.endTime, s.stage) })
             }
         }

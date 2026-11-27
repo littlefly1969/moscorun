@@ -47,6 +47,8 @@ enum class ScienceMetric(val label: String) {
     SAMSUNG_TEMP("temperatura corporea Samsung"),
     SAMSUNG_FLOORS("piani saliti Samsung"),
     SAMSUNG_ENERGY("Energy Score Samsung"),
+    SAMSUNG_STEPS("passi aggregati Samsung"),
+    SAMSUNG_ACTIVITY("attività aggregata Samsung"),
 }
 
 /**
@@ -66,6 +68,8 @@ data class ScienceObservation(
     val nativeUnit: String,
     val nativeValue: Double?,
     val mappingVersion: String = HealthConnectScienceMapping.MAPPING_VERSION,
+    val externalRevision: String = revision.toString(),
+    val revisionOrder: Long? = revision,
 )
 
 /** What the reader may read now: an empty set means the scientific part waits, without blocking the workouts. */

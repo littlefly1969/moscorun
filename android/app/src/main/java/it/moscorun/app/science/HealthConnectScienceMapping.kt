@@ -88,6 +88,16 @@ object HealthConnectScienceMapping {
             observation(record, "sleepDuration", "s", asleepSeconds, record.end, ScienceMethod.PROVIDER_REPORTED,
                 "SleepSessionRecord.stages", "s", asleepSeconds)?.let(result::add)
         }
+        // Preserve each original stage's type and duration, including awake/unknown. No inferred sleep stage.
+        for (stage in record.stages) {
+            val start = maxOf(stage.start, record.start)
+            val end = minOf(stage.end, record.end)
+            if (!end.isAfter(start)) continue
+            val seconds = Duration.between(start, end).toMillis() / 1000.0
+            SdkObservationMapping.value(record.origin, "hc", "hc-sleep-stage-v1", "sleepStageDuration", "s",
+                seconds, end, "SleepSessionRecord.stage." + stage.type, suffix = ":stage:" + start + ":" + stage.type)
+                ?.let(result::add)
+        }
         return result
     }
 

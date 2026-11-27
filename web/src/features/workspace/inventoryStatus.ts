@@ -6,6 +6,7 @@ export const healthConnectReaderMetrics = new Set([
   "hrvRmssd",
   "sleepDuration",
   "sleepInBedDuration",
+  "sleepStageDuration",
   "spo2",
   "respirationRate",
   "vo2max",
@@ -106,4 +107,9 @@ export const samsungReaderMetrics = new Set([
   "bodyTemperature",
   "floorsClimbed",
   "energyScore",
+  "steps",
+  "activeDuration",
+  "activeEnergyExpenditure",
+  "energyExpenditure",
+  "distance",
 ]);

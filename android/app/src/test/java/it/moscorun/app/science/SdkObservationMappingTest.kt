@@ -36,4 +36,17 @@ class SdkObservationMappingTest {
         assertTrue(ScienceCapabilities.fieldsFor(ScienceCapabilities.samsung).containsKey("skeletalMuscleMass"))
         assertTrue(ScienceCapabilities.fieldsFor(ScienceCapabilities.healthConnect).containsKey("weight"))
     }
+    @Test fun `daily aggregate preserves interval identity without inventing a source revision order`() {
+        val end = at.plusSeconds(86400)
+        val first = SdkObservationMapping.samsungDailyAggregate("steps", "1", 5000.0, at, end,
+            "StepsType.TOTAL", ScienceMethod.PROVIDER_REPORTED)!!
+        val corrected = SdkObservationMapping.samsungDailyAggregate("steps", "1", 5100.0, at, end,
+            "StepsType.TOTAL", ScienceMethod.PROVIDER_REPORTED)!!
+        assertEquals(first.externalId, corrected.externalId)
+        assertNotEquals(first.externalRevision, corrected.externalRevision)
+        assertNull(ScienceUpload.item(first).revisionOrder)
+        assertEquals(end.minusMillis(1), first.time)
+        assertNull(SdkObservationMapping.samsungDailyAggregate("steps", "1", null, at, end,
+            "StepsType.TOTAL", ScienceMethod.PROVIDER_REPORTED))
+    }
 }

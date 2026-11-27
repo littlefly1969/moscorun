@@ -3,12 +3,12 @@ package it.moscorun.app.science
 /** Catalog fields per permission group. Separate sources can report the same metric without merging provenance. */
 object ScienceCapabilities {
     val healthConnect = setOf(ScienceMetric.RESTING_HEART_RATE, ScienceMetric.HRV_RMSSD, ScienceMetric.SLEEP, ScienceMetric.OXYGEN_SATURATION, ScienceMetric.RESPIRATORY_RATE, ScienceMetric.VO2_MAX, ScienceMetric.HEART_RATE, ScienceMetric.WEIGHT, ScienceMetric.BODY_FAT, ScienceMetric.LEAN_MASS, ScienceMetric.BODY_WATER, ScienceMetric.BONE_MASS, ScienceMetric.BMR, ScienceMetric.HEIGHT, ScienceMetric.BLOOD_PRESSURE, ScienceMetric.BODY_TEMPERATURE, ScienceMetric.BLOOD_GLUCOSE, ScienceMetric.STEPS, ScienceMetric.DISTANCE, ScienceMetric.FLOORS, ScienceMetric.TOTAL_ENERGY, ScienceMetric.ACTIVE_ENERGY, ScienceMetric.NUTRITION, ScienceMetric.HYDRATION)
-    val samsung = setOf(ScienceMetric.SAMSUNG_BODY, ScienceMetric.SAMSUNG_HEART, ScienceMetric.SAMSUNG_OXYGEN, ScienceMetric.SAMSUNG_SKIN, ScienceMetric.SAMSUNG_SLEEP, ScienceMetric.SAMSUNG_PRESSURE, ScienceMetric.SAMSUNG_NUTRITION, ScienceMetric.SAMSUNG_WATER, ScienceMetric.SAMSUNG_GLUCOSE, ScienceMetric.SAMSUNG_TEMP, ScienceMetric.SAMSUNG_FLOORS, ScienceMetric.SAMSUNG_ENERGY)
+    val samsung = setOf(ScienceMetric.SAMSUNG_BODY, ScienceMetric.SAMSUNG_HEART, ScienceMetric.SAMSUNG_OXYGEN, ScienceMetric.SAMSUNG_SKIN, ScienceMetric.SAMSUNG_SLEEP, ScienceMetric.SAMSUNG_PRESSURE, ScienceMetric.SAMSUNG_NUTRITION, ScienceMetric.SAMSUNG_WATER, ScienceMetric.SAMSUNG_GLUCOSE, ScienceMetric.SAMSUNG_TEMP, ScienceMetric.SAMSUNG_FLOORS, ScienceMetric.SAMSUNG_ENERGY, ScienceMetric.SAMSUNG_STEPS, ScienceMetric.SAMSUNG_ACTIVITY)
 
     private val fields = mapOf(
         ScienceMetric.RESTING_HEART_RATE to listOf("restingHeartRate"),
         ScienceMetric.HRV_RMSSD to listOf("hrvRmssd"),
-        ScienceMetric.SLEEP to listOf("sleepDuration", "sleepInBedDuration"),
+        ScienceMetric.SLEEP to listOf("sleepDuration", "sleepInBedDuration", "sleepStageDuration"),
         ScienceMetric.OXYGEN_SATURATION to listOf("spo2"),
         ScienceMetric.RESPIRATORY_RATE to listOf("respirationRate"),
         ScienceMetric.VO2_MAX to listOf("vo2max"),
@@ -42,6 +42,8 @@ object ScienceCapabilities {
         ScienceMetric.SAMSUNG_TEMP to listOf("bodyTemperature"),
         ScienceMetric.SAMSUNG_FLOORS to listOf("floorsClimbed"),
         ScienceMetric.SAMSUNG_ENERGY to listOf("energyScore"),
+        ScienceMetric.SAMSUNG_STEPS to listOf("steps"),
+        ScienceMetric.SAMSUNG_ACTIVITY to listOf("activeDuration", "activeEnergyExpenditure", "energyExpenditure", "distance"),
     )
 
     fun fieldsFor(metrics: Set<ScienceMetric>): Map<String, ScienceMetric> =

@@ -6,10 +6,14 @@ import com.samsung.android.sdk.health.data.HealthDataService
 import com.samsung.android.sdk.health.data.data.HealthDataPoint
 import com.samsung.android.sdk.health.data.permission.AccessType
 import com.samsung.android.sdk.health.data.permission.Permission
+import com.samsung.android.sdk.health.data.request.AggregateRequest
 import com.samsung.android.sdk.health.data.request.DataType
 import com.samsung.android.sdk.health.data.request.DataTypes
 import com.samsung.android.sdk.health.data.request.InstantTimeFilter
 import com.samsung.android.sdk.health.data.request.LocalDateFilter
+import com.samsung.android.sdk.health.data.request.LocalTimeFilter
+import com.samsung.android.sdk.health.data.request.LocalTimeGroup
+import com.samsung.android.sdk.health.data.request.LocalTimeGroupUnit
 import com.samsung.android.sdk.health.data.request.Ordering
 import com.samsung.android.sdk.health.data.request.ReadDataRequest
 import kotlinx.coroutines.CancellationException
@@ -38,6 +42,8 @@ class SamsungScienceReader(context: Context) : ScienceReader {
         ScienceMetric.SAMSUNG_TEMP to Permission.of(DataTypes.BODY_TEMPERATURE, AccessType.READ),
         ScienceMetric.SAMSUNG_FLOORS to Permission.of(DataTypes.FLOORS_CLIMBED, AccessType.READ),
         ScienceMetric.SAMSUNG_ENERGY to Permission.of(DataTypes.ENERGY_SCORE, AccessType.READ),
+        ScienceMetric.SAMSUNG_STEPS to Permission.of(DataTypes.STEPS, AccessType.READ),
+        ScienceMetric.SAMSUNG_ACTIVITY to Permission.of(DataTypes.ACTIVITY_SUMMARY, AccessType.READ),
     )
 
     override suspend fun availability(): ScienceAvailability = try {
@@ -154,6 +160,22 @@ class SamsungScienceReader(context: Context) : ScienceReader {
                         }
                     }
             }
+            if (ScienceMetric.SAMSUNG_STEPS in metrics) {
+                addAll(daily(DataType.StepsType.TOTAL.requestBuilder, from, to, "steps", "1",
+                    "StepsType.TOTAL", ScienceMethod.PROVIDER_REPORTED) { it.toDouble() })
+            }
+            if (ScienceMetric.SAMSUNG_ACTIVITY in metrics) {
+                addAll(daily(DataType.ActivitySummaryType.TOTAL_ACTIVE_TIME.requestBuilder, from, to,
+                    "activeDuration", "s", "ActivitySummaryType.TOTAL_ACTIVE_TIME", ScienceMethod.PROVIDER_REPORTED) {
+                    it.toMillis() / 1000.0
+                })
+                addAll(daily(DataType.ActivitySummaryType.TOTAL_ACTIVE_CALORIES_BURNED.requestBuilder, from, to,
+                    "activeEnergyExpenditure", "kcal", "ActivitySummaryType.TOTAL_ACTIVE_CALORIES_BURNED", ScienceMethod.PROVIDER_ESTIMATED) { it.toDouble() })
+                addAll(daily(DataType.ActivitySummaryType.TOTAL_CALORIES_BURNED.requestBuilder, from, to,
+                    "energyExpenditure", "kcal", "ActivitySummaryType.TOTAL_CALORIES_BURNED", ScienceMethod.PROVIDER_ESTIMATED) { it.toDouble() })
+                addAll(daily(DataType.ActivitySummaryType.TOTAL_DISTANCE.requestBuilder, from, to,
+                    "distance", "m", "ActivitySummaryType.TOTAL_DISTANCE", ScienceMethod.PROVIDER_REPORTED) { it.toDouble() })
+            }
             if (ScienceMetric.SAMSUNG_ENERGY in metrics) {
                 // Local-day records: widen around UTC boundaries, then filter by the exact source timestamp.
                 val filter = LocalDateFilter.of(from.atOffset(ZoneOffset.UTC).toLocalDate().minusDays(1),
@@ -165,6 +187,32 @@ class SamsungScienceReader(context: Context) : ScienceReader {
                     method = ScienceMethod.PROVIDER_ESTIMATED)
             }
         }.filter { !it.time.isBefore(from) && it.time.isBefore(to) }
+
+    /** Use the SDK's deduplicated daily aggregate, not a sum of overlapping phone/watch records. */
+    private suspend fun <T : Any> daily(builder: AggregateRequest.LocalTimeBuilder<T>, from: Instant, to: Instant,
+        metric: String, unit: String, field: String, method: ScienceMethod,
+        convert: (T) -> Double): List<ScienceObservation> {
+        // Widen local-date bounds across zone offsets; filter against the exact SDK interval below.
+        val localFrom = from.atOffset(ZoneOffset.UTC).toLocalDate().minusDays(2).atStartOfDay()
+        val localTo = to.atOffset(ZoneOffset.UTC).toLocalDate().plusDays(2).atStartOfDay()
+        val filter = LocalTimeFilter.of(localFrom, localTo)
+        val group = LocalTimeGroup.of(LocalTimeGroupUnit.DAILY, 1)
+        val result = mutableListOf<ScienceObservation>()
+        val seen = mutableSetOf<String>()
+        var token: String? = null
+        do {
+            val page = store.aggregateData(builder.setLocalTimeFilterWithGroup(filter, group)
+                .setPageSize(500).setPageToken(token).setOrdering(Ordering.ASC).build())
+            for (item in page.dataList) {
+                if (item.endTime.isAfter(to) || !item.endTime.isAfter(from)) continue
+                SdkObservationMapping.samsungDailyAggregate(metric, unit, item.value?.let(convert),
+                    item.startTime, item.endTime, field, method)?.let(result::add)
+            }
+            token = page.pageToken?.takeIf { it.isNotBlank() }
+            check(token == null || seen.add(token)) { "Paginazione aggregati Samsung non valida" }
+        } while (token != null)
+        return result
+    }
 
     private suspend fun all(builder: ReadDataRequest.DualTimeBuilder<HealthDataPoint>, from: Instant, to: Instant) =
         // Read records that start before a window but contain samples within it (e.g. sleep).
